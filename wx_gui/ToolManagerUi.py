@@ -1,6 +1,7 @@
 import wx
 import sys
 
+import wx_gui.import_xml
 
 class ToolManagerUI(wx.Frame):
 
@@ -47,25 +48,16 @@ class ToolManagerUI(wx.Frame):
         print("exit",event.Title, handle, sep=" :: ")
         sys.exit()
         
-        
-    def open_file(self,title,wCard):
-        dlg = wx.FileDialog(self, title, 
-                           style=wx.DD_DEFAULT_STYLE,
-                           wildcard=wCard)
-        if dlg.ShowModal() == wx.ID_OK:
-            self.panel.update_tools_listing(dlg.GetPath())
-        dlg.Destroy()
-        return 
     
     def on_open_xml(self, event):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        self.open_file( title,wcard)
+        wx_gui.import_xml.open_file( self, title,wcard)
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
         wcard ="Zip files (*.zip)|*.zip"
-        self.open_file( title, wcard)
+        wx_gui.import_xml.open_file(self, title, wcard)
 
         
 
