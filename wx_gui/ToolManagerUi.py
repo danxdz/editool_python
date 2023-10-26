@@ -4,19 +4,16 @@ import sys
 import databaseTools as db
 import import_xml_wx as iXml
 
+
 class ToolManagerUI(wx.Frame):
 
     def __init__(self):
         super().__init__(parent=None, title='Tool Manager')
         self.panel = ToolPanel(self)
         self.create_menu()
-        self.init_database()
+        self.SetSize(800, 800)
+        self.Centre()
         self.Show()
-
-    def init_database(self):
-
-        # Load tools from the database
-        db.load_tools_from_database(self)
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
@@ -88,6 +85,18 @@ class ToolPanel(wx.Panel):
         main_sizer.Add(edit_button, 0, wx.ALL | wx.CENTER, 5)        
         self.SetSizer(main_sizer)
 
+        self.load_data()
+
+    def add_line(self, tool):
+        index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), tool.Name)
+        self.list_ctrl.SetItem(index, 1, str(tool.D1))
+        self.list_ctrl.SetItem(index, 2, str(tool.L1))
+        self.row_obj_dict[index] = tool
+
     def on_edit(self, event):
         print('in on_edit')
 
+    def load_data(self):
+        tools = db.load_tools_from_database(self)
+        for tool in tools:
+            self.add_line(tool)

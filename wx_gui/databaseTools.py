@@ -17,8 +17,10 @@ def load_tools_from_database(self):
         tools = cursor.fetchall()
         print("Ferramentas lidas do banco de dados: ", len(tools))
         # Adiciona as ferramentas ao Treeview
+        tools_list = []
         for tool_data in tools:
             tool = Tool(*tool_data[1:])
             print("tool", tool.Name)
+            tools_list.append(tool)
             #self.add_tool_to_treeview(tool)
-
+        return tools_list

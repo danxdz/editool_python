@@ -106,12 +106,18 @@ def check_fraisa_types(tool_id):
 def parse_new_xml_data(tool):
     # Parse the XML file
     print("Parse the XML file")
+    print("TOOL :: ",tool)
+    #print each element's tag and text
+    for elem in tool.iter():
+        print(elem.tag, elem.text)
+    
+
 
     # Extract the properties using a function to handle missing properties
     coolants_value = int(get_property_value(tool, "H21"))
-    print("Coolants value: ", coolants_value)
+    db.print("Coolants value: ", coolants_value)
     coolants_type = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
-    print("Coolants type: ", coolants_type)
+    db.print("Coolants type: ", coolants_type)
 
     coolants_value = coolants_type[coolants_value]
 
@@ -121,6 +127,8 @@ def parse_new_xml_data(tool):
     #for drills: A11-Cutting diameter 1st step minimum
     if d1 == 0:
         d1 = get_property_value(tool, "A11")
+    
+    print("D1: ", d1)
     d2 = get_property_value(tool, "A5")
     if d2 == 0:
         d2 = d1 - 0.2
