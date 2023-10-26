@@ -1,7 +1,6 @@
 debugOut = True
 
-class debugOut:
         
-    def print(*output):
-        if debugOut == True:
-            print(output ,sep="::")
+def dbout(*output):
+    if debugOut == True:
+        print(output ,sep="::")
