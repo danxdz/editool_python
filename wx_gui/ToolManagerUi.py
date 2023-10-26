@@ -1,7 +1,8 @@
 import wx
 import sys
 
-import wx_gui.import_xml
+import databaseTools as db
+import import_xml_wx as iXml
 
 class ToolManagerUI(wx.Frame):
 
@@ -9,7 +10,13 @@ class ToolManagerUI(wx.Frame):
         super().__init__(parent=None, title='Tool Manager')
         self.panel = ToolPanel(self)
         self.create_menu()
+        self.init_database()
         self.Show()
+
+    def init_database(self):
+
+        # Load tools from the database
+        db.load_tools_from_database(self)
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
@@ -52,12 +59,12 @@ class ToolManagerUI(wx.Frame):
     def on_open_xml(self, event):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        wx_gui.import_xml.open_file( self, title,wcard)
+        iXml.open_file( self, title,wcard)
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
         wcard ="Zip files (*.zip)|*.zip"
-        wx_gui.import_xml.open_file(self, title, wcard)
+        iXml.open_file(self, title, wcard)
 
         
 
@@ -83,7 +90,4 @@ class ToolPanel(wx.Panel):
 
     def on_edit(self, event):
         print('in on_edit')
-
-    def update_tools_listing(self, folder_path):
-        print(folder_path)
 

@@ -1,7 +1,7 @@
 import wx
 
 #import gui
-from wx_gui.ToolManagerUi import ToolManagerUI
+from ToolManagerUi import ToolManagerUI
 
 
 

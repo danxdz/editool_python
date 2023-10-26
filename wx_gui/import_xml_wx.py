@@ -2,20 +2,18 @@ import wx
 
 import xml.etree.ElementTree as ET
 
-from .debugOutput import debug
+from  debugOutput import debugOut as db
 
 from tool import Tool
 
 from savebd import saveTool
-
-
 
 def parse_hyper_xml_data(root):
     print("Parse Hyper xml data")
     
     # Obtém os dados da ferramenta
     tool = root.find('.//tool')
-    debug("TOOL",tool)
+    db.print("TOOL",tool)
     # Find the tecset with type="milling"
     milling_tecset = tool.find(".//tecset")
 
@@ -189,14 +187,14 @@ def parse_new_xml_data(tool):
 
 
 def open_file(self,title,wCard):
-    debug (self , title, wCard)
+    db.print (self , title, wCard)
 
     dlg = wx.FileDialog(self, title, 
                         style=wx.DD_DEFAULT_STYLE,
                         wildcard=wCard)
     if dlg.ShowModal() == wx.ID_OK:
         xml_file_path = dlg.GetPath()
-        debug("PATH", xml_file_path)
+        db.print("PATH", xml_file_path)
 
         if not xml_file_path:
             print('Nenhum arquivo selecionado.')
@@ -204,14 +202,14 @@ def open_file(self,title,wCard):
             #exit()
 
         tree = ET.parse(xml_file_path)
-        debug(tree)
+        db.print(tree)
         root = tree.getroot()
-        debug("ROOT",root.tag)
+        db.print("ROOT",root.tag)
         
         # Try to obtain the 'Tool' element
         try:
             tool = root.find('.//Tool')
-            debug("TOOL",tool)
+            db.print("TOOL",tool)
             if tool:
                 rest = parse_new_xml_data(tool)
             else:
