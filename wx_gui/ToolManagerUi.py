@@ -9,11 +9,13 @@ class ToolManagerUI(wx.Frame):
 
     def __init__(self):
         super().__init__(parent=None, title='Tool Manager')
-        self.panel = ToolPanel(self)
+        self.panel = ToolPanel(self, self)
         self.create_menu()
         self.SetSize(800, 800)
         self.Centre()
         self.Show()
+
+        self.tools_list = []
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
@@ -56,7 +58,11 @@ class ToolManagerUI(wx.Frame):
     def on_open_xml(self, event):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        iXml.open_file( self, title,wcard)
+        tool = iXml.open_file(self, title, wcard)
+        if tool:
+            print("Tool added:", tool.Name)
+            self.panel.load_data()
+
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
@@ -67,8 +73,11 @@ class ToolManagerUI(wx.Frame):
 
 
 class ToolPanel(wx.Panel):    
-    def __init__(self, parent):
+    def __init__(self, parent, main_frame):
         super().__init__(parent)
+        self.main_frame = main_frame
+
+
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.row_obj_dict = {}
 
@@ -88,6 +97,7 @@ class ToolPanel(wx.Panel):
         self.load_data()
 
     def add_line(self, tool):
+        print("adding tool line :: ", tool.Name)
         index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), tool.Name)
         self.list_ctrl.SetItem(index, 1, str(tool.D1))
         self.list_ctrl.SetItem(index, 2, str(tool.L1))
