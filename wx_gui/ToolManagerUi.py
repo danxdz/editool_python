@@ -59,9 +59,10 @@ class ToolManagerUI(wx.Frame):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tool = iXml.open_file(self, title, wcard)
+        print("tool %s", tool)
         if tool:
             print("Tool added:", tool.Name)
-            self.panel.load_data()
+            self.panel.add_line(tool)
 
 
     def on_open_zip(self, event):
@@ -82,19 +83,19 @@ class ToolPanel(wx.Panel):
         self.row_obj_dict = {}
 
         self.list_ctrl = wx.ListCtrl(
-            self, size=(-1, 100), 
+            self, size=(-1, 300), 
             style=wx.LC_REPORT | wx.BORDER_SUNKEN
         )
-        self.list_ctrl.InsertColumn(0, 'name', width=140)
-        self.list_ctrl.InsertColumn(1, 'D1', width=140)
-        self.list_ctrl.InsertColumn(2, 'L1', width=200)
+        self.list_ctrl.InsertColumn(0, 'name', width=100)
+        self.list_ctrl.InsertColumn(1, 'D1', width=50)
+        self.list_ctrl.InsertColumn(2, 'L1', width=50)
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
         edit_button = wx.Button(self, label='Edit')
         edit_button.Bind(wx.EVT_BUTTON, self.on_edit)
         main_sizer.Add(edit_button, 0, wx.ALL | wx.CENTER, 5)        
         self.SetSizer(main_sizer)
 
-        self.load_data()
+        self.load_tools()
 
     def add_line(self, tool):
         print("adding tool line :: ", tool.Name)
@@ -106,7 +107,8 @@ class ToolPanel(wx.Panel):
     def on_edit(self, event):
         print('in on_edit')
 
-    def load_data(self):
+    def load_tools(self):
+        self.list_ctrl.ClearAll
         tools = db.load_tools_from_database(self)
         for tool in tools:
             self.add_line(tool)

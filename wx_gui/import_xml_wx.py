@@ -223,12 +223,15 @@ def open_file(self,title,wCard):
             else:
                 rest = parse_hyper_xml_data(root)
 
+            dbout("save tool",rest)
             saveTool(rest)
 
         except:
             print("no tool string found")
     
         dlg.Destroy()
+
+        return rest
 
    
 
