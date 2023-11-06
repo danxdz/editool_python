@@ -86,9 +86,13 @@ class ToolPanel(wx.Panel):
             self, size=(-1, 300), 
             style=wx.LC_REPORT | wx.BORDER_SUNKEN
         )
+        self.list_ctrl.EnableAlternateRowColours = True
+
         self.list_ctrl.InsertColumn(0, 'name', width=100)
         self.list_ctrl.InsertColumn(1, 'D1', width=50)
         self.list_ctrl.InsertColumn(2, 'L1', width=50)
+        
+   
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
         edit_button = wx.Button(self, label='Edit')
         edit_button.Bind(wx.EVT_BUTTON, self.on_edit)
@@ -97,12 +101,20 @@ class ToolPanel(wx.Panel):
 
         self.load_tools()
 
+    def on_plot(self, event):
+        ind = event.GetIndex()
+        print("type: ", event)
+        print (ind)
+        print (self.row_obj_dict[ind].Name)
+
     def add_line(self, tool):
         print("adding tool line :: ", tool.Name)
         index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), tool.Name)
         self.list_ctrl.SetItem(index, 1, str(tool.D1))
         self.list_ctrl.SetItem(index, 2, str(tool.L1))
         self.row_obj_dict[index] = tool
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_plot, self.list_ctrl)
+
 
     def on_edit(self, event):
         print('in on_edit')
