@@ -5,7 +5,7 @@ class FileExplorer(wx.Frame):
     def __init__(self, parent, title):
         super(FileExplorer, self).__init__(parent, title=title, size=(600, 400))
         self.panel = wx.Panel(self)
-        self.textbox = wx.TextCtrl(self.panel)
+        self.textbox = wx.TextCtrl(self.panel, style=wx.TE_PROCESS_ENTER)
         self.tree = wx.TreeCtrl(self.panel)
         self.config = wx.Config("FileExplorer")
         self.root_path = self.config.Read("root_path", "")
@@ -22,8 +22,7 @@ class FileExplorer(wx.Frame):
             self.get_initial_path()
 
         self.root = self.tree.AddRoot(self.root_path)
-        self.populate_tree(self.root, self.root_path)
-
+        
         self.Show()
 
     def get_initial_path(self):
@@ -34,10 +33,13 @@ class FileExplorer(wx.Frame):
         dialog.Destroy()
 
     def on_text_changed(self, event):
-        search_text = self.textbox.GetValue()
+        search_text = self.textbox.GetValue().lower()
         self.tree.DeleteAllItems()
         self.root = self.tree.AddRoot(self.root_path)
+        self.tree.Expand(self.root)
         self.populate_tree(self.root, self.root_path, search_text)
+
+
 
     def get_item_path(self, item):
         path = self.tree.GetItemText(item)
@@ -50,16 +52,14 @@ class FileExplorer(wx.Frame):
     def populate_tree(self, parent, path, search_text=""):
         for item in os.listdir(path):
             full_path = os.path.join(path, item)
-            if os.path.isdir(full_path):
-                if search_text == "" or search_text.lower() in item.lower():
-                    child = self.tree.AppendItem(parent, item)
-                    self.tree.SetItemImage(child, 0, wx.TreeItemIcon_Normal)
-                    self.tree.SetItemImage(child, 0, wx.TreeItemIcon_Expanded)
-                    self.tree.SetItemHasChildren(child)
-                    self.populate_tree(child, full_path, search_text)
-            elif not os.path.isdir(full_path):
-                if search_text == "" or search_text.lower() in item.lower():
-                    self.tree.AppendItem(parent, item)
+            if os.path.isdir(full_path) and (search_text == "" or search_text in item.lower()):
+                child = self.tree.AppendItem(parent, item)
+                self.tree.SetItemImage(child, 0, wx.TreeItemIcon_Normal)
+                self.tree.SetItemImage(child, 0, wx.TreeItemIcon_Expanded)
+                self.tree.SetItemHasChildren(child)
+            elif not os.path.isdir(full_path) and (search_text == "" or search_text in item.lower()):
+                self.tree.AppendItem(parent, item)
+        self.tree.ExpandAll()
 
 if __name__ == '__main__':
     app = wx.App()
