@@ -29,8 +29,8 @@ class ToolManagerWindow(QMainWindow):
 
     def add_tool(self):
         # Exemplo: Adicionar uma fresa
-        meshdata = gl.MeshData.cylinder(rows=10, cols=20, radius=[0.5, 0.3, 0.2], length=[1, 0.8, 0.6])
-        item = gl.GLMeshItem(meshdata=meshdata, smooth=True, shader="balloon")
+        meshdata = gl.MeshData.cylinder(rows=10, cols=20, radius=4, length=10)
+        item = gl.GLMeshItem(meshdata=meshdata, smooth=True)
         self.plot_widget.addItem(item)
 
 if __name__ == "__main__":
