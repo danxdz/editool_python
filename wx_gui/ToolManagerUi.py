@@ -88,6 +88,9 @@ class ToolPanel(wx.Panel):
         )
         self.list_ctrl.EnableAlternateRowColours = True
 
+        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.get_focus, self.list_ctrl)
+        self.list_ctrl.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.list_ctrl)
+
         self.list_ctrl.InsertColumn(0, 'name', width=100)
         self.list_ctrl.InsertColumn(1, 'D1', width=50)
         self.list_ctrl.InsertColumn(2, 'L1', width=50)
@@ -95,17 +98,52 @@ class ToolPanel(wx.Panel):
    
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
         edit_button = wx.Button(self, label='Edit')
-        edit_button.Bind(wx.EVT_BUTTON, self.on_edit)
+        edit_button.Bind(wx.EVT_BUTTON, self.on_menu_click)
         main_sizer.Add(edit_button, 0, wx.ALL | wx.CENTER, 5)        
         self.SetSizer(main_sizer)
 
+        self.popup_menu = wx.Menu()
+        self.popup_menu.Append(0, "Create")
+        self.popup_menu.Append(1, "Edit")
+        self.popup_menu.Append(2, "Delete")
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=0)
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=1)
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=2)
+
         self.load_tools()
 
-    def on_plot(self, event):
+    def get_selected_item(self):
+        index = self.list_ctrl.GetFirstSelected()
+        print("index :: ", index)
+        if index > -1:
+            return self.row_obj_dict[index]
+        else:
+            return None
+
+    def get_focus(self, event):
         ind = event.GetIndex()
-        print("type: ", event)
+        print ("GotFocus :: ",ind , " :: " , self.row_obj_dict[ind].Name)
+
+    def right_click(self, event):
+        count = self.list_ctrl.GetSelectedItemCount()
+        #gets the position of the mouse click
+        pos = self.list_ctrl.HitTest(event.GetPosition())
+
+        if count < 2:
+            #deselects all the items
+            self.list_ctrl.Select(-1, 0)
+            #selects the item clicked
+            self.list_ctrl.Select(pos[0])
+
+        #gets the index of the item clicked
+        ind = self.list_ctrl.GetFirstSelected()
         print (ind)
-        print (self.row_obj_dict[ind].Name)
+        #gets the item clicked
+        item = self.list_ctrl.GetItem(ind)
+        
+        print("RMC :: ",item,  " :: ", count , pos)
+
+        self.show_popup(event)
 
     def add_line(self, tool):
         print("adding tool line :: ", tool.Name)
@@ -113,14 +151,55 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 1, str(tool.D1))
         self.list_ctrl.SetItem(index, 2, str(tool.L1))
         self.row_obj_dict[index] = tool
-        self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.on_plot, self.list_ctrl)
 
 
-    def on_edit(self, event):
-        print('in on_edit')
+    def create_tool(self, index):
+        print("create tool :: ", index)
+        tool = self.row_obj_dict[index].Name
+        print("tool :: ", tool)
+
+    def on_menu_click(self, event):
+        id = event.GetId()
+        print('in on_edit :: ', id)
+        count = self.list_ctrl.GetSelectedItemCount()
+        
+        ind = self.list_ctrl.GetFirstSelected()
+        print (ind)
+        #gets the item clicked
+        item = self.list_ctrl.GetItem(ind)
+        
+        print("EDIT :: ",item,  " :: ", count )
+
+        print("count :: ", count)
+        if count > 1:
+            print("multiple items selected")
+        else:
+            print("single item selected")
+
+        print("selected item :: ", self.get_selected_item())
+        
+        for i in range(count):
+            self.list_ctrl.SetItemBackgroundColour(item=i+ind, col='#f0f2f0')
+            self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
+            self.list_ctrl.RefreshItem(i+ind)
+            self.create_tool(i+ind)
+
+        if id == 0:
+            print("Create")
+        elif id == 1:
+            print("Edit")
+        elif id == 2:
+            print("Delete")
+            self.delete_selected_item()
+
 
     def load_tools(self):
         self.list_ctrl.ClearAll
         tools = db.load_tools_from_database(self)
         for tool in tools:
             self.add_line(tool)
+
+    #show popup menu
+    def show_popup(self, event):
+        pos = event.GetPosition()        
+        self.PopupMenu(self.popup_menu, pos)
