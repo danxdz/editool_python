@@ -3,6 +3,7 @@ import sys
 
 import databaseTools as db
 import import_xml_wx as iXml
+import ts
 
 
 class ToolManagerUI(wx.Frame):
@@ -154,8 +155,11 @@ class ToolPanel(wx.Panel):
 
 
     def create_tool(self, index):
-        print("create tool :: ", index)
-        tool = self.row_obj_dict[index].Name
+        print("create tool :: ", self.row_obj_dict[index].Name)
+        tool = self.row_obj_dict[index]
+        
+        #ts.conn()
+        ts.copy_tool(tool)
         print("tool :: ", tool)
 
     def on_menu_click(self, event):
@@ -183,6 +187,7 @@ class ToolPanel(wx.Panel):
             self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
             self.list_ctrl.RefreshItem(i+ind)
             self.create_tool(i+ind)
+            
 
         if id == 0:
             print("Create")
