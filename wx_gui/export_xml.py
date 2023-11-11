@@ -237,12 +237,11 @@ def create_xml_data(Tool):
 
 def create_xml_file(xml_data, filename):
     xml = xmltodict.unparse(xml_data, pretty=True,short_empty_elements=True)
-    print(filename)
+    print(xml)
     
 
     with open(filename, 'w',  encoding='UTF-8') as file:
         file.write(xml)
-        print("file created")
 
 
 

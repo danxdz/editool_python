@@ -1,7 +1,7 @@
 class Tool:
  
     def __init__(self, Name="", Type="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, CoupeCentre=0.0,
-                  ArrCentre="", TypeTar=0, PasTar=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment=""):
+                  ArrCentre="", TypeTar=0, PasTar=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial=""):
    
         self.Name = Name
         self.Type = Type
@@ -25,6 +25,7 @@ class Tool:
         self.Code = Code
         self.CodeBar = CodeBar
         self.Comment = Comment
+        self.CuttingMaterial = CuttingMaterial
 
     def to_dict(self):
         return {

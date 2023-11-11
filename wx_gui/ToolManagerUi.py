@@ -4,6 +4,7 @@ import sys
 import databaseTools as db
 import import_xml_wx as iXml
 import ts
+from export_xml import create_xml_data
 
 class ToolManagerUI(wx.Frame):
 
@@ -27,6 +28,10 @@ class ToolManagerUI(wx.Frame):
             wx.ID_ANY, 'Open zip file', 
             'open a zip file with tool data'
         )
+        exp_xml = file_menu.Append(
+            wx.ID_ANY, 'Export XML file', 
+            'export tool data into XML file'
+        )
         exit = file_menu.Append(
             wx.ID_ANY, "exit", "close app"
         )
@@ -42,12 +47,26 @@ class ToolManagerUI(wx.Frame):
             source=open_zip,
         )
         self.Bind(
+            event=wx.EVT_MENU, 
+            handler=self.export_xml,
+            source=exp_xml,
+        )
+        self.Bind(
             event=wx.EVT_MENU,
             handler=self.close_app,
             source=exit
         )
         self.SetMenuBar(menu_bar)
-      
+    
+    def export_xml(self, event):
+        print("export_xml")
+        title = "Choose a XML file:"
+        wcard ="XML files (*.xml)|*.xml"
+        tool = self.panel.get_selected_item()
+        print("tool :: ", tool)
+        xml_data = create_xml_data(tool)
+        #iXml.save_file(self, title, wcard, xml_data)
+
     def close_app(event, handle):
         print("exit",event.Title, handle, sep=" :: ")
         sys.exit()        
