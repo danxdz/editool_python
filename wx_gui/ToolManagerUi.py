@@ -1,10 +1,11 @@
 import wx
+
 import sys
 
 import databaseTools as db
 import import_xml_wx as iXml
 import ts
-from export_xml import create_xml_data
+from export_xml_wx import create_xml_data
 
 class ToolManagerUI(wx.Frame):
 
@@ -96,6 +97,7 @@ class ToolPanel(wx.Panel):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.row_obj_dict = {}
 
+
         self.list_ctrl = wx.ListCtrl(
             self, size=(-1, 300), 
             style=wx.LC_REPORT | wx.BORDER_SUNKEN
@@ -109,18 +111,30 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.get_focus, self.list_ctrl)
         self.list_ctrl.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.list_ctrl)
 
-        self.list_ctrl.InsertColumn(0, 'name', width=100)
-        self.list_ctrl.InsertColumn(1, 'D1', width=50)
-        self.list_ctrl.InsertColumn(2, 'L1', width=50)
-        self.list_ctrl.InsertColumn(3, 'D2', width=50)
-        self.list_ctrl.InsertColumn(4, 'L2', width=50)
-        self.list_ctrl.InsertColumn(5, 'D3', width=50)
-        self.list_ctrl.InsertColumn(6, 'L3', width=50)
-        self.list_ctrl.InsertColumn(7, 'type', width=50)
+        self.add_columns()
 
         
-   
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
+
+        #need to change to array of dropboxs so i can have multiple dropboxs
+        self.dropbox_contrainer = wx.BoxSizer(wx.HORIZONTAL)
+        self.D1_dropbox = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
+        self.dropbox_contrainer.Add(self.D1_dropbox, 0, wx.ALL | wx.CENTER, 5)
+        self.L1_dropbox = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
+        self.dropbox_contrainer.Add(self.L1_dropbox, 0, wx.ALL | wx.CENTER, 5)
+        self.L2_dropbox = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
+        self.dropbox_contrainer.Add(self.L2_dropbox, 0, wx.ALL | wx.CENTER, 5)
+        self.Z_dropbox = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
+        self.dropbox_contrainer.Add(self.Z_dropbox, 0, wx.ALL | wx.CENTER, 5)
+
+        main_sizer.Add(self.dropbox_contrainer, 0, wx.ALL | wx.CENTER, 5)
+        
+        self.D1_dropbox.Bind(wx.EVT_COMBOBOX, lambda event: self.on_select(event, self.filter_D1,"D1", self.L1_dropbox, self.L2_dropbox, self.Z_dropbox))
+        self.L1_dropbox.Bind(wx.EVT_COMBOBOX, lambda event: self.on_select(event, self.filter_L1,"L1", self.L2_dropbox, self.Z_dropbox))
+
+
+
+
         edit_button = wx.Button(self, label='Edit')
         edit_button.Bind(wx.EVT_BUTTON, self.on_menu_click)
         main_sizer.Add(edit_button, 0, wx.ALL | wx.CENTER, 5)        
@@ -136,13 +150,67 @@ class ToolPanel(wx.Panel):
 
         self.load_tools()
 
-    def get_selected_item(self):
-        index = self.list_ctrl.GetFirstSelected()
-        print("index :: ", index)
-        if index > -1:
-            return self.row_obj_dict[index]
+    def add_columns(self):
+        self.list_ctrl.InsertColumn(0, 'name', width=100)
+        self.list_ctrl.InsertColumn(1, 'D1', width=50)
+        self.list_ctrl.InsertColumn(2, 'L1', width=50)
+        self.list_ctrl.InsertColumn(3, 'D2', width=50)
+        self.list_ctrl.InsertColumn(4, 'L2', width=50)
+        self.list_ctrl.InsertColumn(5, 'D3', width=50)
+        self.list_ctrl.InsertColumn(6, 'L3', width=50)
+        self.list_ctrl.InsertColumn(7, 'type', width=50)
+
+
+
+    def on_select(self, event, filter_func, filter, *dropboxes):
+        print("on_select :: "  + event.GetString() +  " :: " +  filter )
+        self.list_ctrl.ClearAll()
+        self.add_columns()
+        for dropbox in dropboxes:
+            dropbox.Clear()
+
+        new_tool_list = []
+        if event.GetString() == " ": # blank
+            value = 0
         else:
-            return None
+            value = float(event.GetString())
+
+        print(" ********************************* value :: ", value)
+        for tool in self.row_obj_dict.values():
+            if value == 0:  # blank
+                print("value vide :: ", value)
+                self.add_line(tool)
+                new_tool_list.append(tool)
+            else:
+                print("value :: ", value , " :: ", tool.D1)
+                if filter == "D1":
+                    flt = tool.D1
+                elif filter == "L1":
+                    flt = tool.L1
+                if (flt == value):
+                    print("adding tool :: ", tool.Name)
+                    filter_func(tool,value)
+                    self.add_line(tool)
+                    new_tool_list.append(tool)
+
+        for tool in new_tool_list:
+            filter_func(tool,value)
+
+        # Após aplicar todos os filtros, atualize a lista
+        self.list_ctrl.Refresh() 
+
+    def filter_D1(self, tool, value):
+            self.fill_dropboxs(tool.L1, self.L1_dropbox)
+            self.fill_dropboxs(tool.L2, self.L2_dropbox)
+            self.fill_dropboxs(tool.NoTT, self.Z_dropbox)
+
+    def filter_L1(self, tool, value):
+            self.fill_dropboxs(tool.L2, self.L2_dropbox)
+            self.fill_dropboxs(tool.NoTT, self.Z_dropbox)
+
+
+
+
 
     def get_focus(self, event):
         ind = event.GetIndex()
@@ -169,6 +237,29 @@ class ToolPanel(wx.Panel):
 
         self.show_popup(event)
 
+    def fill_dropboxs(self, tool, dropbox):
+                #add the D1 value to the dropbox if it is not already there
+        items = dropbox.GetItems()
+        d1 = str(tool)
+        if str(d1) not in items:
+            print(d1, " :: " , items)
+            dropbox.Append(d1)
+
+        #order the dropbox items remeber they are strings, so make sure to convert to real numbers
+        items = dropbox.GetItems()
+        #print("items :: ", items)
+        #first item must be blank we dont want to sort that
+        if items[0] == " ":
+            items.pop(0)
+        #print("items :: ", items)
+        items.sort(key=float)
+        #append the blank item back to the list to make it the first item
+        items.insert(0, " ")
+        
+        dropbox.SetItems(items)
+        #print("items :: ", items)
+
+
     def add_line(self, tool):
         print("adding tool line :: ", tool.Name)
         index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), tool.Name)
@@ -180,6 +271,10 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 6, str(tool.L3))
         self.list_ctrl.SetItem(index, 7, str(tool.Type))
         self.row_obj_dict[index] = tool
+        
+
+
+
         return index
 
 
@@ -230,8 +325,24 @@ class ToolPanel(wx.Panel):
     def load_tools(self):
         self.list_ctrl.ClearAll
         tools = db.load_tools_from_database(self)
+
+
+        self.D1_dropbox.Append(str(" "))
+        self.L1_dropbox.Append(str(" "))
+        self.L2_dropbox.Append(str(" "))
+        self.Z_dropbox.Append(str(" "))
+
         for tool in tools:
             self.add_line(tool)
+
+            dropbox = self.D1_dropbox
+            self.fill_dropboxs(tool.D1, dropbox)    
+            dropbox = self.L1_dropbox
+            self.fill_dropboxs(tool.L1, dropbox)
+            dropbox = self.L2_dropbox
+            self.fill_dropboxs(tool.L2, dropbox)
+            dropbox = self.Z_dropbox
+            self.fill_dropboxs(tool.NoTT, dropbox)
 
     #show popup menu
     def show_popup(self, event):

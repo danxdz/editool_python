@@ -56,7 +56,7 @@ def create_xml_data(Tool):
             },
             'cuttingMaterials': {
                 'cuttingMaterial': {
-                    '@name': Tool.GroupeMat,
+                    '@name': Tool.CuttingMaterial,
                     'params': None
                 }
             },
@@ -111,7 +111,7 @@ def create_xml_data(Tool):
                         },
                         {
                             '@name': 'cuttingLength',
-                            '@value': '19'
+                            '@value': Tool.L1
                         },
                         {
                             '@name': 'toolShaftType',
@@ -119,7 +119,7 @@ def create_xml_data(Tool):
                         },
                         {
                             '@name': 'toolShaftDiameter',
-                            '@value': '8'
+                            '@value': Tool.D3
                         },
                         {
                             '@name': 'toolShaftChamferDefMode',
@@ -127,27 +127,27 @@ def create_xml_data(Tool):
                         },
                         {
                             '@name': 'toolShaftChamferAbsPos',
-                            '@value': '26'
+                            '@value': '0'
                         },
                         {
                             '@name': 'toolDiameter',
-                            '@value': '8'
+                            '@value': Tool.D1
                         },
                         {
                             '@name': 'taperHeight',
-                            '@value': '23.63'
+                            '@value': Tool.L1
                         },
                         {
                             '@name': 'collar',
-                            '@value': '1'
+                            '@value': Tool.D2
                         },
                         {
                             '@name': 'tipDiameter',
-                            '@value': '7.4'
+                            '@value': Tool.D1
                         },
                         {
                             '@name': 'cornerRadius',
-                            '@value': '0.15'
+                            '@value': Tool.RayonBout
                         },
                         {
                             '@name': 'coreDiameter',
@@ -184,19 +184,18 @@ def create_xml_data(Tool):
                                 },
                                 {
                                     '@name': 'cuttingSpeed',
-                                    '@value': '197'
+                                    '@value': '0'
                                 },
                                 {
                                     '@name': 'coolants',
-                                    '@value': '1'
-                                },
+                                    '@value': Tool.ArrCentre                                },
                                 {
                                     '@name': 'cuttingDirection',
                                     '@value': 'upAndDown'
                                 },
                                 {
                                     '@name': 'feedratePerEdge',
-                                    '@value': '0.082'
+                                    '@value': '0.0'
                                 },
                                 {
                                     '@name': 'cuttingWidth',
@@ -204,7 +203,7 @@ def create_xml_data(Tool):
                                 },
                                 {
                                     '@name': 'cuttingLength',
-                                    '@value': '19'
+                                    '@value': Tool.L1
                                 },
                                 {
                                     '@name': 'plungeAngle',
@@ -237,11 +236,9 @@ def create_xml_data(Tool):
 
 def create_xml_file(xml_data, filename):
     xml = xmltodict.unparse(xml_data, pretty=True,short_empty_elements=True)
-    print(xml)
+    print(filename)
     
 
     with open(filename, 'w',  encoding='UTF-8') as file:
         file.write(xml)
-
-
-
+        print("file created")

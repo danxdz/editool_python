@@ -21,7 +21,7 @@
 		<material name="1.0722 &lt; 500 N/mm²"/>
 	</materials>
 	<cuttingMaterials>
-		<cuttingMaterial name="Solid carbide">
+		<cuttingMaterial name="">
 			<params/>
 		</cuttingMaterial>
 	</cuttingMaterials>
@@ -33,24 +33,24 @@
 		</coolant>
 	</coolants>
 	<tools>
-		<tool type="radiusMill" name="P8107220">
-			<param name="comment" value="Corner radius end mills MFC Normal with neck"/>
-			<param name="orderingCode" value="P8107220"/>
+		<tool type="endMill" name="P8300450">
+			<param name="comment" value="Fraises cylindriques E-Cut Normale avec dégagement"/>
+			<param name="orderingCode" value="P8300450"/>
 			<param name="manufacturer" value="FRAISA"/>
 			<param name="cuttingMaterial" value=""/>
 			<param name="lengthOfUnit" value="mm"/>
-			<param name="toolTotalLength" value="57.0"/>
+			<param name="toolTotalLength" value="72.0"/>
 			<param name="cuttingEdges" value="4"/>
-			<param name="cuttingLength" value="19"/>
+			<param name="cuttingLength" value="23.0"/>
 			<param name="toolShaftType" value="parametric"/>
-			<param name="toolShaftDiameter" value="8"/>
+			<param name="toolShaftDiameter" value="10.0"/>
 			<param name="toolShaftChamferDefMode" value="abs"/>
-			<param name="toolShaftChamferAbsPos" value="26"/>
-			<param name="toolDiameter" value="8"/>
-			<param name="taperHeight" value="23.63"/>
-			<param name="collar" value="1"/>
-			<param name="tipDiameter" value="7.4"/>
-			<param name="cornerRadius" value="0.15"/>
+			<param name="toolShaftChamferAbsPos" value="0"/>
+			<param name="toolDiameter" value="10.0"/>
+			<param name="taperHeight" value="23.0"/>
+			<param name="collar" value="9.8"/>
+			<param name="tipDiameter" value="10.0"/>
+			<param name="cornerRadius" value="0.2"/>
 			<param name="coreDiameter" value="0"/>
 			<param name="coreHeight" value="0"/>
 			<param name="discHeight" value="0"/>
@@ -60,12 +60,12 @@
 					<param name="purpose" value="Roughing HDC-P, partial cut"/>
 					<param name="lengthOfUnit" value="mm"/>
 					<param name="spindleSpeedFormula" value="fN"/>
-					<param name="cuttingSpeed" value="197"/>
+					<param name="cuttingSpeed" value="0"/>
 					<param name="coolants" value="1"/>
 					<param name="cuttingDirection" value="upAndDown"/>
-					<param name="feedratePerEdge" value="0.082"/>
+					<param name="feedratePerEdge" value="0.0"/>
 					<param name="cuttingWidth" value="1.6"/>
-					<param name="cuttingLength" value="19"/>
+					<param name="cuttingLength" value="23.0"/>
 					<param name="plungeAngle" value="0"/>
 					<param name="planeFeedrateFormula" value="fZ"/>
 					<param name="zFeedrateFormula" value="feedrateAxial"/>
