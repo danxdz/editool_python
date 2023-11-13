@@ -151,14 +151,15 @@ class ToolPanel(wx.Panel):
         self.load_tools()
 
     def add_columns(self):
-        self.list_ctrl.InsertColumn(0, 'name', width=100)
-        self.list_ctrl.InsertColumn(1, 'D1', width=50)
-        self.list_ctrl.InsertColumn(2, 'L1', width=50)
-        self.list_ctrl.InsertColumn(3, 'D2', width=50)
-        self.list_ctrl.InsertColumn(4, 'L2', width=50)
-        self.list_ctrl.InsertColumn(5, 'D3', width=50)
-        self.list_ctrl.InsertColumn(6, 'L3', width=50)
-        self.list_ctrl.InsertColumn(7, 'type', width=50)
+        self.list_ctrl.InsertColumn(0, "n" , width=50)
+        self.list_ctrl.InsertColumn(1, 'name', width=100)
+        self.list_ctrl.InsertColumn(2, 'D1', width=50)
+        self.list_ctrl.InsertColumn(3, 'L1', width=50)
+        self.list_ctrl.InsertColumn(4, 'D2', width=50)
+        self.list_ctrl.InsertColumn(5, 'L2', width=50)
+        self.list_ctrl.InsertColumn(6, 'D3', width=50)
+        self.list_ctrl.InsertColumn(7, 'L3', width=50)
+        self.list_ctrl.InsertColumn(8, 'type', width=50)
 
 
 
@@ -194,6 +195,7 @@ class ToolPanel(wx.Panel):
                     new_tool_list.append(tool)
 
         for tool in new_tool_list:
+            print("filter func: ", filter_func)
             filter_func(tool,value)
 
         # Após aplicar todos os filtros, atualize a lista
@@ -205,6 +207,7 @@ class ToolPanel(wx.Panel):
             self.fill_dropboxs(tool.NoTT, self.Z_dropbox)
 
     def filter_L1(self, tool, value):
+            self.fill_dropboxs(tool.D1, self.D1_dropbox)
             self.fill_dropboxs(tool.L2, self.L2_dropbox)
             self.fill_dropboxs(tool.NoTT, self.Z_dropbox)
 
@@ -261,15 +264,18 @@ class ToolPanel(wx.Panel):
 
 
     def add_line(self, tool):
-        print("adding tool line :: ", tool.Name)
-        index = self.list_ctrl.InsertItem(self.list_ctrl.GetItemCount(), tool.Name)
-        self.list_ctrl.SetItem(index, 1, str(tool.D1))
-        self.list_ctrl.SetItem(index, 2, str(tool.L1))
-        self.list_ctrl.SetItem(index, 3, str(tool.D2))
-        self.list_ctrl.SetItem(index, 4, str(tool.L2))
-        self.list_ctrl.SetItem(index, 5, str(tool.D3))
-        self.list_ctrl.SetItem(index, 6, str(tool.L3))
-        self.list_ctrl.SetItem(index, 7, str(tool.Type))
+        index = self.list_ctrl.GetItemCount()
+        print("adding tool line :: ", index , " :: "  , tool.Name)
+
+        index = self.list_ctrl.InsertItem(0, str(index+1))
+        self.list_ctrl.SetItem(index, 1, tool.Name)
+        self.list_ctrl.SetItem(index, 2, str(tool.D1))
+        self.list_ctrl.SetItem(index, 3, str(tool.L1))
+        self.list_ctrl.SetItem(index, 4, str(tool.D2))
+        self.list_ctrl.SetItem(index, 5, str(tool.L2))
+        self.list_ctrl.SetItem(index, 6, str(tool.D3))
+        self.list_ctrl.SetItem(index, 7, str(tool.L3))
+        self.list_ctrl.SetItem(index, 8, str(tool.Type))
         self.row_obj_dict[index] = tool
         
 
