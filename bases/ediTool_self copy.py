@@ -21,19 +21,49 @@ try:
     top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
     print(f"Loading dll: {top_solid_kernel_path}")
     clr.AddReference(top_solid_kernel_path)
+    clr.setPreload(True)
     
     import TopSolid.Kernel.Automating as Automating
     from TopSolid.Kernel.Automating import PrintColorMapping
+    from TopSolid.Kernel.Automating import KeyValue
 
     top_solid_kernel = Automating
+    #list all members of the module
+    #for member_name in dir(Automating):
+    #    print(member_name)
+
+
+    # Obtém todos os membros do objeto
+    """   members = dir(Automating.IDocuments)
+
+        # Itera sobre cada membro
+        for member_name in members:
+            # Obtém o valor do membro
+            member_value = getattr(Automating.IDocuments, member_name)
+            
+            print(f'Membro: {member_name}')
+            
+            # Verifica se é um método
+            if callable(member_value):
+                print(f'Tipo: Método')
+            else:
+                print(f'Tipo: Propriedade ou Atributo')
+            
+            # Tenta obter a documentação do membro
+            docstring = getattr(member_value, '__doc__', None)
+            if docstring:
+                print(f'Docstring: {docstring.strip()}')
+            
+            print('-' * 40)
+    """
+
 
     top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
     ts_ext = clr.System.Activator.CreateInstance(top_solid_kernel_type)
 
     top_solid_kernel_colors = top_solid_kernel.PrintColorMapping
     color_type = clr.System.Activator.CreateInstance(top_solid_kernel_colors)
-    print ("TOP:: ", top_solid_kernel_colors, " : ",  color_type)
-
+ 
     # Connect to TopSolid
     ts_ext.Connect()
 
@@ -48,6 +78,8 @@ try:
         #print ("Project :: ",proj_name)
         cons = ts_ext.Pdm.GetConstituents(proj)
 
+        print("Project:: ", proj_name  )
+
         valid = False
         for c in cons:
             for elem in c:
@@ -58,32 +90,36 @@ try:
                     if str(elem_name) == "DOCS":
                         valid = True
                         docs = ts_ext.Pdm.GetConstituents(elem)  
-                        print("Folder Docs :: ")
                         if docs:                                
+                            print("Folder Docs :: ")
                             for doc in docs:
                                 if doc:
                                     for d in doc:
-                                        #print (d)
                                         doc_name = ts_ext.Pdm.GetName(d)
                                         print (doc_name)
                                         doc_id = ts_ext.Documents.GetDocument(d)
-                                        print(doc_id)
-
-                                        color_mapping = PrintColorMapping(0)
                                         
-                                        print(f"Color {color_mapping}")
+                                        #to print pdf
+                                        #color_mapping = PrintColorMapping(0)
+                                        #print(f"Color {color_mapping}")
 
-                                        tmp = int("1")
-                                        res = str("name")
+                                        #get current  path with python
+                                        path = os.getcwd()
+                                        #print(path)
+                                        
+                                        exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
+                                        
+                                        print ("exporter_type")
+                                        print (exporter_type[0] , exporter_type[1][0])
+
+                                        export_path = path + "\\" + doc_name + exporter_type[1][0]
+                                        export = ts_ext.Documents.Export(10, doc_id,export_path) #10 pdf
+
+                                        #exporter_options = ts_ext.Application.GetExporterOptions(10)
                                         #void ExportWithOptions(int inExporterIx, List<KeyValue> inOptions, DocumentId inDocumentId, string inFullName);
-                                        list = [1,2,3]
-                                        #export = ts_ext.Documents.ExportWithOptions(tmp,list,  doc_id, "123")
-                                        #void Export(int inExporterIx, DocumentId inDocumentId, string inFullName);
-                                        export = ts_ext.Documents.Export(1, doc_id, "123")
-                                        #export = ts_ext.Documents.Print(doc_id,color_mapping,300)
-                                        print (export)          
+                                        #export = ts_ext.Documents.ExportWithOptions(10, exporter_options,  doc_id, doc_name) #10 pdf         
+
                 #print ("Elem ::" , elem_name , "::" , elem_type[0], valid)
-        print("Project:: ", proj_name , " :: ", valid )
 
     ts_ext.Disconnect()
 
