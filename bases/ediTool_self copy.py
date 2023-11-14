@@ -92,6 +92,8 @@ try:
                         docs = ts_ext.Pdm.GetConstituents(elem)  
                         if docs:                                
                             print("Folder Docs :: ")
+                            export_path = os.getcwd() + "/pdf/ART " + proj_name + "/DOCS/"
+                            res = os.makedirs(export_path)
                             for doc in docs:
                                 if doc:
                                     for d in doc:
@@ -102,18 +104,20 @@ try:
                                         #to print pdf
                                         #color_mapping = PrintColorMapping(0)
                                         #print(f"Color {color_mapping}")
-
-                                        #get current  path with python
-                                        path = os.getcwd()
-                                        #print(path)
                                         
                                         exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
                                         
-                                        print ("exporter_type")
-                                        print (exporter_type[0] , exporter_type[1][0])
+                                        #print ("exporter_type")
+                                        #print (exporter_type[0] , exporter_type[1][0])
 
-                                        export_path = path + "\\" + doc_name + exporter_type[1][0]
-                                        export = ts_ext.Documents.Export(10, doc_id,export_path) #10 pdf
+                                        
+                                        print("res", res)
+                                        complete_path = export_path + "/" + doc_name + exporter_type[1][0]
+                                        print(complete_path)
+
+                                        
+
+                                        export = ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
 
                                         #exporter_options = ts_ext.Application.GetExporterOptions(10)
                                         #void ExportWithOptions(int inExporterIx, List<KeyValue> inOptions, DocumentId inDocumentId, string inFullName);
