@@ -213,11 +213,19 @@ class ToolPanel(wx.Panel):
 
 
 
-
+    def get_selected_item(self):
+        index = self.list_ctrl.GetFirstSelected()
+        print("index :: ", index)
+        if index > -1:
+            return self.row_obj_dict[index]
+        else:
+            return None
 
     def get_focus(self, event):
-        ind = event.GetIndex()
-        print ("GotFocus :: ",ind , " :: " , self.row_obj_dict[ind].Name)
+        ind = self.list_ctrl.GetFocusedItem()
+        print ("GotFocus :: " , self.row_obj_dict[ind].Name)
+
+       
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -265,6 +273,8 @@ class ToolPanel(wx.Panel):
 
     def add_line(self, tool):
         index = self.list_ctrl.GetItemCount()
+        self.row_obj_dict[index] = tool
+
         print("adding tool line :: ", index , " :: "  , tool.Name)
 
         index = self.list_ctrl.InsertItem(0, str(index+1))
@@ -276,7 +286,6 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 6, str(tool.D3))
         self.list_ctrl.SetItem(index, 7, str(tool.L3))
         self.list_ctrl.SetItem(index, 8, str(tool.Type))
-        self.row_obj_dict[index] = tool
         
 
 

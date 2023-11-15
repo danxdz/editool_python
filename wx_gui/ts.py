@@ -91,7 +91,14 @@ def get_ts_dll():
     return Automating
 
 
-
+def get_ts_ext():
+    topsolid_kernel = get_ts_dll()
+    if topsolid_kernel is None:
+        # Handle error
+        return None
+    # Get TopSolidHostInstance type
+    top_solid_kernel_type = topsolid_kernel.TopSolidHostInstance
+    return clr.System.Activator.CreateInstance(top_solid_kernel_type)
 
 def get_default_lib():
     global ts_ext
