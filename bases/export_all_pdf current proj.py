@@ -4,6 +4,22 @@ import clr
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
+
+
+def search_folder(elem):
+    #print ("search_folder ::" , elem)
+    docs = ts_ext.Pdm.GetConstituents(elem)
+    #print ("docs ::" , docs)
+    if docs:
+        for doc in docs:
+            if doc:
+                for d in doc:
+                    doc_type = ts_ext.Pdm.GetType(d)
+                    doc_name = ts_ext.Pdm.GetName(d)
+                    print ("doc_name ::" , doc_name , " :: " , doc_type[0])
+                    if str(doc_type[0]) == "Folder":
+                        search_folder(d)
+                     
 try:
     sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
     sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
@@ -103,13 +119,24 @@ try:
     proj_const = ts_ext.Pdm.GetConstituents(current_project)
 
     for const in proj_const:
+        #print ("const ::" , const)
+        for elem in const:
+            #print ("elem ::" , elem)
+            name = ts_ext.Pdm.GetName(elem)
+            type = ts_ext.Pdm.GetType(elem)
+            print ("name ::" , name , " :: " , type[0])
+            if str(type[0]) == "Folder":
+                search_folder(elem)
+    
+    exit()
+
+    for const in proj_const:
         for elem in const:
             elem_name = ts_ext.Pdm.GetName(elem)
             print ("elem_name ::" , elem_name)
             elem_type = ts_ext.Pdm.GetType(elem)
             print ("elem_type ::" , elem_type[0])
 
-           
 
             if str(elem_type[0]) == "Folder":
                 if str(elem_name) == "DOCS":
@@ -128,7 +155,7 @@ try:
                             print("error :: ", ex)
                             pass
                         
-                        for doc in docs:
+                        for doc in docs[0]:
                             if doc:
                                 for d in doc:
                                     doc_type = ts_ext.Pdm.GetType(d)
@@ -174,6 +201,9 @@ try:
                 #print ("Elem ::" , elem_name , "::" , elem_type[0], valid)
             else:
                 try:
+                            
+                    needUpdate = ts_ext.Pdm.NeedsUpdating(elem)
+                    print ("needUpdate ::" , needUpdate)
                     elem_docId = ts_ext.Documents.GetDocument(elem)
                     print ("elem_docId ::" , elem_docId)
                     elem_type = ts_ext.Pdm.GetType(elem)
