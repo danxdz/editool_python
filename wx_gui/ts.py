@@ -195,7 +195,7 @@ def copy_tool(tool):
 
         ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.ManufRef)
         
-        Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), tool.NoTT)
+        Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(tool.NoTT))
    
         d1 = tool.D1 / 1000 if tool.D1 is not None and tool.D1 != 0 else 0
         d2 = tool.D2 / 1000 if tool.D2 is not None and tool.D2 != 0 else  d1-(0.2/1000)
@@ -203,6 +203,8 @@ def copy_tool(tool):
         l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
         l2 = tool.L2 / 1000 if tool.L2 is not None and tool.L2 != 0 else 0
         l3 = tool.L3 / 1000 if tool.L3 is not None and tool.L3 != 0 else 0
+
+        r = tool.RayonBout / 1000
 
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3)
     
@@ -212,6 +214,7 @@ def copy_tool(tool):
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_EL"), l2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
+        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
 
         ts_ext.Application.EndModification(True, False)
 
