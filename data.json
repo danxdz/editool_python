@@ -1,0 +1,40 @@
+{
+    "Dossier1": [
+        {
+            "name": "Plan 1",
+            "type": "TopSolidDocument"
+        },
+        {
+            "name": "Plan 1",
+            "type": "TopSolidDocument"
+        }
+    ],
+    "Dossier2": [
+        {
+            "name": "Dossier3-1",
+            "type": "Folder"
+        },
+        {
+            "name": "Dossier3-2",
+            "type": "Folder"
+        }
+    ],
+    "Dossier3-1": [
+        {
+            "name": "31",
+            "type": "TopSolidDocument"
+        }
+    ],
+    "Dossier3-2": [
+        {
+            "name": "32",
+            "type": "TopSolidDocument"
+        }
+    ],
+    "Mod\u00e8les": "TemplatesFolder",
+    "Pi\u00e8ce 4": "TopSolidDocument",
+    "export_path": "G:\\works\\2023\\git clone\\editool_python/pdf/ART test0/",
+    "project": "test0",
+    "root": "TopSolidDocument",
+    "root - Copie": "TopSolidDocument"
+}
