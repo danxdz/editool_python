@@ -21,19 +21,19 @@
     ],
     "Dossier3-1": [
         {
-            "name": "31",
+            "name": "Pi\u00e8ce 1",
             "type": "TopSolidDocument"
         }
     ],
     "Dossier3-2": [
         {
-            "name": "32",
+            "name": "Pi\u00e8ce 2",
             "type": "TopSolidDocument"
         }
     ],
     "Mod\u00e8les": "TemplatesFolder",
     "Pi\u00e8ce 4": "TopSolidDocument",
-    "export_path": "G:\\works\\2023\\git clone\\editool_python/pdf/ART test0/",
+    "export_path": "G:\\works\\2023\\git clone\\editool_python/ART test0/",
     "project": "test0",
     "root": "TopSolidDocument",
     "root - Copie": "TopSolidDocument"

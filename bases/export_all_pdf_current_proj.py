@@ -6,6 +6,7 @@ import json
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 global json_data 
+global export_path
 
 json_data = {}
 
@@ -37,8 +38,8 @@ def getName(obj):
     return name
     
 
-def check_files(pdmId,doc_type):
-    if str(doc_type) != "UnknownDocument":
+def check_files(pdmId,pdm_type):
+    if str(pdm_type) != "UnknownDocument":
         #".TopDft"
         doc_id = ts_ext.Documents.GetDocument(pdmId)
 
@@ -58,6 +59,40 @@ def check_files(pdmId,doc_type):
         #ts_ext.Documents.Close(doc_id, True, False)
         #ts_ext.Documents.Save(doc_id)
         #ts_ext.Pdm.CheckIn(d,True)
+
+
+        doc_type = ts_ext.Pdm.GetType(pdmId)
+        print ("********************************* doc_type ::" , doc_type)
+        if str(doc_type[1]) == ".TopDft":#".TopPrt":#
+            doc_name = ts_ext.Pdm.GetName(pdmId)
+            print ("doc_name ::" , doc_name)
+            doc_id = ts_ext.Documents.GetDocument(pdmId)
+            
+            #to print pdf
+            color_mapping = PrintColorMapping(0)
+            #print(f"Color {color_mapping}")
+            
+            export_path_docs = export_path + "/DOCS/"
+            try:
+                res = os.makedirs(export_path_docs)
+            except Exception as ex:
+                # Handle
+                print("error :: ", ex)
+                pass
+
+            exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
+            #ts_ext.Documents.Open(doc_id)
+            #ts_ext.Documents.Close(doc_id, False, False)
+            #ts_ext.Documents.Save(doc_id)
+            #ts_ext.Pdm.CheckIn(pdmId,True)
+            check = ts_ext.Pdm.GetLifeCycleMainState(pdmId)
+            print ("check ::" , check)  
+                                        
+
+            complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
+            export = ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
+
+
         
         check = ts_ext.Pdm.GetLifeCycleMainState(pdmId)
         print (needRefresh, " ; " , needUpdate , " ; " , check , " ; " , canExport , " ; " , updateRef , " ; " , lastRev)
@@ -76,18 +111,18 @@ def search_folder(elem):
             print ((name + " ; " + num ))
 
             for pdmId in pdmIdList:
-                doc_type = str(getType(pdmId)[0])
-                doc_name = getName(pdmId)
-                out = doc_name + " ;; " + doc_type 
+                pdm_type = str(getType(pdmId)[0])
+                pdm_name = getName(pdmId)
+                out = pdm_name + " ;; " + pdm_type 
                 print (out)
-                doc = {}
-                doc["name"] = doc_name
-                doc["type"] = doc_type
-                files_list.append(doc)
-                if str(doc_type) == "Folder":
+                pdm = {}
+                pdm["name"] = pdm_name
+                pdm["type"] = pdm_type
+                files_list.append(pdm)
+                if str(pdm_type) == "Folder":
                     search_folder(pdmId)
                 else:
-                    check_files(pdmId,doc_type)
+                    check_files(pdmId,pdm_type)
                     
     print ("files_list ::" , files_list)
     write_json(name, files_list )                
@@ -180,7 +215,7 @@ try:
     
     print("Project : ", proj_name  )
 
-    export_path = os.getcwd() + "/pdf/ART " + proj_name + "/"
+    export_path = os.getcwd() + "/ART " + proj_name + "/"
 
     write_json("project", proj_name)
     write_json("export_path", export_path)
@@ -219,6 +254,14 @@ try:
         json_data = json.dumps(json_data, indent=4, sort_keys=True)
         print("json_data :: ", json_data)
         outfile.write(json_data)
+
+    #create a system generiv list of projects
+    proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
+    proj_list.Add(current_project)
+    pkg = export_path + proj_name +".TopPkg"
+
+    res = ts_ext.Pdm.ExportPackage(proj_list, False, False, pkg )
+
     exit()
 
     for const in proj_const:
