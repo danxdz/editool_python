@@ -88,12 +88,7 @@ def check_files(pdmId,pdm_type,export_path_docs):
         if doc_type == ".TopDft":#".TopPrt":#
             doc_name = ts_ext.Pdm.GetName(pdmId)
             print ("doc_name ::" , doc_name)
-            '''
-            if export_path_docs == None:
-                export_path_docs = export_path + "/" + name + "/"
-            else:
-                export_path_docs = export_path_docs + "/" + name + "/"
-            '''
+
             make_path(export_path_docs)
 
             exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
@@ -108,15 +103,16 @@ def search_folder(elem, export_path_docs):
     print("search_folder ::", elem, "::", export_path_docs)
     const = ts_ext.Pdm.GetConstituents(elem)  # get all elements in folder
     print("docs ::", len(const))
-
+    
+    folderName = getName(elem)
+    new_export_path_docs = os.path.join(export_path_docs, folderName)
+   
     files_list = []
 
     for pdmIdList in const:
         if pdmIdList:
             num = str(len(pdmIdList))
             print(num)
-            folderName = getName(elem)
-            new_export_path_docs = os.path.join(export_path_docs, folderName)
             for pdmId in pdmIdList:
                 pdm_type = getType(pdmId)
                 pdm_name = getName(pdmId)
