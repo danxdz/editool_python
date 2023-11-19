@@ -7,6 +7,50 @@ import import_xml_wx as iXml
 import ts
 from export_xml_wx import create_xml_data
 
+
+class EditDialog(wx.Dialog):
+    def __init__(self, tool):
+        title = f'Editing "{tool.Name}"'
+        super().__init__(parent=None, title=title)
+        self.tool = tool
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        # Replace these lines with the attributes from your Tool class
+        self.name_text = wx.TextCtrl(self, value=self.tool.Name)
+        self.add_widgets('Name', self.name_text)
+
+        self.type_text = wx.TextCtrl(self, value=self.tool.Type)
+        self.add_widgets('Type', self.type_text)
+
+        # Repeat the above pattern for other attributes...
+
+        btn_sizer = wx.BoxSizer()
+        save_btn = wx.Button(self, label='Save')
+        save_btn.Bind(wx.EVT_BUTTON, self.on_save)
+        btn_sizer.Add(save_btn, 0, wx.ALL, 5)
+        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 0, wx.ALL, 5)
+        self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
+        self.SetSizer(self.main_sizer)
+
+
+    def add_widgets(self, label, widget):
+        label_text = wx.StaticText(self, label=label)
+        sizer = wx.BoxSizer(wx.HORIZONTAL)
+        sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
+        sizer.Add(widget, 0, wx.ALL | wx.CENTER, 5)
+        self.main_sizer.Add(sizer, 0, wx.ALL | wx.CENTER, 5)
+
+    def on_save(self, event):
+        # Update the Tool object with the edited values
+        self.tool.Name = self.name_text.GetValue()
+        self.tool.Type = self.type_text.GetValue()
+        # Repeat the above pattern for other attributes...
+
+        # Add your save logic here
+        # For example, you might want to update the database with the changes
+        # db.update_tool(self.tool)
+        self.Destroy()  # Close the dialog after saving
+
 class ToolManagerUI(wx.Frame):
 
     def __init__(self):
@@ -58,6 +102,22 @@ class ToolManagerUI(wx.Frame):
             source=exit
         )
         self.SetMenuBar(menu_bar)
+
+        #add icon to toolbar with tooltip
+
+        self.toolbar = self.CreateToolBar()
+        self.toolbar.SetToolBitmapSize((15,28))
+        self.toolbar.AddTool(1, "Exit", wx.Bitmap("icons/fr2t.png"))
+
+        self.toolbar.AddTool(2, "Open", wx.Bitmap("icons/frto.png"))
+        self.toolbar.AddTool(3, "Save", wx.Bitmap("icons/frhe.png"))
+
+        self.toolbar.Realize()
+        
+        self.toolbar.Bind(wx.EVT_TOOL, self.fr2t, id=1)
+        self.toolbar.Bind(wx.EVT_TOOL, self.frto, id=2)
+        self.toolbar.Bind(wx.EVT_TOOL, self.frhe, id=3)
+    
     
     def export_xml(self, event):
         print("export_xml")
@@ -217,9 +277,11 @@ class ToolPanel(wx.Panel):
         index = self.list_ctrl.GetFirstSelected()
         print("index :: ", index)
         if index > -1:
-            return self.row_obj_dict[index]
+            return self.row_obj_dict.get(index)
         else:
             return None
+
+
 
     def get_focus(self, event):
         ind = self.list_ctrl.GetFocusedItem()
@@ -273,11 +335,12 @@ class ToolPanel(wx.Panel):
 
     def add_line(self, tool):
         index = self.list_ctrl.GetItemCount()
+
         self.row_obj_dict[index] = tool
 
-        print("adding tool line :: ", index , " :: "  , tool.Name)
+        print("adding tool line :: ", index, " :: ", tool.Name)
 
-        index = self.list_ctrl.InsertItem(0, str(index+1))
+        index = self.list_ctrl.InsertItem(index, str(index + 1))
         self.list_ctrl.SetItem(index, 1, tool.Name)
         self.list_ctrl.SetItem(index, 2, str(tool.D1))
         self.list_ctrl.SetItem(index, 3, str(tool.L1))
@@ -286,11 +349,9 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 6, str(tool.D3))
         self.list_ctrl.SetItem(index, 7, str(tool.L3))
         self.list_ctrl.SetItem(index, 8, str(tool.Type))
-        
-
-
 
         return index
+
 
 
     def create_tool(self, index):
@@ -303,6 +364,7 @@ class ToolPanel(wx.Panel):
 
     def on_menu_click(self, event):
         id = event.GetId()
+        
         print('in on_edit :: ', id)
         count = self.list_ctrl.GetSelectedItemCount()
         
@@ -310,7 +372,7 @@ class ToolPanel(wx.Panel):
         print (ind)
         #gets the item clicked
         item = self.list_ctrl.GetItem(ind)
-        
+
         print("EDIT :: ",item,  " :: ", count )
 
         print("count :: ", count)
@@ -320,18 +382,20 @@ class ToolPanel(wx.Panel):
             print("single item selected")
 
         print("selected item :: ", self.get_selected_item())
-        
-        for i in range(count):
-            self.list_ctrl.SetItemBackgroundColour(item=i+ind, col='#f0f2f0')
-            self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
-            self.list_ctrl.RefreshItem(i+ind)
-            self.create_tool(i+ind)
-            
 
         if id == 0:
-            print("Create")
+            print("Create")           
+            
+            for i in range(count):
+                self.list_ctrl.SetItemBackgroundColour(item=i+ind, col='#f0f2f0')
+                self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
+                self.list_ctrl.RefreshItem(i+ind)
+                self.create_tool(i+ind)
+            
         elif id == 1:
             print("Edit")
+            EditDialog(self.get_selected_item()).ShowModal()
+
         elif id == 2:
             print("Delete")
             self.delete_selected_item()
@@ -341,6 +405,7 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.ClearAll
         tools = db.load_tools_from_database(self)
 
+        tools = reversed(tools)
 
         self.D1_dropbox.Append(str(" "))
         self.L1_dropbox.Append(str(" "))

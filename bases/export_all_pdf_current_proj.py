@@ -10,20 +10,36 @@ global export_path
 
 json_data = {}
 
+
+def make_path(path):
+    try:
+        res = os.makedirs(path)
+        print ("MAKE_PATH :: dir created :: ",path, res)
+    except Exception as ex:
+        # Handle
+        print("error :: ", ex)
+        pass
+
 def write_json(key, value):
     #need to add data at end of json file
     json_data[key] = value
+    print ("WRITE_JSON :: write  ::" , key , "::" , value)
 
 
 def getType(obj):
     #get python object type
     obj_type = type(obj)
-    #print ("gobj_type ::" , obj_type)
+    #print ("getType :: obj_type ::" , obj_type)
     if obj_type is PdmObjectId:
-        ts_type = ts_ext.Pdm.GetType(obj)
+        raw_ts_type = ts_ext.Pdm.GetType(obj)
+        #print ("getType :: raw ts_type ::" , raw_ts_type[0])
+        if str(raw_ts_type[0]) == "Folder":
+            ts_type = str(raw_ts_type[0])
+        else:
+            ts_type = str(ts_ext.Pdm.GetType(obj)[1])
     elif obj_type is DocumentId:
-        ts_type = ts_ext.Documents.GetType(obj)
-    #print ("gtype ::" , ts_type)
+        ts_type = str(ts_ext.Documents.GetType(obj)[0])
+    #print ("getType :: res obj_type :: ::" , ts_type)
     return ts_type
 
 def getName(obj):
@@ -31,18 +47,21 @@ def getName(obj):
     obj_type = type(obj)
     #print ("name obj_type ::" , obj_type)
     if obj_type is PdmObjectId:
-        name = ts_ext.Pdm.GetName(obj)
+        name = str(ts_ext.Pdm.GetName(obj))
     elif obj_type is DocumentId:
-        name = ts_ext.Documents.GetName(obj)
+        name = str(ts_ext.Documents.GetName(obj))
     #print ("get name ::" , name)
     return name
     
 
-def check_files(pdmId,pdm_type):
+def check_files(pdmId,pdm_type,export_path_docs):
+    print ("check_files ::" , pdmId , "::" , pdm_type, "::" , export_path_docs)
+
     if str(pdm_type) != "UnknownDocument":
         #".TopDft"
         doc_id = ts_ext.Documents.GetDocument(pdmId)
 
+        """
         MRev = ts_ext.Pdm.GetLastMajorRevision(pdmId)
         mRev = ts_ext.Pdm.GetLastMinorRevision(MRev)
         updateRef = ts_ext.Pdm.UpdateDocumentReferences(mRev)
@@ -55,78 +74,72 @@ def check_files(pdmId,pdm_type):
 
         canExport = ts_ext.Documents.CanExport(10,doc_id)#10=pdf
 
+        state = ts_ext.Pdm.GetState(pdmId)
+        """
+
         #ts_ext.Documents.Open(doc_id)
         #ts_ext.Documents.Close(doc_id, True, False)
         #ts_ext.Documents.Save(doc_id)
-        #ts_ext.Pdm.CheckIn(d,True)
+        #ts_ext.Pdm.CheckIn(pdmId,True)
+        #get global export path_docs
 
-
-        doc_type = ts_ext.Pdm.GetType(pdmId)
-        print ("********************************* doc_type ::" , doc_type)
-        if str(doc_type[1]) == ".TopDft":#".TopPrt":#
+        doc_type = getType(pdmId)
+        print ("doc_type ::" , doc_type)
+        if doc_type == ".TopDft":#".TopPrt":#
             doc_name = ts_ext.Pdm.GetName(pdmId)
             print ("doc_name ::" , doc_name)
-            doc_id = ts_ext.Documents.GetDocument(pdmId)
-            
-            #to print pdf
-            color_mapping = PrintColorMapping(0)
-            #print(f"Color {color_mapping}")
-            
-            export_path_docs = export_path + "/DOCS/"
-            try:
-                res = os.makedirs(export_path_docs)
-            except Exception as ex:
-                # Handle
-                print("error :: ", ex)
-                pass
+            '''
+            if export_path_docs == None:
+                export_path_docs = export_path + "/" + name + "/"
+            else:
+                export_path_docs = export_path_docs + "/" + name + "/"
+            '''
+            make_path(export_path_docs)
 
             exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
-            #ts_ext.Documents.Open(doc_id)
-            #ts_ext.Documents.Close(doc_id, False, False)
-            #ts_ext.Documents.Save(doc_id)
-            #ts_ext.Pdm.CheckIn(pdmId,True)
-            check = ts_ext.Pdm.GetLifeCycleMainState(pdmId)
-            print ("check ::" , check)  
-                                        
 
-            complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
+            #complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
+            complete_path = os.path.join(export_path_docs, f"{doc_name}{exporter_type[1][0]}")
+            
             export = ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
 
 
-        
-        check = ts_ext.Pdm.GetLifeCycleMainState(pdmId)
-        print (needRefresh, " ; " , needUpdate , " ; " , check , " ; " , canExport , " ; " , updateRef , " ; " , lastRev)
-        
+def search_folder(elem, export_path_docs):
+    print("search_folder ::", elem, "::", export_path_docs)
+    const = ts_ext.Pdm.GetConstituents(elem)  # get all elements in folder
+    print("docs ::", len(const))
 
-def search_folder(elem):
-    #print ("search_folder ::" , elem)
-    const = ts_ext.Pdm.GetConstituents(elem)#get all elements in folder
-    #print ("docs ::" , len(const))
-    #if const:
+    files_list = []
+
     for pdmIdList in const:
         if pdmIdList:
-            files_list = []
             num = str(len(pdmIdList))
-            name = ts_ext.Pdm.GetName(elem)
-            print ((name + " ; " + num ))
-
+            print(num)
+            folderName = getName(elem)
+            new_export_path_docs = os.path.join(export_path_docs, folderName)
             for pdmId in pdmIdList:
-                pdm_type = str(getType(pdmId)[0])
+                pdm_type = getType(pdmId)
                 pdm_name = getName(pdmId)
-                out = pdm_name + " ;; " + pdm_type 
-                print (out)
+                out = pdm_name + " ;; " + pdm_type
+                print(out)
                 pdm = {}
                 pdm["name"] = pdm_name
                 pdm["type"] = pdm_type
                 files_list.append(pdm)
-                if str(pdm_type) == "Folder":
-                    search_folder(pdmId)
+
+                if pdm_type == "Folder":
+                    search_folder(pdmId, new_export_path_docs)
                 else:
-                    check_files(pdmId,pdm_type)
-                    
-    print ("files_list ::" , files_list)
-    write_json(name, files_list )                
-                     
+                    check_files(pdmId, pdm_type, new_export_path_docs)
+
+    if len(files_list) > 0:
+        print("files_list ::", files_list)
+        write_json(folderName, files_list)
+
+
+#script start
+#****************************************************************************************
+                        
 try:
     sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
     sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
@@ -207,27 +220,15 @@ try:
     print("TopSolid " + top_solid_version + " connected successfully!")
 
     current_project = ts_ext.Pdm.GetCurrentProject()
-
-    state = ts_ext.Pdm.GetLifeCycleMainState(current_project)
-    print ("state ::" , state)
-
-    proj_name = ts_ext.Pdm.GetName(current_project)
-    
-    print("Project : ", proj_name  )
-
+    proj_name = getName(current_project)
     export_path = os.getcwd() + "/ART " + proj_name + "/"
 
-    write_json("project", proj_name)
-    write_json("export_path", export_path)
+    write_json("project : " , proj_name)
+    write_json("export_path : " , export_path)
+    make_path(export_path)
 
-
-
-    try:
-        res = os.makedirs(export_path)
-    except Exception as ex:
-        # Handle
-        #print("error :: ", ex)
-        pass
+    #state = ts_ext.Pdm.GetLifeCycleMainState(current_project)
+    #print ("state ::" , state)
     
     proj_const = ts_ext.Pdm.GetConstituents(current_project)
 
@@ -236,23 +237,21 @@ try:
         print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
         print (str(len(proj_const[1])) + " files in root project")
         for elem in const:
+
             #print ("elem ::" , elem)
             name = getName(elem)
-            elem_type = str(getType(elem)[0])
-            if str(elem_type) == "Folder":
-                search_folder(elem)
-            else:
-                out = name + " ; " + elem_type 
-                print (out, end='')
-                write_json(name, elem_type)
-                #print("elem :: ", elem ,type(elem) )
-    
+            elem_type = getType(elem)
+            print (name, " ; " , elem_type)
+            if elem_type == "TemplatesFolder":
+                break
+            search_folder(elem,export_path)
+           
 
     with open('data.json', 'w') as outfile:
         #format json
-        print("json_data :: ", json_data)
+        #print("json_data :: ", json_data)
         json_data = json.dumps(json_data, indent=4, sort_keys=True)
-        print("json_data :: ", json_data)
+        #print("json_data :: ", json_data)
         outfile.write(json_data)
 
     #create a system generiv list of projects

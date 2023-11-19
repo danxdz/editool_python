@@ -2,11 +2,11 @@
     "Dossier1": [
         {
             "name": "Plan 1",
-            "type": "TopSolidDocument"
+            "type": ".TopDft"
         },
         {
-            "name": "Plan 1",
-            "type": "TopSolidDocument"
+            "name": "Plan 2",
+            "type": ".TopDft"
         }
     ],
     "Dossier2": [
@@ -21,20 +21,30 @@
     ],
     "Dossier3-1": [
         {
+            "name": "Plan 31",
+            "type": ".TopDft"
+        },
+        {
             "name": "Pi\u00e8ce 1",
-            "type": "TopSolidDocument"
+            "type": ".TopPrt"
         }
     ],
     "Dossier3-2": [
         {
+            "name": "Plan 32",
+            "type": ".TopDft"
+        },
+        {
             "name": "Pi\u00e8ce 2",
-            "type": "TopSolidDocument"
+            "type": ".TopPrt"
         }
     ],
-    "Mod\u00e8les": "TemplatesFolder",
-    "Pi\u00e8ce 4": "TopSolidDocument",
-    "export_path": "G:\\works\\2023\\git clone\\editool_python/ART test0/",
-    "project": "test0",
-    "root": "TopSolidDocument",
-    "root - Copie": "TopSolidDocument"
+    "Mod\u00e8les": [
+        {
+            "name": "D\u00e9fauts",
+            "type": "None"
+        }
+    ],
+    "export_path : ": "G:\\works\\2023\\git clone\\editool_python/ART test0/",
+    "project : ": "test0"
 }
