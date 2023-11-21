@@ -141,6 +141,7 @@ def GetConstituents(folder, export_path_docs):
     export_path_docs += folder_name + "/"
 
     printFolder(folder_const, folder_name,export_path_docs)
+    write_json(folder_name, "dir")
     
     for file in folder_const[1]:
         printInfo(file, "::")
@@ -148,7 +149,6 @@ def GetConstituents(folder, export_path_docs):
 
         
     for dir in folder_const[0]:
-        write_json(getName(dir), getType(dir))
         GetConstituents(dir, export_path_docs)
         
                 
@@ -170,7 +170,7 @@ def printFolder (folder_const, folder_name, export_path_docs):
 #script start
 #****************************************************************************************
 
-prefix = "/ART "
+prefix = "\ART "
 
 
 try:
@@ -215,7 +215,7 @@ try:
     with open('data.json', 'w') as outfile:
         #format json
         #print("json_data :: ", json_data)
-        json_data = json.dumps(json_data, indent=4, sort_keys=True)
+        json_data = json.dumps(json_data, indent=4, sort_keys=False)
         #print("json_data :: ", json_data)
         outfile.write(json_data)
     exit()
