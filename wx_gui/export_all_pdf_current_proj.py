@@ -141,11 +141,12 @@ def GetConstituents(folder, export_path_docs):
     export_path_docs += folder_name + "/"
 
     printFolder(folder_const, folder_name,export_path_docs)
-
+    
+    for file in folder_const[1]:
+        printInfo(file, "::")
+        
     #if folder_const:
     for dir in folder_const[0]:
-        for file in folder_const[1]:
-            printInfo(file, "::")
         GetConstituents(dir, export_path_docs)
         
                 
