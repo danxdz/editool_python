@@ -20,23 +20,27 @@ def conn():
         print(f"Loading dll: {top_solid_kernel_sx_path}")
         clr.AddReference(top_solid_kernel_sx_path)
         # *************************
-        top_solid_kernel_path = os.path.join(
-        top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
+        top_solid_kernel_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
         print(f"Loading dll: {top_solid_kernel_path}")
         clr.AddReference(top_solid_kernel_path)
         
         import TopSolid.Kernel.Automating as Automating
+        from TopSolid.Kernel.Automating import PdmObjectId
+        from TopSolid.Kernel.Automating import DocumentId
         
         top_solid_kernel = Automating
 
         top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
         ts_ext = clr.System.Activator.CreateInstance(top_solid_kernel_type)
 
+
+
         # Connect to TopSolid
         ts_ext.Connect()
 
         #print connected with version
         print("TopSolid " + top_solid_version + " connected successfully!")
+
 
     except Exception as ex:
         # Handle
@@ -90,6 +94,18 @@ def get_ts_dll():
 
     return Automating
 
+def connect():
+    top_solid_kernel = get_ts_dll()
+
+    top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
+    ts_ext = clr.System.Activator.CreateInstance(top_solid_kernel_type)
+    
+    # Connect to TopSolid
+    ts_ext.Connect()
+    
+    return ts_ext
+    
+    
 
 def get_ts_ext():
     topsolid_kernel = get_ts_dll()

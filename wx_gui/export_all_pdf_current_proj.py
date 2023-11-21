@@ -3,6 +3,9 @@ import os
 import clr
 import json
 
+import ts
+
+
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 global json_data 
@@ -132,91 +135,54 @@ def search_folder(elem, export_path_docs):
         print("files_list ::", files_list)
         write_json(folderName, files_list)
 
+def GetConstituents(folder, export_path_docs):
+    folder_const = ts_ext.Pdm.GetConstituents(folder)
+    folder_name = getName(folder)
+    export_path_docs += folder_name + "/"
+
+    printFolder(folder_const, folder_name,export_path_docs)
+
+    #if folder_const:
+    for dir in folder_const[0]:
+        for file in folder_const[1]:
+            printInfo(file, "::")
+        GetConstituents(dir, export_path_docs)
+        
+                
+def printInfo (file, msg):
+    print (msg , " ; ", getName(file) , " ; " , getType(file))
+
+def printFolder (folder_const, folder_name, export_path_docs):
+    if len(folder_const[0])>0 or len(folder_const[1])>0:
+        print (str("dir " + folder_name + " @ " + export_path_docs + " have "), end="")
+        if len(folder_const[0])>0:
+            print (str(len(folder_const[0])) + " folders ",end="")
+        if len(folder_const[1])>0:
+            print (str(len(folder_const[1])) + " files")
+        else:
+            print ("")
+    else:
+        print ("dir " + folder_name + " is empty")
 
 #script start
 #****************************************************************************************
-                        
+
+prefix = "/ART "
+
+
 try:
-    sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
-    sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
-    top_solid_version = winreg.EnumKey(sub_keys, sub_keys_count - 1)
-    key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
-    value = winreg.QueryValueEx(key, "InstallDir")
-
-    top_solid_path = value[0]
+    #get topsolid API
+    ts_ext = ts.connect()
     
-    top_solid_kernel_sx_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.SX.dll")
-    print(f"Loading dll: {top_solid_kernel_sx_path}")
-    clr.AddReference(top_solid_kernel_sx_path)
-    # *************************
-    top_solid_kernel_path = os.path.join(
-    top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
-    print(f"Loading dll: {top_solid_kernel_path}")
-    clr.AddReference(top_solid_kernel_path)
-
-    #set preload to true to load all dependent dlls
-    clr.setPreload(True)
-    #see all loaded assemblies
-    #print( clr.__dict__)
-    
-    import TopSolid.Kernel.Automating as Automating
-    from TopSolid.Kernel.Automating import PrintColorMapping
-    from TopSolid.Kernel.Automating import KeyValue
-    from TopSolid.Kernel.Automating import TopSolidHostInstance
+    #get topsolid types
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
-    
 
-    #for member_name in dir(TopSolidHostInstance.get_Licenses):
-        #print(member_name)
-    
-    
-
-    top_solid_kernel = Automating
-
-
-    '''
-    # Cria uma instância da classe IDocuments
-    documents_instance = Automating.TopSolidHostInstance.Pdm
-
-    # Imprime cabeçalho
-    print("Membro;Tipo;Docstring")
-
-    # Itera sobre cada membro da instância da classe IDocuments
-    for member_name in dir(documents_instance):
-        # Ignora membros especiais que começam com '__'
-        if member_name.startswith("__"):
-            continue
-
-        # Obtém o valor do membro
-        member_value = getattr(documents_instance, member_name)
-
-        member_type = 'Método' if callable(member_value) else 'Propriedade ou Atributo'
-
-        # Tenta obter a documentação do membro
-        docstring = getattr(member_value, '__doc__', None)
-
-        # Imprime os dados formatados em uma linha
-        print(f'{member_name};{member_type};{docstring.strip() if docstring else ""}')
-
-    '''
-
-
-    top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
-    ts_ext = clr.System.Activator.CreateInstance(top_solid_kernel_type)
-
-    top_solid_kernel_colors = top_solid_kernel.PrintColorMapping
-    color_type = clr.System.Activator.CreateInstance(top_solid_kernel_colors)
- 
-    # Connect to TopSolid
-    ts_ext.Connect()
-
-    #print connected with version
-    print("TopSolid " + top_solid_version + " connected successfully!")
 
     current_project = ts_ext.Pdm.GetCurrentProject()
     proj_name = getName(current_project)
-    export_path = os.getcwd() + "/ART " + proj_name + "/"
+
+    export_path = os.getcwd() + prefix + proj_name + "/"
 
     write_json("project : " , proj_name)
     write_json("export_path : " , export_path)
@@ -226,21 +192,34 @@ try:
     #print ("state ::" , state)
     
     proj_const = ts_ext.Pdm.GetConstituents(current_project)
+    print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
+    print (str(len(proj_const[1])) + " files in root project")
+        
+    if len(proj_const[1])>0:
+        print ("files in root project")
+        for file in proj_const[1]:
+            printInfo(file , "files")
+    
+    if len(proj_const[0])>0:        
+        for folder in proj_const[0]:
+                if getName(folder) == "Modèles":
+                    pass
+                else:
+                    GetConstituents(folder, export_path)
 
-    for const in proj_const:
-        #print ("const ::" , const)
-        print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
-        print (str(len(proj_const[1])) + " files in root project")
-        for elem in const:
 
-            #print ("elem ::" , elem)
-            name = getName(elem)
-            elem_type = getType(elem)
-            print (name, " ; " , elem_type)
-            if elem_type == "TemplatesFolder":
-                break
-            search_folder(elem,export_path)
-           
+    
+    
+    exit()
+
+    #print ("elem ::" , elem)
+    name = getName(elem)
+    elem_type = getType(elem)
+    print (name, " ; " , elem_type)
+    if elem_type == "TemplatesFolder" or elem_type == "Modèles":
+        pass
+    search_folder(elem,export_path)
+    
 
     with open('data.json', 'w') as outfile:
         #format json
