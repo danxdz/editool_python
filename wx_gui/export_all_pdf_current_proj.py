@@ -26,7 +26,7 @@ def make_path(path):
 def write_json(key, value):
     #need to add data at end of json file
     json_data[key] = value
-    print ("WRITE_JSON :: write  ::" , key , "::" , value)
+    #print ("WRITE_JSON :: write  ::" , key , "::" , value)
 
 
 def getType(obj):
@@ -144,9 +144,11 @@ def GetConstituents(folder, export_path_docs):
     
     for file in folder_const[1]:
         printInfo(file, "::")
+        write_json(getName(file), getType(file))
+
         
-    #if folder_const:
     for dir in folder_const[0]:
+        write_json(getName(dir), getType(dir))
         GetConstituents(dir, export_path_docs)
         
                 
@@ -195,22 +197,27 @@ try:
     proj_const = ts_ext.Pdm.GetConstituents(current_project)
     print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
     print (str(len(proj_const[1])) + " files in root project")
-        
-    if len(proj_const[1])>0:
-        print ("files in root project")
-        for file in proj_const[1]:
-            printInfo(file , "files")
     
-    if len(proj_const[0])>0:        
-        for folder in proj_const[0]:
-                if getName(folder) == "Modèles":
-                    pass
-                else:
-                    GetConstituents(folder, export_path)
+    for file in proj_const[1]:
+        printInfo(file , "files")
+        write_json(getName(file), getType(file))
+
+    for folder in proj_const[0]:
+            if getName(folder) == "Modèles":
+                pass
+            else:
+                GetConstituents(folder, export_path)
 
 
     
-    
+    print(json_data)
+
+    with open('data.json', 'w') as outfile:
+        #format json
+        #print("json_data :: ", json_data)
+        json_data = json.dumps(json_data, indent=4, sort_keys=True)
+        #print("json_data :: ", json_data)
+        outfile.write(json_data)
     exit()
 
     #print ("elem ::" , elem)
@@ -222,12 +229,7 @@ try:
     search_folder(elem,export_path)
     
 
-    with open('data.json', 'w') as outfile:
-        #format json
-        #print("json_data :: ", json_data)
-        json_data = json.dumps(json_data, indent=4, sort_keys=True)
-        #print("json_data :: ", json_data)
-        outfile.write(json_data)
+  
 
     #create a system generiv list of projects
     proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
