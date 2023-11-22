@@ -145,7 +145,6 @@ def GetConstituents(folder, export_path_docs):
     
     for file in folder_const[1]:
         printInfo(file, "::")
-        write_json(getName(file), getType(file))
 
         
     for dir in folder_const[0]:
@@ -153,7 +152,10 @@ def GetConstituents(folder, export_path_docs):
         
                 
 def printInfo (file, msg):
-    print (msg , " ; ", getName(file) , " ; " , getType(file))
+    file_name = getName(file)
+    file_type = getType(file)
+    print (msg , " ; ", file_name , " ; " ,file_type )
+    write_json(file_name, file_type)
 
 def printFolder (folder_const, folder_name, export_path_docs):
     if len(folder_const[0])>0 or len(folder_const[1])>0:
