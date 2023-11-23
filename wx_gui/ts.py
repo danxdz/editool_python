@@ -135,6 +135,16 @@ def get_default_lib():
     PdmObjectIdType = top_solid_kernel.PdmObjectId
 
     PdmObjectIdType = ts_ext.Pdm.SearchProjectByName("TopSolid Machining User Tools")
+    for i in PdmObjectIdType:
+        name = ts_ext.Pdm.GetName(i)
+        print("name: ", name)
+        if name == "Outils d'usinage utilisateur TopSolid":
+            print("found")
+            PdmObjectIdType.Clear()
+            PdmObjectIdType.Add(i)
+            break
+    print("PdmObjectIdType: ", len(PdmObjectIdType))
+
 
     return PdmObjectIdType
 
@@ -155,7 +165,7 @@ def copy_tool(tool):
     global ts_ext
     
     toolModel = ""
-
+    print("tool type: ", tool.Type)
     #tool switch case
     if tool.Type == "endMill":
        toolModel = "Side Mill D20 L35 SD20"
@@ -178,18 +188,22 @@ def copy_tool(tool):
 
     try:
         # find model tool to copy from default lib
-        output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+        #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+        output_lib = ts_ext.Pdm.GetCurrentProject()
+        print("**************output lib: ", output_lib)
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
+        
+        print("toolModelId: ", len(toolModelId))
 
         firstTool = toolModelId[0]
         toolModelId.Clear()
         toolModelId.Add(firstTool)
 
-        print("toolModelId: ", toolModelId[0].Id)
+        print("********************toolModelId: ", toolModelId[0].Id)
 
 
-        savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib[0])
+        savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
 
         print("savedtool: ",savedTool[0].Id)
         print(f"Tool copied successfully!")
@@ -225,10 +239,10 @@ def copy_tool(tool):
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3)
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_ED"), d2)
+        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_EL"), l2)
+        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
 

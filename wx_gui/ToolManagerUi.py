@@ -114,9 +114,9 @@ class ToolManagerUI(wx.Frame):
 
         self.toolbar.Realize()
         
-        self.toolbar.Bind(wx.EVT_TOOL, self.fr2t, id=1)
-        self.toolbar.Bind(wx.EVT_TOOL, self.frto, id=2)
-        self.toolbar.Bind(wx.EVT_TOOL, self.frhe, id=3)
+        #self.toolbar.Bind(wx.EVT_TOOL, self.fr2t, id=1)
+        #self.toolbar.Bind(wx.EVT_TOOL, self.frto, id=2)
+        #self.toolbar.Bind(wx.EVT_TOOL, self.frhe, id=3)
     
     
     def export_xml(self, event):
