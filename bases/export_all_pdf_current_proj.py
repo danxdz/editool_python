@@ -167,39 +167,14 @@ try:
     from TopSolid.Kernel.Automating import DocumentId
     
 
-    #for member_name in dir(TopSolidHostInstance.get_Licenses):
-        #print(member_name)
+    for member_name in dir(Automating):
+        print(member_name)
     
+    exit()
     
 
     top_solid_kernel = Automating
 
-
-    '''
-    # Cria uma instância da classe IDocuments
-    documents_instance = Automating.TopSolidHostInstance.Pdm
-
-    # Imprime cabeçalho
-    print("Membro;Tipo;Docstring")
-
-    # Itera sobre cada membro da instância da classe IDocuments
-    for member_name in dir(documents_instance):
-        # Ignora membros especiais que começam com '__'
-        if member_name.startswith("__"):
-            continue
-
-        # Obtém o valor do membro
-        member_value = getattr(documents_instance, member_name)
-
-        member_type = 'Método' if callable(member_value) else 'Propriedade ou Atributo'
-
-        # Tenta obter a documentação do membro
-        docstring = getattr(member_value, '__doc__', None)
-
-        # Imprime os dados formatados em uma linha
-        print(f'{member_name};{member_type};{docstring.strip() if docstring else ""}')
-
-    '''
 
 
     top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
