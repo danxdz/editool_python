@@ -348,7 +348,7 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 5, str(tool.L2))
         self.list_ctrl.SetItem(index, 6, str(tool.D3))
         self.list_ctrl.SetItem(index, 7, str(tool.L3))
-        self.list_ctrl.SetItem(index, 8, str(tool.Type))
+        self.list_ctrl.SetItem(index, 8, str(tool.toolType))
 
         return index
 
