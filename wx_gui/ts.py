@@ -165,13 +165,13 @@ def copy_tool(tool):
     global ts_ext
     
     toolModel = ""
-    print("tool type: ", tool.Type)
+    print("tool type: ", tool.toolType)
     #tool switch case
-    if tool.Type == "endMill":
+    if tool.toolType == "endMill":
        toolModel = "Side Mill D20 L35 SD20"
-    elif tool.Type == "radiusMill":
+    elif tool.toolType == "radiusMill":
         toolModel = "Radiused Mill D16 L40 r3 SD16"
-    elif tool.Type == "ballMill":
+    elif tool.toolType == "ballMill":
         toolModel = "Ball Nose Mill D8 L30 SD8"
     else:
         toolModel = "Side Mill D20 L35 SD20"
@@ -239,13 +239,21 @@ def copy_tool(tool):
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3)
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
+        print("d1", d1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+        print("d2", d2)        
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
+        print("d3", d3)        
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
+        print("l1", l1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+        print("l2", l2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
-
+        print("l3", l3)
+        print("r", r )
+        if tool.toolType == "radiusMill":
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
+        
         ts_ext.Application.EndModification(True, False)
 
         ts_ext.Documents.Open(savedToolModif)
