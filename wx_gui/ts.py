@@ -189,8 +189,10 @@ def copy_tool(tool):
     try:
         # find model tool to copy from default lib
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+
+        #use current project to create tool
         output_lib = ts_ext.Pdm.GetCurrentProject()
-        print("**************output lib: ", output_lib)
+        print("current lib: ", output_lib)
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
         
