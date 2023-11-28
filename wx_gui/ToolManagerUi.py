@@ -6,7 +6,7 @@ import databaseTools as db
 import import_xml_wx as iXml
 import ts
 from export_xml_wx import create_xml_data
-
+from debugOutput import dbout
 
 class EditDialog(wx.Dialog):
     def __init__(self, tool):
@@ -170,7 +170,7 @@ class ToolPanel(wx.Panel):
 
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.get_focus, self.list_ctrl)
         self.list_ctrl.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.list_ctrl)
-
+        self.list_ctrl.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.list_ctrl)
         self.add_columns()
 
         
@@ -288,6 +288,11 @@ class ToolPanel(wx.Panel):
         print ("GotFocus :: " , self.row_obj_dict[ind].Name)
 
        
+    def db_click(self, event):
+        index = self.list_ctrl.GetFocusedItem()
+        dbout("index",index)
+        self.create_tool(index)
+
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()

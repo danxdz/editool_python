@@ -204,8 +204,8 @@ def copy_tool(tool):
 
         print("********************toolModelId: ", toolModelId[0].Id)
         
-        qsd = ts_ext.Pdm.IsTool(toolModel[0])
-        print("aaaaaaaaaaaaaaa QZEA :" , qsd)
+        #isTool = ts_ext.Pdm.IsTool(toolModel[0])
+        #print("aaaaaaaaaaaaaaa QZEA :" , isTool)
 
         savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
 
