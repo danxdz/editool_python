@@ -219,7 +219,8 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.InsertColumn(5, 'L2', width=50)
         self.list_ctrl.InsertColumn(6, 'D3', width=50)
         self.list_ctrl.InsertColumn(7, 'L3', width=50)
-        self.list_ctrl.InsertColumn(8, 'type', width=50)
+        self.list_ctrl.InsertColumn(9, 'r', width=50)
+        self.list_ctrl.InsertColumn(10, 'type', width=100)
 
 
 
@@ -353,7 +354,8 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.SetItem(index, 5, str(tool.L2))
         self.list_ctrl.SetItem(index, 6, str(tool.D3))
         self.list_ctrl.SetItem(index, 7, str(tool.L3))
-        self.list_ctrl.SetItem(index, 8, str(tool.toolType))
+        self.list_ctrl.SetItem(index, 8, str(tool.RayonBout))
+        self.list_ctrl.SetItem(index, 9, str(tool.toolType))
 
         return index
 
@@ -405,6 +407,12 @@ class ToolPanel(wx.Panel):
             print("Delete")
             self.delete_selected_item()
 
+    def delete_selected_item(self):
+        index = self.list_ctrl.GetFirstSelected()
+        print("deleting tool :: ", index, " :: ", self.row_obj_dict[index].Name)
+        db.deleteTool(self.row_obj_dict[index])
+        self.list_ctrl.DeleteItem(index)
+        del self.row_obj_dict[index]
 
     def load_tools(self):
         self.list_ctrl.ClearAll

@@ -203,6 +203,7 @@ def copy_tool(tool):
         toolModelId.Add(firstTool)
 
         print("********************toolModelId: ", toolModelId[0].Id)
+        print("toolModelId: ", len(toolModelId))
         
         #isTool = ts_ext.Pdm.IsTool(toolModel[0])
         #print("aaaaaaaaaaaaaaa QZEA :" , isTool)

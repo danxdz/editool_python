@@ -1,5 +1,8 @@
 import sqlite3
 
+
+
+
 def saveTool(tool):
         # Conecta ao banco de dados (ou cria um novo se não existir)
     conn = sqlite3.connect('tool_manager.db')

@@ -24,3 +24,16 @@ def load_tools_from_database(self):
             tools_list.append(tool)
             #self.add_tool_to_treeview(tool)
         return tools_list
+
+def deleteTool(id):
+    #connect to the database
+    conn = sqlite3.connect('tool_manager.db')
+    #create a cursor
+    cursor = conn.cursor()
+    #delete a record
+    tmp = "DELETE from tools WHERE name=" + str(id)
+    cursor.execute(tmp)
+    #commit changes
+    conn.commit()
+    #close connection
+    conn.close()
