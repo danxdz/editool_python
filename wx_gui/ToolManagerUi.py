@@ -220,7 +220,7 @@ class ToolPanel(wx.Panel):
         self.list_ctrl.InsertColumn(6, 'D3', width=50)
         self.list_ctrl.InsertColumn(7, 'L3', width=50)
         self.list_ctrl.InsertColumn(9, 'r', width=50)
-        self.list_ctrl.InsertColumn(10, 'type', width=100)
+        self.list_ctrl.InsertColumn(10, 'toolType', width=100)
 
 
 
@@ -368,7 +368,7 @@ class ToolPanel(wx.Panel):
         print("create tool :: ", self.row_obj_dict[index].Name)
         tool = self.row_obj_dict[index]
         
-        #ts.conn()
+        ts.conn()
         ts.copy_tool(tool)
         print("tool :: ", tool)
 
@@ -412,9 +412,9 @@ class ToolPanel(wx.Panel):
 
     def delete_selected_item(self):
         index = self.get_selected_item()
-        print("INDEX :: "+index)
+        print("INDEX :: ",index)
         index = self.list_ctrl.GetFirstSelected()
-        print("INDEX :: "+index)
+        print("INDEX :: ",index)
 
         print("deleting tool :: ", index, " :: ", self.row_obj_dict[index].Name)
         db.deleteTool(self.row_obj_dict[index])

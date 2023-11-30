@@ -6,7 +6,7 @@ from debugOutput import dbout
 
 from tool import Tool
 
-from savebd import saveTool
+from databaseTools import saveTool
 
 def parse_hyper_xml_data(root):
     print("Parse Hyper xml data")
@@ -225,7 +225,7 @@ def open_file(self,title,wCard):
                 rest = parse_hyper_xml_data(root)
                 print ("rzsr :: ",)
 
-            #dbout("save tool",rest)
+            dbout("save tool",rest.Name)
             saveTool(rest)
 
         except:
