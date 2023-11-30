@@ -27,7 +27,7 @@ def parse_hyper_xml_data(root):
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
         'Name': tool.attrib['name'],
-        'Type': tool.attrib['type'],
+        'toolType': tool.attrib['type'],
         'GroupeMat': tool.find('param[@name="cuttingMaterial"]').attrib['value'],
         'D1': float(tool.find('param[@name="toolDiameter"]').attrib['value']),
         'D2': float(tool.find('param[@name="toolShaftDiameter"]').attrib['value'])-0.2,
@@ -49,7 +49,7 @@ def parse_hyper_xml_data(root):
         'CodeBar': tool.find('param[@name="orderingCode"]').attrib['value'],
         'Comment': tool.find('param[@name="comment"]').attrib['value'],
     }
-
+    print("Tool :: ", tool_data)
     return Tool(**tool_data)
 
 
@@ -168,7 +168,7 @@ def parse_new_xml_data(tool):
 
     tool_data = {
         'Name': name,
-        'Type': tool_type,
+        'toolType': tool_type,
         'GroupeMat': groupe_mat,
         'D1': d1,
         'D2': d2,
@@ -215,6 +215,7 @@ def open_file(self,title,wCard):
         dbout("ROOT",root.tag)
         
         # Try to obtain the 'Tool' element
+        print("Try to get Tool Elem")
         try:
             tool = root.find('.//Tool')
             dbout("TOOL",tool)
@@ -222,11 +223,13 @@ def open_file(self,title,wCard):
                 rest = parse_new_xml_data(tool)
             else:
                 rest = parse_hyper_xml_data(root)
+                print ("rzsr :: ",)
 
-            dbout("save tool",rest)
+            #dbout("save tool",rest)
             saveTool(rest)
 
         except:
+            print("rest :: ", rest)
             print("no tool string found")
     
         dlg.Destroy()

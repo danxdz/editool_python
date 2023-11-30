@@ -31,7 +31,8 @@ def deleteTool(id):
     #create a cursor
     cursor = conn.cursor()
     #delete a record
-    tmp = "DELETE from tools WHERE name=" + str(id)
+    print("delete :: "+str(id.Name))
+    tmp = "DELETE from tools WHERE name='" + str(id.Name) + "'"
     cursor.execute(tmp)
     #commit changes
     conn.commit()

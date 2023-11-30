@@ -30,7 +30,7 @@ class Tool:
     def to_dict(self):
         return {
             'Name': self.Name,
-            'Type': self.toolType,
+            'toolType': self.toolType,
             'GroupeMat': self.GroupeMat,
             'D1': self.D1,
             'D2': self.D2,

@@ -286,7 +286,10 @@ class ToolPanel(wx.Panel):
 
     def get_focus(self, event):
         ind = self.list_ctrl.GetFocusedItem()
-        print ("GotFocus :: " , self.row_obj_dict[ind].Name)
+
+        print("qsd :: ", ind)
+        if (ind >= 0):
+            print ("GotFocus :: " , self.row_obj_dict[ind].Name)
 
        
     def db_click(self, event):
@@ -408,7 +411,11 @@ class ToolPanel(wx.Panel):
             self.delete_selected_item()
 
     def delete_selected_item(self):
+        index = self.get_selected_item()
+        print("INDEX :: "+index)
         index = self.list_ctrl.GetFirstSelected()
+        print("INDEX :: "+index)
+
         print("deleting tool :: ", index, " :: ", self.row_obj_dict[index].Name)
         db.deleteTool(self.row_obj_dict[index])
         self.list_ctrl.DeleteItem(index)
