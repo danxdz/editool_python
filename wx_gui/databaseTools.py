@@ -12,17 +12,15 @@ def sqlConn():
 
 def load_tools_from_database(self):
         cursor = sqlConn()
-        # Lê as ferramentas do banco de dados
         cursor.execute("SELECT * FROM tools")
         tools = cursor.fetchall()
-        print("Ferramentas lidas do banco de dados: ", len(tools))
-        # Adiciona as ferramentas ao Treeview
+        print("tools readed from DB: ", len(tools))
+        # add tools to list
         tools_list = []
         for tool_data in tools:
             tool = Tool(*tool_data[1:])
-            print("tool", tool.Name)
             tools_list.append(tool)
-            #self.add_tool_to_treeview(tool)
+            print("tool added: ", tool.Name)
         return tools_list
 
 def deleteTool(id):
@@ -41,13 +39,11 @@ def deleteTool(id):
 
 
 def saveTool(tool):
-        # Conecta ao banco de dados (ou cria um novo se não existir)
+    # Connect to db or create it, if not exists
     conn = sqlite3.connect('tool_manager.db')
-
-    # Cria um cursor para executar comandos SQL
     cursor = conn.cursor()
 
-    # Cria a tabela 'tools' com os atributos desejados (caso ainda não exista)
+    # Create table 'tools' if not exist
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tools (
             id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -76,7 +72,7 @@ def saveTool(tool):
         )
     ''')
 
-    # Insere a ferramenta na tabela 'tools'
+    # Add tool into table 'tools'
     cursor.execute('''
         INSERT INTO tools (Name, toolType, GroupeMat, D1, L1, L2, L3, D3, NoTT, RayonBout, Chanfrein, CoupeCentre,
             ArrCentre, TypeTar, PasTar, Manuf, ManufRef, ManufRefSec, Code, CodeBar,Comment)
@@ -84,10 +80,8 @@ def saveTool(tool):
             :ArrCentre, :TypeTar, :PasTar, :Manuf, :ManufRef, :ManufRefSec, :Code, :CodeBar, :Comment)
     ''', tool.__dict__)
 
-    # Confirma a transação
     conn.commit()
 
-    print('Ferramenta adicionada ao banco de dados.',conn.total_changes)
+    print('Tool added to database.', tool.Name , conn.total_changes)
 
-    # Fecha a conexão
     conn.close()

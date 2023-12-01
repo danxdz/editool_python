@@ -78,7 +78,7 @@ def create_xml_data(Tool):
             },
             'tools': {
                 'tool': {
-                    '@type': Tool.Type,
+                    '@type': Tool.toolType,
                     '@name': Tool.Name,
                     'param': [
                         {
@@ -229,8 +229,8 @@ def create_xml_data(Tool):
         }
     }
 
-    
-    create_xml_file(xml_data, 'output.xml')
+    output = Tool.Name + ".xml"
+    create_xml_file(xml_data, output)
 
     return xml_data
 

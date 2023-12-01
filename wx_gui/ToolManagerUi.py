@@ -19,7 +19,7 @@ class EditDialog(wx.Dialog):
         self.name_text = wx.TextCtrl(self, value=self.tool.Name)
         self.add_widgets('Name', self.name_text)
 
-        self.type_text = wx.TextCtrl(self, value=self.tool.Type)
+        self.type_text = wx.TextCtrl(self, value=self.tool.toolType)
         self.add_widgets('Type', self.type_text)
 
         # Repeat the above pattern for other attributes...
@@ -43,7 +43,7 @@ class EditDialog(wx.Dialog):
     def on_save(self, event):
         # Update the Tool object with the edited values
         self.tool.Name = self.name_text.GetValue()
-        self.tool.Type = self.type_text.GetValue()
+        self.tool.toolType = self.type_text.GetValue()
         # Repeat the above pattern for other attributes...
 
         # Add your save logic here
@@ -107,18 +107,21 @@ class ToolManagerUI(wx.Frame):
 
         self.toolbar = self.CreateToolBar()
         self.toolbar.SetToolBitmapSize((15,28))
-        self.toolbar.AddTool(1, "Exit", wx.Bitmap("icons/fr2t.png"))
-
-        self.toolbar.AddTool(2, "Open", wx.Bitmap("icons/frto.png"))
-        self.toolbar.AddTool(3, "Save", wx.Bitmap("icons/frhe.png"))
+        self.toolbar.AddTool(1, "endMill", wx.Bitmap("icons/fr2t.png"))
+        self.toolbar.AddTool(2, "radiusMill", wx.Bitmap("icons/frto.png"))
+        self.toolbar.AddTool(3, "ballMill", wx.Bitmap("icons/frhe.png"))
 
         self.toolbar.Realize()
         
-        #self.toolbar.Bind(wx.EVT_TOOL, self.fr2t, id=1)
-        #self.toolbar.Bind(wx.EVT_TOOL, self.frto, id=2)
-        #self.toolbar.Bind(wx.EVT_TOOL, self.frhe, id=3)
+        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=1)
+        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=2)
+        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=3)
     
     
+    def toolTypeSel(self, id):
+        print("id: ", self.id)
+        
+
     def export_xml(self, event):
         print("export_xml")
         title = "Choose a XML file:"
@@ -136,7 +139,7 @@ class ToolManagerUI(wx.Frame):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tool = iXml.open_file(self, title, wcard)
-        print("tool %s", tool)
+        print("tool : ", tool)
         if tool:
             print("Tool added:", tool.Name)
             index = self.panel.add_line(tool)

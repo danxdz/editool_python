@@ -33,24 +33,24 @@
 		</coolant>
 	</coolants>
 	<tools>
-		<tool type="endMill" name="P8300450">
-			<param name="comment" value="Fraises cylindriques E-Cut Normale avec dégagement"/>
-			<param name="orderingCode" value="P8300450"/>
+		<tool type="radiusMill" name="P45319499">
+			<param name="comment" value="FNB,FNU,FSE,FWA,FZI"/>
+			<param name="orderingCode" value="P45319499"/>
 			<param name="manufacturer" value="FRAISA"/>
 			<param name="cuttingMaterial" value=""/>
 			<param name="lengthOfUnit" value="mm"/>
-			<param name="toolTotalLength" value="72.0"/>
+			<param name="toolTotalLength" value="83.0"/>
 			<param name="cuttingEdges" value="4"/>
-			<param name="cuttingLength" value="23.0"/>
+			<param name="cuttingLength" value="26.0"/>
 			<param name="toolShaftType" value="parametric"/>
-			<param name="toolShaftDiameter" value="10.0"/>
+			<param name="toolShaftDiameter" value="12.0"/>
 			<param name="toolShaftChamferDefMode" value="abs"/>
 			<param name="toolShaftChamferAbsPos" value="0"/>
-			<param name="toolDiameter" value="10.0"/>
-			<param name="taperHeight" value="23.0"/>
-			<param name="collar" value="9.8"/>
-			<param name="tipDiameter" value="10.0"/>
-			<param name="cornerRadius" value="0.2"/>
+			<param name="toolDiameter" value="12.0"/>
+			<param name="taperHeight" value="26.0"/>
+			<param name="collar" value="None"/>
+			<param name="tipDiameter" value="12.0"/>
+			<param name="cornerRadius" value="0.0"/>
 			<param name="coreDiameter" value="0"/>
 			<param name="coreHeight" value="0"/>
 			<param name="discHeight" value="0"/>
@@ -61,11 +61,11 @@
 					<param name="lengthOfUnit" value="mm"/>
 					<param name="spindleSpeedFormula" value="fN"/>
 					<param name="cuttingSpeed" value="0"/>
-					<param name="coolants" value="1"/>
+					<param name="coolants" value="0: 'Unkown'"/>
 					<param name="cuttingDirection" value="upAndDown"/>
 					<param name="feedratePerEdge" value="0.0"/>
 					<param name="cuttingWidth" value="1.6"/>
-					<param name="cuttingLength" value="23.0"/>
+					<param name="cuttingLength" value="26.0"/>
 					<param name="plungeAngle" value="0"/>
 					<param name="planeFeedrateFormula" value="fZ"/>
 					<param name="zFeedrateFormula" value="feedrateAxial"/>
