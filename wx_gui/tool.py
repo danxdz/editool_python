@@ -53,29 +53,3 @@ class Tool:
             'Comment': self.Comment,
         }
     
-    
-    def to_dict(self):
-        return {
-            'Name': self.Name,
-            'toolType': self.toolType,
-            'GroupeMat': self.GroupeMat,
-            'D1': self.D1,
-            'D2': self.D2,
-            'D3': self.D3,
-            'L1': self.L1,
-            'L2': self.L2,
-            'L3': self.L3,
-            'NoTT': self.NoTT,
-            'RayonBout': self.RayonBout,
-            'Chanfrein': self.Chanfrein,
-            'CoupeCentre': self.CoupeCentre,
-            'ArrCentre': self.ArrCentre,
-            'TypeTar': self.TypeTar,
-            'PasTar': self.PasTar,
-            'Manuf': self.Manuf,
-            'ManufRef': self.ManufRef,
-            'ManufRefSec': self.ManufRefSec,
-            'Code': self.Code,
-            'CodeBar': self.CodeBar,
-            'Comment': self.Comment,
-        }
