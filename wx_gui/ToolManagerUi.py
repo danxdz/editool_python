@@ -8,48 +8,7 @@ import ts
 from export_xml_wx import create_xml_data
 from debugOutput import dbout
 
-class EditDialog(wx.Dialog):
-    def __init__(self, tool):
-        title = f'Editing "{tool.Name}"'
-        super().__init__(parent=None, title=title)
-        self.tool = tool
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        # Replace these lines with the attributes from your Tool class
-        self.name_text = wx.TextCtrl(self, value=self.tool.Name)
-        self.add_widgets('Name', self.name_text)
-
-        self.type_text = wx.TextCtrl(self, value=self.tool.toolType)
-        self.add_widgets('Type', self.type_text)
-
-        # Repeat the above pattern for other attributes...
-
-        btn_sizer = wx.BoxSizer()
-        save_btn = wx.Button(self, label='Save')
-        save_btn.Bind(wx.EVT_BUTTON, self.on_save)
-        btn_sizer.Add(save_btn, 0, wx.ALL, 5)
-        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 0, wx.ALL, 5)
-        self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
-        self.SetSizer(self.main_sizer)
-
-
-    def add_widgets(self, label, widget):
-        label_text = wx.StaticText(self, label=label)
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
-        sizer.Add(widget, 0, wx.ALL | wx.CENTER, 5)
-        self.main_sizer.Add(sizer, 0, wx.ALL | wx.CENTER, 5)
-
-    def on_save(self, event):
-        # Update the Tool object with the edited values
-        self.tool.Name = self.name_text.GetValue()
-        self.tool.toolType = self.type_text.GetValue()
-        # Repeat the above pattern for other attributes...
-
-        # Add your save logic here
-        # For example, you might want to update the database with the changes
-        # db.update_tool(self.tool)
-        self.Destroy()  # Close the dialog after saving
+from gui.editDialogue import EditDialog
 
 class ToolManagerUI(wx.Frame):
 
@@ -166,8 +125,6 @@ class ToolPanel(wx.Panel):
             style=wx.LC_REPORT | wx.BORDER_SUNKEN
         )
 
-        #enable alternating row colours
-        #self.list_ctrl.EnableAlternateRowColours(enable=True)
 
         self.list_ctrl.Enable(True)
 
