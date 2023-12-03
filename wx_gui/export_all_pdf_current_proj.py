@@ -142,20 +142,38 @@ def GetConstituents(folder, export_path_docs):
 
     printFolder(folder_const, folder_name,export_path_docs)
     write_json(folder_name, "dir")
-    
+    #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
+    make_path(export_path_docs)
+
     for file in folder_const[1]:
         printInfo(file, "::")
-
+        print("select case type ::", getType(file))
+        if getType(file) == ".TopDft":
+            export_pdf(file, export_path_docs)
         
     for dir in folder_const[0]:
         GetConstituents(dir, export_path_docs)
-        
-                
+
+
+def export_pdf(file, export_path_docs):
+    doc_name = ts_ext.Pdm.GetName(file)
+    doc_id = ts_ext.Documents.GetDocument(file)                
+    exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
+    ts_ext.Documents.Open(doc_id)
+    ts_ext.Documents.Close(doc_id, False, False)
+    ts_ext.Documents.Save(doc_id)
+    ts_ext.Pdm.CheckIn(file,True)
+
+    complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
+    ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
+    print ("exported pdf ::" , doc_name)        
+
 def printInfo (file, msg):
     file_name = getName(file)
     file_type = getType(file)
     print (msg , " ; ", file_name , " ; " ,file_type )
     write_json(file_name, file_type)
+
 
 def printFolder (folder_const, folder_name, export_path_docs):
     if len(folder_const[0])>0 or len(folder_const[1])>0:
@@ -183,13 +201,12 @@ try:
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
 
-
     current_project = ts_ext.Pdm.GetCurrentProject()
-    proj_name = getName(current_project)
+    current_proj_name = getName(current_project)
 
-    export_path = os.getcwd() + prefix + proj_name + "/"
+    export_path = os.getcwd() + prefix + current_proj_name + "/"
 
-    write_json("project : " , proj_name)
+    write_json("project : " , current_proj_name)
     write_json("export_path : " , export_path)
     make_path(export_path)
 
@@ -236,7 +253,7 @@ try:
     #create a system generiv list of projects
     proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
     proj_list.Add(current_project)
-    pkg = export_path + proj_name +".TopPkg"
+    pkg = export_path + current_proj_name +".TopPkg"
 
     res = ts_ext.Pdm.ExportPackage(proj_list, False, False, pkg )
 
@@ -340,7 +357,7 @@ try:
     #create a system generiv list of projects
     proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
     proj_list.Add(current_project)
-    pkg = export_path + proj_name +".TopPkg"
+    pkg = export_path + current_proj_name +".TopPkg"
     res = ts_ext.Pdm.ExportPackage(proj_list, False, False, pkg )
     print ("res ::" , res)
 

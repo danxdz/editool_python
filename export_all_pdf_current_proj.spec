@@ -5,7 +5,7 @@ block_cipher = None
 
 
 a = Analysis(
-    ['bases\\export_all_pdf_current_proj.py'],
+    ['wx_gui\\export_all_pdf_current_proj.py'],
     pathex=[],
     binaries=[],
     datas=[],

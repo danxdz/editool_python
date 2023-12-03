@@ -163,14 +163,15 @@ try:
     from TopSolid.Kernel.Automating import PrintColorMapping
     from TopSolid.Kernel.Automating import KeyValue
     from TopSolid.Kernel.Automating import TopSolidHostInstance
+    from TopSolid.Kernel.Automating import TopSolidHost
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
     
 
-    for member_name in dir(Automating):
-        print(member_name)
+    #for member_name in dir(TopSolidHost):
+    #    print(member_name)
     
-    exit()
+    #exit()
     
 
     top_solid_kernel = Automating
