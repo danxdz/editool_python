@@ -247,7 +247,7 @@ class ToolPanel(wx.Panel):
     def get_focus(self, event):
         ind = self.list_ctrl.GetFocusedItem()
 
-        print("qsd :: ", ind)
+        print("Tool list index :: ", ind)
         if (ind >= 0):
             print ("GotFocus :: " , self.row_obj_dict[ind].Name)
 
@@ -328,7 +328,7 @@ class ToolPanel(wx.Panel):
         print("create tool :: ", self.row_obj_dict[index].Name)
         tool = self.row_obj_dict[index]
         
-        ts.conn()
+        #ts.conn()
         ts.copy_tool(tool)
         print("tool :: ", tool)
 
