@@ -270,9 +270,7 @@ class ToolPanel(wx.Panel):
 
         elif id == 2:
             print("Delete")
-            delete_selected_item(self)
-
-  
+            delete_selected_item(self) 
 
 
     #show popup menu
