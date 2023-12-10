@@ -69,19 +69,19 @@ def get_ts_dll():
         top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
     print(f"Loading dll: {top_solid_kernel_path}")
     clr.AddReference(top_solid_kernel_path)
-
-    top_solid_design_path = os.path.join(
-    top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
-    print(f"Loading dll: {top_solid_design_path}")
-    clr.AddReference(top_solid_design_path)
     
-
     #set preload to true to load all dependent dlls
     clr.setPreload(True)
 
     import TopSolid.Kernel.Automating as Automating
 
-    
+    """
+    for i in Automating.__dict__:
+        print("i: ", i)
+
+    ert = Automating.UserQuestion("zerzer", "zerzer")
+    print("ert: ", ert)
+    """
 
     return Automating
 
@@ -115,8 +115,10 @@ def get_default_lib():
             break
     print("PdmObjectIdType: ", len(PdmObjectIdType))
 
-
     return PdmObjectIdType
+
+
+
 def EndModif (op, ot):
     global ts_ext
     try:
@@ -139,17 +141,29 @@ def copy_tool(toolModel):
     #EndModif(False, False)
 
     try:
+        #ts_ext.Application.EndModification(False, True)
+
         # find model tool to copy from default lib
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
         output_lib = ts_ext.Pdm.GetCurrentProject()
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
+        elemModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], "Side Mill D20 L35 SD20")
+
+        newModel = ts_ext.Pdm.SearchDocumentByName(output_lib, "Foret")
+        print("newModel: ", newModel, len(newModel))
+        for i in newModel:
+            print("i: ", i.Id)
+
+
+        print("elemModelId: ", elemModelId[0])
 
         print("toolModelId len : ", len(toolModelId))
         for i in toolModelId:
             print("toolModelId: ", i.Id)
 
-        firstTool = toolModelId[0]
+        #firstTool = toolModelId[0]
+        firstTool = newModel[0]
         toolModelId.Clear()
         toolModelId.Add(firstTool)
 
@@ -169,48 +183,61 @@ def copy_tool(toolModel):
         print("savedToolDocId.PdmDocumentId: ", savedToolDocId.PdmDocumentId)
 
         top_solid_kernel_design = get_ts_design_dll()
-        print(top_solid_kernel_design)
-        for member in dir(top_solid_kernel_design):
-            print(member)
-
-        #Dim inTopSolidHostInstance As TopSolidHostInstance in python
-        asd = top_solid_kernel_design.TopSolidDesignHostInstance
  
-        top_solid_kernel_type_design = top_solid_kernel_design.TopSolidDesignHostInstance("Iass")
-        ts_ext_design = clr.System.Activator.CreateInstance(top_solid_kernel_type_design)
+        ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(ts_ext)
 
         # Connect to TopSolid
-        print(ts_ext_design)
+        print(ts_design_ext.Connect())
+
+        dd = get_ts_dll()
+        question = dd.UserQuestion("Do you want to open the tool?", "zerzer")
+
+
+        isAssembly = ts_design_ext.Assemblies.IsAssembly(savedToolDocId)
+        print("assembly: ", isAssembly)
+
 
         
-        print("IAssemblies.GetParts: ", ts_ext_design.IsAssembly.__doc__)
-        print("IAssemblies.GetParts: ", savedToolDocId)
-        aze = ts_ext_design.IsAssembly(savedToolDocId)
+        parts = ts_design_ext.Assemblies.GetParts(savedToolDocId)
+        print("parts: ", parts)
+        #define type as outPart as TopSolid.Kernel.Automating.ElementId
+        outPart = clr.System.Activator.CreateInstance(dd.ElementId)
+
+        for part in parts:
+            print("part: ", part)
+            ask = ts_design_ext.Assemblies.AskOccurrence(question,True,True,True,True,True,part,outPart)
+            print("ask: ", ask[1].DocumentId.PdmDocumentId)
+            child = ts_design_ext.Assemblies.IsInclusion(part)
+            print("child: ", child)
+            local = ts_design_ext.Assemblies.IsLocalPartOrLocalAssembly(part)
+            print("local: ", local)
+            occ = ts_design_ext.Assemblies.GetOccurrenceDefinition(part)
+            print("occ: ", occ.PdmDocumentId)
+            pp = ts_design_ext.Parts.IsPart(occ)
+            print("pp: ", pp)
+            const = ts_ext.Elements.GetName(part)
+            print("const: ", const)
+
+            #ts_ext.Application.StartModification("tmp", True)
+            #ts_ext.Documents.EnsureIsDirty(savedToolDocId)
+            #newTool = ts_ext.Documents.GetDocument(elemModelId[0])
+            #print("newTool: ", newTool.PdmDocumentId)
+            #ts_design_ext.Assemblies.RedirectInclusion(part, newTool)
+
+            """            
+            docId = ts_ext.Elements.GetProperties(part)
+            print("docId: ", docId)
+            for i in docId:
+                print("i: ", i)
+                if i == "$TopSolid.Kernel.TX.Properties.Name":
+                    name = ts_ext.Elements.GetPropertyTextValue(part, i)
+                    print("name: ", name)
+            """
+            
         exit()
-
-
-
-        name = IAssemblies.GetParts(savedToolDocId)
-        print("name: ", name)
-
-        modif = ts_ext.Application.StartModification("tmp", True)
-        print("Start modif: ", modif)
-        
-        savedToolModif = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
-        print("savedToolModif.PdmDocumentId: ", savedToolModif.PdmDocumentId)
-
-      
-
-        #ts_ext.Application.EndModification(True, False)
-        EndModif(True, False)
-
-        ts_ext.Documents.Open(savedToolModif)
-        #ts_ext.Documents.Save(dirty)
-
     except Exception as ex:
-        #EndModif(False,False)
-
         print("Error copying tool: " + str(ex))
+        EndModif(False,False)
 
     # Disconnect TopSolid and end the modification
     #top_solid_ext.Disconnect()
@@ -296,6 +323,7 @@ def modifyToolParams(saved_tool):
 
         print("Tool parameters modified successfully!")
     except Exception as ex:
+        ts_ext.Application.EndModification(False, False)
         print("Error modifying tool parameters: " + str(ex))
     finally:
         try:

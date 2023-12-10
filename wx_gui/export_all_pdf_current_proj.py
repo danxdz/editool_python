@@ -143,12 +143,12 @@ def GetConstituents(folder, export_path_docs):
     printFolder(folder_const, folder_name,export_path_docs)
     write_json(folder_name, "dir")
     #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
-    make_path(export_path_docs)
 
     for file in folder_const[1]:
         printInfo(file, "::")
         print("select case type ::", getType(file))
         if getType(file) == ".TopDft":
+            make_path(export_path_docs)
             export_pdf(file, export_path_docs)
         
     for dir in folder_const[0]:
@@ -219,6 +219,8 @@ try:
     
     for file in proj_const[1]:
         printInfo(file , "files")
+        if getType(file) == ".TopDft":
+            export_pdf(file, export_path)
         write_json(getName(file), getType(file))
 
     for folder in proj_const[0]:
@@ -237,131 +239,10 @@ try:
         json_data = json.dumps(json_data, indent=4, sort_keys=False)
         #print("json_data :: ", json_data)
         outfile.write(json_data)
-    exit()
-
-    #print ("elem ::" , elem)
-    name = getName(elem)
-    elem_type = getType(elem)
-    print (name, " ; " , elem_type)
-    if elem_type == "TemplatesFolder" or elem_type == "Modèles":
-        pass
-    search_folder(elem,export_path)
     
-
-  
-
-    #create a system generiv list of projects
-    proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
-    proj_list.Add(current_project)
-    pkg = export_path + current_proj_name +".TopPkg"
-
-    res = ts_ext.Pdm.ExportPackage(proj_list, False, False, pkg )
-
-    exit()
-
-    for const in proj_const:
-        for elem in const:
-            elem_name = ts_ext.Pdm.GetName(elem)
-            print ("elem_name ::" , elem_name)
-            elem_type = ts_ext.Pdm.GetType(elem)
-            print ("elem_type ::" , elem_type[0])
-
-
-            if str(elem_type[0]) == "Folder":
-                if str(elem_name) == "DOCS":
-                 
-                    valid = True
-                    docs = ts_ext.Pdm.GetConstituents(elem)  
-                    if docs:                                
-                        print("Folder Docs :: ")
-                        
-                        export_path_docs = export_path + "/DOCS/"
-                        
-                        try:
-                            res = os.makedirs(export_path_docs)
-                        except Exception as ex:
-                            # Handle
-                            print("error :: ", ex)
-                            pass
-                        
-                        for doc in docs[0]:
-                            if doc:
-                                for d in doc:
-                                    doc_type = ts_ext.Pdm.GetType(d)
-                                    print ("doc_type ::" , doc_type[1])
-                                    if str(doc_type[1]) == ".TopDft":#".TopPrt":#
-                                        doc_name = ts_ext.Pdm.GetName(d)
-                                        print ("doc_name ::" , doc_name)
-                                        doc_id = ts_ext.Documents.GetDocument(d)
-                                        
-                                        #to print pdf
-                                        color_mapping = PrintColorMapping(0)
-                                        #print(f"Color {color_mapping}")
-                                        
-                                        exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
-                                        ts_ext.Documents.Open(doc_id)
-                                        ts_ext.Documents.Close(doc_id, False, False)
-                                        ts_ext.Documents.Save(doc_id)
-                                        ts_ext.Pdm.CheckIn(d,True)
-                                        check = ts_ext.Pdm.GetLifeCycleMainState(d)
-                                        print ("check ::" , check)  
-
-                                        #docs_to_update = ts_ext.Documents.GetReferencedDocuments(doc_id,True)
-                                        #print("GetReferencedDocuments :: ", docs_to_update)
-                                        #for d in docs_to_update:
-                                        #    print("GetReferencedDocuments :: ", d)
-                                        #    print("GetName :: ", ts_ext.Documents.GetName(d))
-
-
-                                        #print ("exporter_type")
-                                        #print (exporter_type[0] , exporter_type[1][0])
-                                        #ts_ext.Documents.Print(doc_id, color_mapping, 300)                                           
-                                
-
-
-                                        complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
-                                        export = ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
-
-
-                                        #exporter_options = ts_ext.Application.GetExporterOptions(10)
-                                        #void ExportWithOptions(int inExporterIx, List<KeyValue> inOptions, DocumentId inDocumentId, string inFullName);
-                                        #export = ts_ext.Documents.ExportWithOptions(10, exporter_options,  doc_id, doc_name) #10 pdf         
-
-                #print ("Elem ::" , elem_name , "::" , elem_type[0], valid)
-            else:
-                try:
-                            
-                    needUpdate = ts_ext.Pdm.NeedsUpdating(elem)
-                    print ("needUpdate ::" , needUpdate)
-                    elem_docId = ts_ext.Documents.GetDocument(elem)
-                    print ("elem_docId ::" , elem_docId)
-                    elem_type = ts_ext.Pdm.GetType(elem)
-                    print ("elem_type ::" , elem_type[1])
-                    elem_name = ts_ext.Documents.GetName(elem_docId)
-                    print ("elem_name ::" , elem_name)
-                    ts_ext.Documents.Open(elem_docId)
-                    ts_ext.Documents.Close(elem_docId, False, False)
-                    ts_ext.Documents.Save(elem_docId)
-                    ts_ext.Pdm.CheckIn(elem,True)
-                    check = ts_ext.Pdm.GetLifeCycleMainState(elem)
-                    print ("check ::" , check)  
-                except Exception as ex:
-                    # Handle
-                    print("error :: ", ex)
-                    pass
-
-
-
-    #Sub CheckIn(inObjectId As TopSolid.Kernel.Automating.PdmObjectId) Membre de TopSolid.Kernel.Automating.IPdm
-
-    #create a system generiv list of projects
-    proj_list = clr.System.Collections.Generic.List[PdmObjectId]()
-    proj_list.Add(current_project)
-    pkg = export_path + current_proj_name +".TopPkg"
-    res = ts_ext.Pdm.ExportPackage(proj_list, False, False, pkg )
-    print ("res ::" , res)
-
     ts_ext.Disconnect()
+    
+    exit()
 
 except Exception as ex:
     # Handle
