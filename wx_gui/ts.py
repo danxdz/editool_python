@@ -143,7 +143,9 @@ def get_default_lib():
             PdmObjectIdType.Clear()
             PdmObjectIdType.Add(i)
             break
-    print("PdmObjectIdType: ", len(PdmObjectIdType))
+
+    PdmLen =  len(PdmObjectIdType)
+    print("PdmObjectIdType: ", PdmLen)
 
 
     return PdmObjectIdType
@@ -176,15 +178,15 @@ def copy_tool(tool):
     else:
         toolModel = "Side Mill D20 L35 SD20"
 
-    print("toolModel: ", toolModel)
+    print("TS model: ", toolModel)
 
     # Open project
     modelLib = get_default_lib()
 
-    print("model lib: ", modelLib[0].Id)
+    print("TS model lib ID: ", modelLib[0].Id)
 
     print("End modif: ")
-    EndModif()
+    #EndModif()
 
     try:
         # find model tool to copy from default lib
