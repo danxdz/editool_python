@@ -32,6 +32,26 @@ def get_top_solid_path():
         # Handle exception
         return ex
 
+def get_ts_design_dll():
+    top_solid_path = get_top_solid_path()
+    if top_solid_path is None:
+        # Handle
+        return None
+
+    top_solid_design_path = os.path.join(
+    top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+    print(f"Loading dll: {top_solid_design_path}")
+    clr.AddReference(top_solid_design_path)
+    
+
+    #set preload to true to load all dependent dlls
+    clr.setPreload(True)
+
+    import TopSolid.Cad.Design.Automating as Automating
+
+    return Automating
+
+
 
 def get_ts_dll():
     top_solid_path = get_top_solid_path()
@@ -50,7 +70,18 @@ def get_ts_dll():
     print(f"Loading dll: {top_solid_kernel_path}")
     clr.AddReference(top_solid_kernel_path)
 
+    top_solid_design_path = os.path.join(
+    top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+    print(f"Loading dll: {top_solid_design_path}")
+    clr.AddReference(top_solid_design_path)
+    
+
+    #set preload to true to load all dependent dlls
+    clr.setPreload(True)
+
     import TopSolid.Kernel.Automating as Automating
+
+    
 
     return Automating
 
@@ -74,9 +105,18 @@ def get_default_lib():
     PdmObjectIdType = top_solid_kernel.PdmObjectId
 
     PdmObjectIdType = ts_ext.Pdm.SearchProjectByName("TopSolid Machining User Tools")
+    for i in PdmObjectIdType:
+        name = ts_ext.Pdm.GetName(i)
+        print("name: ", name)
+        if name == "Outils d'usinage utilisateur TopSolid":
+            print("found")
+            PdmObjectIdType.Clear()
+            PdmObjectIdType.Add(i)
+            break
+    print("PdmObjectIdType: ", len(PdmObjectIdType))
+
 
     return PdmObjectIdType
-
 def EndModif (op, ot):
     global ts_ext
     try:
@@ -96,14 +136,18 @@ def copy_tool(toolModel):
     modelLib = get_default_lib()
 
     print("model lib: ", modelLib[0].Id)
-    print("End modif: ")
-    EndModif(False, False)
+    #EndModif(False, False)
 
     try:
         # find model tool to copy from default lib
-        output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+        #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+        output_lib = ts_ext.Pdm.GetCurrentProject()
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
+
+        print("toolModelId len : ", len(toolModelId))
+        for i in toolModelId:
+            print("toolModelId: ", i.Id)
 
         firstTool = toolModelId[0]
         toolModelId.Clear()
@@ -112,7 +156,7 @@ def copy_tool(toolModel):
         print("toolModelId: ", toolModelId[0].Id)
 
 
-        savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib[0])
+        savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
 
         print("savedtool: ",savedTool[0].Id)
         print(f"Tool copied successfully!")
@@ -120,29 +164,42 @@ def copy_tool(toolModel):
         # print("savedTool: ", ts_ext.Documents.Save(tmp))
         #ts_ext.Documents.Open(tmp)
 
-        modif = ts_ext.Application.StartModification("tmp", True)
-        print("Start modif: ", modif)
         
         savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
         print("savedToolDocId.PdmDocumentId: ", savedToolDocId.PdmDocumentId)
+
+        top_solid_kernel_design = get_ts_design_dll()
+        print(top_solid_kernel_design)
+        for member in dir(top_solid_kernel_design):
+            print(member)
+
+        #Dim inTopSolidHostInstance As TopSolidHostInstance in python
+        asd = top_solid_kernel_design.TopSolidDesignHostInstance
+ 
+        top_solid_kernel_type_design = top_solid_kernel_design.TopSolidDesignHostInstance("Iass")
+        ts_ext_design = clr.System.Activator.CreateInstance(top_solid_kernel_type_design)
+
+        # Connect to TopSolid
+        print(ts_ext_design)
+
+        
+        print("IAssemblies.GetParts: ", ts_ext_design.IsAssembly.__doc__)
+        print("IAssemblies.GetParts: ", savedToolDocId)
+        aze = ts_ext_design.IsAssembly(savedToolDocId)
+        exit()
+
+
+
+        name = IAssemblies.GetParts(savedToolDocId)
+        print("name: ", name)
+
+        modif = ts_ext.Application.StartModification("tmp", True)
+        print("Start modif: ", modif)
+        
         savedToolModif = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
         print("savedToolModif.PdmDocumentId: ", savedToolModif.PdmDocumentId)
 
-        ts_kernel = get_ts_dll()
-
-        nameType = ts_kernel.ElementId
-
-        name = ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name")
-        name = ts_ext.Parameters.SetTextParameterizedValue(name, "FR 2T D[D]")
-
-        Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), 2)
- 
-        d1 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), 0.010)
-        d2 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_ED"), 0.0098)
-        d3 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), 0.010)
-        l1 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), 0.02)
-        l2 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_EL"), 0.03)
-        l3 = ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), 0.5)
+      
 
         #ts_ext.Application.EndModification(True, False)
         EndModif(True, False)
@@ -151,7 +208,7 @@ def copy_tool(toolModel):
         #ts_ext.Documents.Save(dirty)
 
     except Exception as ex:
-        EndModif(False,False)
+        #EndModif(False,False)
 
         print("Error copying tool: " + str(ex))
 
@@ -250,28 +307,12 @@ def modifyToolParams(saved_tool):
 
 
 
-#testing 
-#to show all types
-def list_properties_methods():
-    ts_dll = get_ts_dll()
-    if ts_dll is None:
-        # Handle error
-        return None
-
-    # Get the TopSolid.Kernel.Part class
-    part_type = ts_dll.GetType("TopSolid.Kernel.Part")
-
-    for t in ts_dll.GetTypes():
-        print(t.FullName)
-
-#list_properties_methods()
-
-opcao_selecionada = get_user_input()
-
+#opcao_selecionada = get_user_input()
+opcao_selecionada = 1
 # Mapear a opção selecionada para o nome da ferramenta correspondente
 tool_type = None
 if opcao_selecionada == 1:
-    tool_type = "Side Mill D20 L35 SD20"
+    tool_type = "Side Mill"# D20 L35 SD20"
 elif opcao_selecionada == 2:
     tool_type = "Radiused Mill D16 L40 r3 SD16"
 elif opcao_selecionada == 3:

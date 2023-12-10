@@ -1,4 +1,5 @@
 import wx
+import ts as ts
 
 class EditDialog(wx.Dialog):
     def __init__(self, tool):
@@ -25,7 +26,14 @@ class EditDialog(wx.Dialog):
         save_btn = wx.Button(self, label='Save')
         save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         btn_sizer.Add(save_btn, 5, wx.ALL, 15)
-        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 5, wx.ALL, 15)
+
+        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 5, wx.ALL, 15)  
+
+        
+        create_btn = wx.Button(self, label='Create')
+        create_btn.Bind(wx.EVT_BUTTON, self.on_create)
+        btn_sizer.Add(create_btn, 5, wx.ALL, 15)
+
         self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
         self.SetSizer(self.main_sizer)
 
@@ -52,3 +60,10 @@ class EditDialog(wx.Dialog):
         # For example, you might want to update the database with the changes
         # db.update_tool(self.tool)
         self.Destroy()  # Close the dialog after saving
+
+    def on_create(self, event):
+        self.tool.Name = self.main_sizer.GetItemCount()
+        
+        ts.copy_tool(self.tool)
+        print("tool :: ", self.tool)
+    

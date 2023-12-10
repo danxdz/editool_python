@@ -2,7 +2,6 @@ import wx
 
 import xml.etree.ElementTree as ET
 
-from debugOutput import dbout
 
 from tool import Tool
 
@@ -13,7 +12,7 @@ def parse_hyper_xml_data(root):
     
     # Obtém os dados da ferramenta
     tool = root.find('.//tool')
-    dbout("TOOL",tool)
+    #dbout("TOOL",tool)
     # Find the tecset with type="milling"
     milling_tecset = tool.find(".//tecset")
 
@@ -115,9 +114,9 @@ def parse_new_xml_data(tool):
 
     # Extract the properties using a function to handle missing properties
     coolants_value = int(get_property_value(tool, "H21"))
-    dbout("Coolants value: ", coolants_value)
+    #dbout("Coolants value: ", coolants_value)
     coolants_type = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
-    dbout("Coolants type: ", coolants_type)
+    #dbout("Coolants type: ", coolants_type)
 
     coolants_value = coolants_type[coolants_value]
 
@@ -195,46 +194,52 @@ def parse_new_xml_data(tool):
 
 
 def open_file(self,title,wCard):
-    dbout (self , title, wCard)
 
+    #need to add a file dialog to select multiple the xml files
+       
     dlg = wx.FileDialog(self, title, 
-                        style=wx.DD_DEFAULT_STYLE,
-                        wildcard=wCard)
+                       wildcard=wCard, 
+                       style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST)
+    
     if dlg.ShowModal() == wx.ID_OK:
-        xml_file_path = dlg.GetPath()
-        dbout("PATH", xml_file_path)
+        xml_file_path = dlg.GetPaths()
+        print("PATH", xml_file_path)
+        dlg.Destroy()
 
         if not xml_file_path:
-            print('Nenhum arquivo selecionado.')
+            print('No file seleted.')
             return None
             #exit()
 
-        tree = ET.parse(xml_file_path)
-        dbout(tree)
-        root = tree.getroot()
-        dbout("ROOT",root.tag)
+
+
+        for path in xml_file_path:
+            print('File selected: ', path)
+            
+            tree = ET.parse(path)
+            #dbout(tree)
+            root = tree.getroot()
+            #dbout("ROOT",root.tag)
+            
+            # Try to obtain the 'Tool' element
+            print("Try to get Tool Elem")
+            try:
+                tool = root.find('.//Tool')
+                #dbout("TOOL",tool)
+                if tool:
+                    rest = parse_new_xml_data(tool)
+                else:
+                    rest = parse_hyper_xml_data(root)
+                
+                print ("rest :: ",)
+                saveTool(rest)
+
+            except:
+                print("rest :: ", rest)
+                print("no tool string found")
         
-        # Try to obtain the 'Tool' element
-        print("Try to get Tool Elem")
-        try:
-            tool = root.find('.//Tool')
-            dbout("TOOL",tool)
-            if tool:
-                rest = parse_new_xml_data(tool)
-            else:
-                rest = parse_hyper_xml_data(root)
-                print ("rzsr :: ",)
 
-            dbout("save tool",rest.Name)
-            saveTool(rest)
-
-        except:
-            print("rest :: ", rest)
-            print("no tool string found")
-    
-        dlg.Destroy()
-
-        return rest
+            return rest
 
    
 

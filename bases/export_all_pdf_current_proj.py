@@ -154,6 +154,12 @@ try:
     print(f"Loading dll: {top_solid_kernel_path}")
     clr.AddReference(top_solid_kernel_path)
 
+    top_solid_design_path = os.path.join(
+    top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+    print(f"Loading dll: {top_solid_design_path}")
+    clr.AddReference(top_solid_design_path)
+    
+
     #set preload to true to load all dependent dlls
     clr.setPreload(True)
     #see all loaded assemblies
@@ -166,12 +172,14 @@ try:
     from TopSolid.Kernel.Automating import TopSolidHost
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
+    from TopSolid.Cad.Design.Automating import IAssemblies
     
 
-    #for member_name in dir(TopSolidHost):
-    #    print(member_name)
+
+    for member_name in dir(IAssemblies):
+        print(member_name)
     
-    #exit()
+    exit()
     
 
     top_solid_kernel = Automating

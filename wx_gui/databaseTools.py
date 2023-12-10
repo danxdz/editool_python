@@ -1,5 +1,4 @@
 import sqlite3
-from debugOutput import debugOut as db
 from tool import Tool
 
 
