@@ -4,3 +4,6 @@ wx_gui/__pycache__/savebd.cpython-311.pyc
 wx_gui/__pycache__/databaseTools.cpython-311.pyc
 wx_gui/__pycache__/import_xml_wx.cpython-311.pyc
 wx_gui/__pycache__/databaseTools.cpython-311.pyc
+wx_gui/gui/__pycache__/guiTools.cpython-311.pyc
+wx_gui/gui/__pycache__/editDialogue.cpython-311.pyc
+wx_gui/gui/__pycache__/toolPanel.cpython-311.pyc
