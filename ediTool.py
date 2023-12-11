@@ -1,3 +1,8 @@
+#*****************OLD 
+
+
+
+
 import winreg
 import os
 import clr
@@ -97,11 +102,11 @@ def copy_tool(tool):
     toolModel = ""
 
     #tool switch case
-    if tool.Type == "endMill":
+    if tool.toolType == "endMill":
        toolModel = "Side Mill D20 L35 SD20"
-    elif tool.Type == "radiusMill":
+    elif tool.toolType == "radiusMill":
         toolModel = "Radiused Mill D16 L40 r3 SD16"
-    elif tool.Type == "ballMill":
+    elif tool.toolType == "ballMill":
         toolModel = "Ball Nose Mill D8 L30 SD8"
     else:
         toolModel = "Side Mill D20 L35 SD20"

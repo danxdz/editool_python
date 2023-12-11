@@ -1,6 +1,6 @@
 
 import wx
-from gui.editDialogue import EditDialog
+from gui.editDialog import EditDialog
 import databaseTools as db
 from gui.guiTools import load_tools
 from gui.guiTools import delete_selected_item
@@ -162,13 +162,14 @@ class ToolPanel(wx.Panel):
     def toolSelected(self, event):
         tool = self.getSelectedTool()
         try :
-            print ("toolClick :: ", tool.Name )
+            print ("tool selected: ", tool.Name )
         except AttributeError:
-            print("toolClick :: ", tool)
+            print("tool selected: ", tool)
 
 
        
     def db_click(self, event):
+        print("edit tool: ", self.getSelectedTool().Name)
         EditDialog(self.getSelectedTool()).ShowModal()
 
     def right_click(self, event):
@@ -215,7 +216,7 @@ class ToolPanel(wx.Panel):
         #print("adding tool line :: ", index, " :: ", tool.Name)
 
         index = self.list_ctrl.InsertItem(index, str(index + 1))
-        self.list_ctrl.SetItem(index, 1, tool.Name)
+        self.list_ctrl.SetItem(index, 1, str(tool.Name))
         self.list_ctrl.SetItem(index, 2, str(tool.D1))
         self.list_ctrl.SetItem(index, 3, str(tool.L1))
         self.list_ctrl.SetItem(index, 4, str(tool.D2))

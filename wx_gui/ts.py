@@ -50,8 +50,7 @@ def conn():
 
 def get_version():
     try:
-        sub_keys = winreg.OpenKey(
-            winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
+        sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
         sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
         last_sub_key = winreg.EnumKey(sub_keys, sub_keys_count - 1)
         return last_sub_key
@@ -64,8 +63,7 @@ def get_top_solid_path():
     top_solid_version = get_version()
 
     try:
-        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path +
-                             "\\" + top_solid_version, 0, winreg.KEY_READ)
+        key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
         value = winreg.QueryValueEx(key, "InstallDir")
         return value[0]
     except Exception as ex:
@@ -139,15 +137,12 @@ def get_default_lib():
         name = ts_ext.Pdm.GetName(i)
         print("name: ", name)
         if name == "Outils d'usinage utilisateur TopSolid":
-            print("found")
             PdmObjectIdType.Clear()
             PdmObjectIdType.Add(i)
             break
 
     PdmLen =  len(PdmObjectIdType)
-    print("PdmObjectIdType: ", PdmLen)
-
-
+    #print("PdmObjectIdType: ", PdmLen)
     return PdmObjectIdType
 
 def EndModif ():
@@ -183,9 +178,9 @@ def copy_tool(tool):
     # Open project
     modelLib = get_default_lib()
 
-    print("TS model lib ID: ", modelLib[0].Id)
+    #print("TS model lib ID: ", modelLib[0].Id)
 
-    print("End modif: ")
+    #print("End modif: ")
     #EndModif()
 
     try:
@@ -194,40 +189,34 @@ def copy_tool(tool):
 
         #use current project to create tool
         output_lib = ts_ext.Pdm.GetCurrentProject()
-        print("current lib: ", output_lib)
+        #print("current lib: ", output_lib)
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
         
-        print("toolModelId: ", len(toolModelId))
+        #print("toolModelId: ", len(toolModelId))
 
         firstTool = toolModelId[0]
         toolModelId.Clear()
         toolModelId.Add(firstTool)
 
-        print("********************toolModelId: ", toolModelId[0].Id)
-        print("toolModelId: ", len(toolModelId))
-        
-        #isTool = ts_ext.Pdm.IsTool(toolModel[0])
-        #print("aaaaaaaaaaaaaaa QZEA :" , isTool)
-
         savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
 
-        print("savedtool: ",savedTool[0].Id)
+        #print("savedtool: ",savedTool[0].Id)
         print(f"Tool copied successfully!")
 
         # print("savedTool: ", ts_ext.Documents.Save(tmp))
         #ts_ext.Documents.Open(tmp)
 
         modif = ts_ext.Application.StartModification("tmp", True)
-        print("Start modif: ", modif)
+        #print("Start modif: ", modif)
         
         savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
         
-        print("Doc Id: ", savedToolDocId.PdmDocumentId)
+        #print("Doc Id: ", savedToolDocId.PdmDocumentId)
 
         savedToolModif = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
 
-        print("savedToolModif: ", savedToolModif.PdmDocumentId)
+        #print("savedToolModif: ", savedToolModif.PdmDocumentId)
         
 
         ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.ManufRef)
@@ -235,7 +224,7 @@ def copy_tool(tool):
         Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(tool.NoTT))
    
         d1 = tool.D1 / 1000 if tool.D1 is not None and tool.D1 != 0 else 0
-        d2 = tool.D2 / 1000 if tool.D2 is not None and tool.D2 != 0 else  d1-(0.2/1000)
+        d2 = tool.D2 / 1000 if tool.D2 is not None and tool.D2 != 0 else d1-(0.2/1000)
         d3 = tool.D3 / 1000 if tool.D3 is not None and tool.D3 != 0 else 0
         l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
         l2 = tool.L2 / 1000 if tool.L2 is not None and tool.L2 != 0 else 0
@@ -243,26 +232,21 @@ def copy_tool(tool):
 
         r = tool.RayonBout / 1000
 
-        print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3)
+        print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", Nott)
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
-        print("d1", d1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
-        print("d2", d2)        
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
-        print("d3", d3)        
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
-        print("l1", l1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
-        print("l2", l2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
-        print("l3", l3)
-        print("r", r )
+
         if tool.toolType == "radiusMill":
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
         
-        ts_ext.Application.EndModification(True, False)
-
+        #ts_ext.Application.EndModification(True, False)
+        EndModif()
+        
         ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
        

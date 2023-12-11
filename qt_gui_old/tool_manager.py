@@ -205,7 +205,8 @@ class ToolManagerUI(QMainWindow):
 
     def iso_paste13999(self):
         # Criar uma instância do diálogo personalizado
-        dialog = PasteDialog()
+      
+        dialog = PasteDialog(self.getSelectedTool()).ShowModal()
 
         # Exibir o diálogo e verificar se o usuário pressionou "Ok"
         result = dialog.exec_()

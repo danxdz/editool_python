@@ -45,7 +45,8 @@ def getType(obj):
     #print ("getType :: res obj_type :: ::" , ts_type)
     return ts_type
 
-def getName(obj):
+
+def getName(obj): #get element name - PdmObjectId or DocumentId
     #get python object type
     obj_type = type(obj)
     #print ("name obj_type ::" , obj_type)

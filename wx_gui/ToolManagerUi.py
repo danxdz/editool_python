@@ -5,6 +5,8 @@ import import_xml_wx as iXml
 
 from export_xml_wx import create_xml_data
 from gui.toolPanel import ToolPanel
+from importTools.pasteDialog import pasteDialog
+
 import ts
 
 class ToolManagerUI(wx.Frame):
@@ -25,6 +27,10 @@ class ToolManagerUI(wx.Frame):
             wx.ID_ANY, 'Open xml file', 
             'open a xml file with tool data'
         )
+        ISO13999 = file_menu.Append(
+            wx.ID_ANY, 'Paste tool ISO13999', 
+            'paste tool data ISO13999'
+        )
         open_zip = file_menu.Append(
             wx.ID_ANY, 'Open zip file', 
             'open a zip file with tool data'
@@ -41,6 +47,11 @@ class ToolManagerUI(wx.Frame):
             event=wx.EVT_MENU, 
             handler=self.on_open_xml,
             source=open_xml,
+        )
+        self.Bind(
+            event=wx.EVT_MENU, 
+            handler=self.paste_iso13999,
+            source=ISO13999,
         )
         self.Bind(
             event=wx.EVT_MENU, 
@@ -77,6 +88,7 @@ class ToolManagerUI(wx.Frame):
     #TODO: add tool type selection
     def toolTypeSel(self, id):
         print("id: ", id)
+
         
     def on_open_xml(self, event):
         title = "Choose a XML file:"
@@ -88,6 +100,10 @@ class ToolManagerUI(wx.Frame):
             index = self.panel.add_line(tool)
             #self.tools_list.append(tool)
             self.panel.list_ctrl.Select(index)
+
+    def paste_iso13999(self, event):
+        title = "Paste ISO13999 data"        
+        pasteDialog(title).ShowModal()
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
