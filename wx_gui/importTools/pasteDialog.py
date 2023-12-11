@@ -2,28 +2,38 @@ import wx
 import ts as ts
 import importTools.import_past as import_past
 import tool
+from databaseTools import saveTool
+
 
 class pasteDialog(wx.Dialog):
     def __init__(self,title):
         title = 'Add new tool from ISO13999 data'
         super().__init__(parent=None, title=title)
       
-        self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
                 
         self.text_area = wx.TextCtrl(self,style = wx.TE_MULTILINE)
         self.main_sizer.Add(self.text_area, 0, wx.Center)
         
+        self.textboxSizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
+        self.main_sizer.Add(self.textboxSizer, 0, wx.Center)
                     
         # Add save, cancel and create buttons        
         btn_sizer = wx.BoxSizer()
 
-        save_btn = wx.Button(self, label='Save')
-        save_btn.Bind(wx.EVT_BUTTON, self.on_save)
-        btn_sizer.Add(save_btn, 5, wx.ALL, 15)
+        refresh_btn = wx.Button(self, label='Refresh')
+        refresh_btn.Bind(wx.EVT_BUTTON, self.on_refresh)
+        btn_sizer.Add(refresh_btn, 5, wx.ALL, 15)
         
+        self.save_btn = wx.Button(self, label='Save')
+        self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
+        btn_sizer.Add(self.save_btn, 5, wx.ALL, 15)
+        self.save_btn.Disable()
+
         create_btn = wx.Button(self, label='Create')
         create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(create_btn, 5, wx.ALL, 15)
+        create_btn.Disable()
 
         btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 5, wx.ALL, 15)
 
@@ -39,9 +49,9 @@ class pasteDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(widget, 0, wx.ALL, 2)
-        self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+        self.textboxSizer.Add(sizer, 0, wx.ALL, 5)
 
-    def on_save(self, event):
+    def on_refresh(self, event):
         
         #print(str(self.text_area.GetValue()))
 
@@ -51,15 +61,33 @@ class pasteDialog(wx.Dialog):
         #get all Tool attributes
         self.toolAttributes = self.tool.getAttributes()        
 
+        #clear all widgets
+        self.textboxSizer.Clear(True)
+        self.main_sizer.Layout()
+        self.main_sizer.Fit(self)
+
         for key, value in self.toolAttributes.items():
-            #print(key, value)
-            self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
+            print(key, value)
+            #TODO: add combobox for toolType, Manuf, GroupeMat...
+            if key == 'toolType':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == 'Manuf':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == 'GroupeMat':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            else:
+                self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
+
+        if self.tool.Name != "":
+            self.save_btn.Enable()
 
         self.Fit()
 
-        # Add your save logic here
-        # For example, you might want to update the database with the changes
-        # db.update_tool(self.tool)
+
+
+    def on_save(self, event):
+        print("on_save")
+        saveTool(self.tool)
         #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):

@@ -9,7 +9,9 @@ def process_input(input_text):
     for line in config_lines:
         parts = line.split(';')
         if len(parts) >= 4 and parts[0].isdigit():
-            name_mapping[parts[1].lower()] = parts[2].replace('@', '').lower()
+            name_mapping[parts[1]] = parts[2].replace('@', '')
+
+
 
     # Parse the input text and populate the Tool object
     lines = input_text.split('\n')
@@ -18,11 +20,26 @@ def process_input(input_text):
         parts = line.split('\t')
         if len(parts) == 3:
             # Use the mapping to get the attribute name
-            attr_name = name_mapping.get(parts[0].lower().replace(' ', ''))
+            attr_name = name_mapping.get(parts[0].replace(' ', ''))
             if attr_name is not None:
-                setattr(tool, attr_name, parts[2])
+                setattr(tool, attr_name, parts[2].replace(' mm', ''))
 
-    print("Tool details: ", vars(tool))
+    if tool.toolType == "":
+        print("detect_tool_type: " + tool.Name + " " + str(tool.RayonBout) + " " + str(tool.D1) + " type: " + tool.toolType + " manuf: " + tool.ManufRef)
+        tool.toolType = detect_tool_type(float(tool.D1), float(tool.RayonBout))
+
+    if tool.Name == "":
+        # Extract the manufacturer code (ManufRef) from the first line (Name = ManufRef)
+        first_line = lines[0].strip().split(' ')
+        print("first_line: ", first_line)
+        tool.ManufRef = first_line[0]
+        print("tool.ManufRef: ", tool.ManufRef)
+        tool.Name = tool.ManufRef
+        print("tool.Name: ", tool.Name)
+    if tool.Manuf == "":
+        tool.Manuf, tool.ManufRefSec = detect_tool_manuf(tool.Name)
+
+
     return tool
 
 
@@ -68,62 +85,7 @@ def detect_tool_manuf(name):
     return None, None
 
 
-def interpret_tool_data(input_data):
-    lines = input_data.strip().split('\n')
-    
-    tool = Tool()
-
-    with open("13999_paste.txt") as config_file:
-        tool_params_dict = {}
-        for line in config_file:
-            fields = line.strip().split(";")
-            if len(fields) >= 2 and fields[0].isdigit():
-                tool_params_dict[fields[1]] = fields[2].replace("@", "")
-        print("tool_params_dict: ", tool_params_dict)
-
-    # Extract the manufacturer code (ManufRef) from the first line (Name = ManufRef)
-    first_line = lines[0].strip().split(' ')
-    print("first_line: ", first_line)
-    tool.ManufRef = first_line[0]
-    print("tool.ManufRef: ", tool.ManufRef)
-    tool.Name = tool.ManufRef
-    print("tool.Name: ", tool.Name)
-
-
-    for i in range(2, len(lines), 3):
-        value = lines[i].strip()
-        print("value ", value)
-
-        # Check if the value field contains " mm" and remove it
-        if value.endswith(" mm"):
-            value = value[:-3]
-
-        # Check if the name field exists in the tool_params_dict
-        name = lines[i - 2].strip()
-        print("name: ", name , " value: ", value, sep=" ")
-        if name in tool_params_dict:
-            propName = tool_params_dict[name]
-            print("prop: "+ propName)
-
-            try:
-                print(tool ,  propName,  value , sep=" : ")
-                setattr(tool, propName, value)
-            except:
-                pass
-
-    if tool.toolType == "":
-        print("detect_tool_type: " + tool.Name + " " + str(tool.RayonBout) + " " + str(tool.D1) + " type: " + tool.toolType + " manuf: " + tool.ManufRef)
-        check_type = tool.ManufRef
-    else:
-        check_type = tool.toolType
-    # Update the tool data with the detected type, manufacturer, and comment
-    manufacturer, comment = detect_tool_manuf(check_type)
-    tool.Manuf = manufacturer
-    tool.Comment = comment
-        
-    # Detect the tool type
-    #print("detect_tool_type: " + tool.Name + " " + tool.RayonBout + " " + tool.D1)
-    tool.toolType = detect_tool_type(float(tool.D1), float(tool.RayonBout)) #"radiusMill"
+"""
 
     tool_data = {
         'Name': tool.Name,
@@ -151,3 +113,4 @@ def interpret_tool_data(input_data):
     }
     print("tool_data: ", tool_data)
     return Tool(**tool_data)
+"""

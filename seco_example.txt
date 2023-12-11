@@ -14,7 +14,7 @@ Informação solicitada  Imprimir
  Máquina Lateral  (33)
 Nome	Descrição	Valor
 APMXS	Profundidade de corte máxima em direção lateral ao avanço	19.0 mm
-Código de barras	Código de barras do produto	72340100000102
+Codigo de barras	Código de barras do produto	72340100000102
 CCC	capacidade de corte central	1
 CGT	Tipo da geometria de corte	JHP794
 Cmax	Diâmetro máximo da interpolação helicoidal	15.6 mm
