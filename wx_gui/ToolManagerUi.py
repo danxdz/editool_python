@@ -96,6 +96,7 @@ class ToolManagerUI(wx.Frame):
         tool = iXml.open_file(self, title, wcard)
         print("tool : ", tool)
         if tool:
+            self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
             print("Tool added:", tool.Name)
             index = self.panel.add_line(tool)
             #self.tools_list.append(tool)

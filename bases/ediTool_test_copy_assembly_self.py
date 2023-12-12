@@ -265,10 +265,6 @@ def get_user_input():
             print("Opção inválida. Tente novamente.")
 
 
-
-
-
-
 def modifyToolParams(saved_tool):
     global ts_ext
 
@@ -332,9 +328,6 @@ def modifyToolParams(saved_tool):
             print("App closed -> modification end")
 
 
-
-
-
 #opcao_selecionada = get_user_input()
 opcao_selecionada = 1
 # Mapear a opção selecionada para o nome da ferramenta correspondente
@@ -355,7 +348,6 @@ else:
     tool_type = "Side Mill D20 L35 SD20"
 
 
-# Example usage: copy the "My Tool" tool
 saved_tool = copy_tool(tool_type)
 
 if saved_tool:

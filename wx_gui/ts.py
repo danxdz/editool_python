@@ -145,10 +145,10 @@ def get_default_lib():
     #print("PdmObjectIdType: ", PdmLen)
     return PdmObjectIdType
 
-def EndModif ():
+def EndModif (op, ot):
     global ts_ext
     try:
-        ts_ext.Application.EndModification(False, False)
+        ts_ext.Application.EndModification(op, ot)
         print("End modifs")
     except Exception as ex:
         print(str(ex))
@@ -176,7 +176,7 @@ def copy_tool(tool):
     print("TS model: ", toolModel)
 
     # Open project
-    modelLib = get_default_lib()
+    modelLib = get_default_lib() #TODO make it connect only one time if we create multiple tools
 
     #print("TS model lib ID: ", modelLib[0].Id)
 
@@ -195,6 +195,7 @@ def copy_tool(tool):
         
         #print("toolModelId: ", len(toolModelId))
 
+        #need a list of PdmObjectId to CopySeveral
         firstTool = toolModelId[0]
         toolModelId.Clear()
         toolModelId.Add(firstTool)
@@ -202,7 +203,8 @@ def copy_tool(tool):
         savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
 
         #print("savedtool: ",savedTool[0].Id)
-        print(f"Tool copied successfully!")
+        if savedTool:
+            print(f"Tool copied successfully!")
 
         # print("savedTool: ", ts_ext.Documents.Save(tmp))
         #ts_ext.Documents.Open(tmp)
@@ -245,13 +247,13 @@ def copy_tool(tool):
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)
         
         #ts_ext.Application.EndModification(True, False)
-        EndModif()
+        EndModif(True, False)
         
         ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
        
     except Exception as ex:
-        EndModif()
+        EndModif(True,False)
 
         print("Error copying tool: " + str(ex))
 

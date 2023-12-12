@@ -18,7 +18,7 @@ class pasteDialog(wx.Dialog):
         self.textboxSizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.main_sizer.Add(self.textboxSizer, 0, wx.Center)
                     
-        # Add save, cancel and create buttons        
+        # Add buttons box       
         btn_sizer = wx.BoxSizer()
 
         refresh_btn = wx.Button(self, label='Refresh')
@@ -41,7 +41,7 @@ class pasteDialog(wx.Dialog):
         self.SetSizer(self.main_sizer)
 
         #resize the dialog to fit the content
-        #self.Fit()
+        self.Fit()
 
     def add_widgets(self, label, widget):
         

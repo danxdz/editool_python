@@ -1,6 +1,5 @@
 1;APMXS;@L1;Depth of cut maximum in feed direction side
-2;Barcode;@CodeBar;Product barcode
-2;Code barre;@CodeBar;Product barcode;Codigo de barras
+2;Code barre;@CodeBar;Product barcode
 3;CA;Collision angle
 4;CCC;@CoupeCentre;Center cutting capability
 5;CGT;@toolShapeType;Cutting geometry type

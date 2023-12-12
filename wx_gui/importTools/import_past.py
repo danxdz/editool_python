@@ -8,13 +8,18 @@ def process_input(input_text):
     name_mapping = {}
     for line in config_lines:
         parts = line.split(';')
+        print("parts: ", parts)
         if len(parts) >= 4 and parts[0].isdigit():
             name_mapping[parts[1]] = parts[2].replace('@', '')
+            print("parts filter: ", parts)
 
 
-
+    print("name_mapping: ", name_mapping)
     # Parse the input text and populate the Tool object
     lines = input_text.split('\n')
+    for line in lines: 
+        print("line: ", line)
+        
     tool = Tool()
     for line in lines:
         parts = line.split('\t')
@@ -25,7 +30,6 @@ def process_input(input_text):
                 setattr(tool, attr_name, parts[2].replace(' mm', ''))
 
     if tool.toolType == "":
-        print("detect_tool_type: " + tool.Name + " " + str(tool.RayonBout) + " " + str(tool.D1) + " type: " + tool.toolType + " manuf: " + tool.ManufRef)
         tool.toolType = detect_tool_type(float(tool.D1), float(tool.RayonBout))
 
     if tool.Name == "":
@@ -45,7 +49,7 @@ def process_input(input_text):
 
 def detect_tool_type(diameter, tip_radius):
     # Verifica se a ferramenta tem um raio de ponta significativo para ser considerada ballMill (fresa esférica)
-    print("detect_tool_type: " + str(diameter) + " " + str(tip_radius))
+    print("detect_tool_type: D: " + str(diameter) + " r: " + str(tip_radius))
     if tip_radius == diameter / 2:
         return "ballMill"
     
@@ -76,6 +80,7 @@ def detect_tool_manuf(name):
         'XH': 'X-Heads - HSM/Tornado High speed machining',
         'XV': 'X-Heads - VHM General machining',
         'XHF': 'X-Heads - HFM High feed machining',
+        '440': 'High speed',
     }
 
     for code, pattern in patterns.items():
