@@ -13,19 +13,42 @@ def delete_selected_item(self):
     del self.fullToolsList[index]
 
 
+
+def add_line(self, tool):
+    index = self.list_ctrl.GetItemCount()
+
+    self.fullToolsList[index] = tool
+
+    print("adding tool line :: ", index, " :: ", tool.Name)
+
+    index = self.list_ctrl.InsertItem(index, str(index + 1))
+    self.list_ctrl.SetItem(index, 1, str(tool.Name))
+    self.list_ctrl.SetItem(index, 2, str(tool.D1))
+    self.list_ctrl.SetItem(index, 3, str(tool.L1))
+    self.list_ctrl.SetItem(index, 4, str(tool.D2))
+    self.list_ctrl.SetItem(index, 5, str(tool.L2))
+    self.list_ctrl.SetItem(index, 6, str(tool.D3))
+    self.list_ctrl.SetItem(index, 7, str(tool.L3))
+    self.list_ctrl.SetItem(index, 8, str(tool.RayonBout))
+    self.list_ctrl.SetItem(index, 9, str(tool.toolType))
+    self.list_ctrl.SetItem(index, 10, str(tool.Manuf))
+
+    return index
+
 def load_tools(self):
     self.list_ctrl.ClearAll
     tools = db.load_tools_from_database(self)
 
     tools = reversed(tools)
 
+    #add " " (empty) to dropboxs to clear selection
     self.D1_cb.Append(str(" "))
     self.L1_cb.Append(str(" "))
     self.L2_cb.Append(str(" "))
     self.Z_cb.Append(str(" "))
 
     for tool in tools:
-        self.add_line(tool)
+        add_line(self, tool)
 
         dropbox = self.D1_cb
         self.fill_dropboxs(tool.D1, dropbox)    
@@ -35,3 +58,5 @@ def load_tools(self):
         self.fill_dropboxs(tool.L2, dropbox)
         dropbox = self.Z_cb
         self.fill_dropboxs(tool.NoTT, dropbox)
+
+    

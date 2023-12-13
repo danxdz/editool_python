@@ -4,16 +4,16 @@ import sys
 import import_xml_wx as iXml
 
 from export_xml_wx import create_xml_data
-from gui.toolPanel import ToolPanel
+from gui.toolList import ToolList
 from importTools.pasteDialog import pasteDialog
 
-import ts
 
 class ToolManagerUI(wx.Frame):
 
     def __init__(self):
         super().__init__(parent=None, title='Tool Manager')
-        self.panel = ToolPanel(self, self)
+        #load tools from database to ToolPanel
+        self.panel = ToolList(self, self)
         self.create_menu()
         self.SetSize(800, 800)
         self.Centre()

@@ -1,8 +1,9 @@
 class Tool:
  
-    def __init__(self, Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, CoupeCentre=0.0,
+    def __init__(self,id="", Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, CoupeCentre=0.0,
                   ArrCentre="", TypeTar=0, PasTar=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial=""):
    
+        self.id = id
         self.Name = Name
         self.toolType = toolType
         self.GroupeMat = GroupeMat
@@ -29,6 +30,7 @@ class Tool:
 
     def getAttributes(self):
         return {
+            'id': self.id,
             'Name': self.Name,
             'toolType': self.toolType,
             'GroupeMat': self.GroupeMat,
@@ -52,4 +54,4 @@ class Tool:
             'CodeBar': self.CodeBar,
             'Comment': self.Comment,
         }
-    
+        

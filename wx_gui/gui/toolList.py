@@ -7,7 +7,7 @@ from gui.guiTools import delete_selected_item
 
 import ts
 
-class ToolPanel(wx.Panel):    
+class ToolList(wx.Panel):    
     def __init__(self, parent, main_frame):
         super().__init__(parent)
         self.main_frame = main_frame
@@ -208,26 +208,6 @@ class ToolPanel(wx.Panel):
         #print("items :: ", items)
 
 
-    def add_line(self, tool):
-        index = self.list_ctrl.GetItemCount()
-
-        self.fullToolsList[index] = tool
-
-        #print("adding tool line :: ", index, " :: ", tool.Name)
-
-        index = self.list_ctrl.InsertItem(index, str(index + 1))
-        self.list_ctrl.SetItem(index, 1, str(tool.Name))
-        self.list_ctrl.SetItem(index, 2, str(tool.D1))
-        self.list_ctrl.SetItem(index, 3, str(tool.L1))
-        self.list_ctrl.SetItem(index, 4, str(tool.D2))
-        self.list_ctrl.SetItem(index, 5, str(tool.L2))
-        self.list_ctrl.SetItem(index, 6, str(tool.D3))
-        self.list_ctrl.SetItem(index, 7, str(tool.L3))
-        self.list_ctrl.SetItem(index, 8, str(tool.RayonBout))
-        self.list_ctrl.SetItem(index, 9, str(tool.toolType))
-        self.list_ctrl.SetItem(index, 10, str(tool.Manuf))
-
-        return index
 
 
 
@@ -240,14 +220,12 @@ class ToolPanel(wx.Panel):
         print("tool :: ", tool)
 
     def on_menu_click(self, event):
-        id = event.GetId()
-        
+        id = event.GetId()        
         print('on_menu_click :: ', id)
-        count = self.list_ctrl.GetSelectedItemCount()
-        
-        ind = self.list_ctrl.GetFirstSelected()
 
-        print("count :: ", count)
+
+        count = self.list_ctrl.GetSelectedItemCount()        
+        ind = self.list_ctrl.GetFirstSelected()
 
         if count > 1:
             print("multiple items selected")

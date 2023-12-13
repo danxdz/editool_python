@@ -1,5 +1,6 @@
 import wx
 import ts as ts
+import databaseTools
 
 class EditDialog(wx.Dialog):
     def __init__(self, tool):
@@ -45,26 +46,41 @@ class EditDialog(wx.Dialog):
         
         label_text = wx.StaticText(self, label=label)
         sizer = wx.BoxSizer(wx.VERTICAL)
-        sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
-        sizer.Add(widget, 0, wx.ALL, 2)
-        self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+        #add binding to widget and send label_text to on_change
+        widget.Bind(wx.EVT_TEXT, lambda event: self.on_change(event, label))
 
+        sizer.Add(label_text, 0, wx.ALL, 5)
+        sizer.Add(widget, 0, wx.ALL, 5)
+        self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+        
+
+        
 
     def on_save(self, event):
-        # Update the Tool object with the edited values
-        self.tool.Name = self.main_sizer.GetItemCount()
-        print(str(self.tool.Name))
+        print("updating tool ", self.tool.Name, " in database")
+        #Update the database with the changes
+        databaseTools.update_tool(self.tool)        
 
-        # Add your save logic here
-        # For example, you might want to update the database with the changes
-        # db.update_tool(self.tool)
-        self.Destroy()  # Close the dialog after saving
+        #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):
-        self.tool.Name = self.main_sizer.GetItemCount()
-        
+
         ts.copy_tool(self.tool)
         #print("tool :: ", self.tool)
         self.Destroy()  # Close the dialog after create tool
+
+    def on_change(self, event, label_text ):
+        #get the value of the widget and the textbox name changed
+        print("change",label_text, event.GetString())
+        #nice we are getting the value of the widget label, now i need to set the tool attribute
+        tool = self.tool
+        #set object attribute with the value of the widget
+        setattr(tool, label_text, event.GetString())
+        self.tool = tool
+
+        print("gret" , getattr(tool, label_text))
+
+        
+
 
     
