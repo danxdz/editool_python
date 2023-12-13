@@ -1,6 +1,6 @@
 from tool import Tool
 
-def process_input(input_text):
+def process_input_13999(input_text):
     # Parse the config file to create the mapping
     with open("13999_paste.txt") as config_file:
         config_text = config_file.read()

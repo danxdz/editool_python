@@ -11,6 +11,8 @@ def delete_selected_item(self):
     db.deleteTool(self.fullToolsList[index])
     self.list_ctrl.DeleteItem(index)
     del self.fullToolsList[index]
+    self.list_ctrl.DeleteAllItems()
+    load_tools(self)
 
 
 
@@ -36,7 +38,8 @@ def add_line(self, tool):
     return index
 
 def load_tools(self):
-    self.list_ctrl.ClearAll
+    print("loading tools", self)
+    self.list_ctrl.DeleteAllItems()
     tools = db.load_tools_from_database(self)
 
     tools = reversed(tools)
@@ -50,13 +53,13 @@ def load_tools(self):
     for tool in tools:
         add_line(self, tool)
 
-        dropbox = self.D1_cb
-        self.fill_dropboxs(tool.D1, dropbox)    
-        dropbox = self.L1_cb
-        self.fill_dropboxs(tool.L1, dropbox)
-        dropbox = self.L2_cb
-        self.fill_dropboxs(tool.L2, dropbox)
-        dropbox = self.Z_cb
-        self.fill_dropboxs(tool.NoTT, dropbox)
+        #dropbox = self.D1_cb
+        #self.fill_dropboxs(tool.D1, dropbox)    
+        #dropbox = self.L1_cb
+        #self.fill_dropboxs(tool.L1, dropbox)
+        #dropbox = self.L2_cb
+        #self.fill_dropboxs(tool.L2, dropbox)
+        #dropbox = self.Z_cb
+        #self.fill_dropboxs(tool.NoTT, dropbox)
 
     

@@ -29,7 +29,7 @@ def parse_hyper_xml_data(root):
         'toolType': tool.attrib['type'],
         'GroupeMat': tool.find('param[@name="cuttingMaterial"]').attrib['value'],
         'D1': float(tool.find('param[@name="toolDiameter"]').attrib['value']),
-        'D2': float(tool.find('param[@name="toolShaftDiameter"]').attrib['value'])-0.2,
+        'D2': float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2,
         'D3': float(tool.find('param[@name="toolShaftDiameter"]').attrib['value']),
         'L1': float(tool.find('param[@name="cuttingLength"]').attrib['value']),
         'L2': float(tool.find('param[@name="taperHeight"]').attrib['value']),
@@ -59,11 +59,13 @@ def get_property_value(tool, prop_name, default_value=''):
         prop_name_elem = prop.find("PropertyName[@source='din_mk']")
         if prop_name_elem is not None and prop_name_elem.text == prop_name:
             value_elem = prop.find("Value")
-            if value_elem is not None and value_elem.text.strip():
+            value = value_elem.text.strip()
+            value = value.replace(',', '.')
+            if value_elem is not None and value:
                 try:
-                    return float(value_elem.text.strip())
+                    return float(value)
                 except ValueError:
-                    return value_elem.text.strip()
+                    return value
     return default_value
 
 
@@ -113,12 +115,12 @@ def parse_new_xml_data(tool):
 
 
     # Extract the properties using a function to handle missing properties
-    coolants_value = int(get_property_value(tool, "H21"))
+    coolants_value = get_property_value(tool, "H21")#int(get_property_value(tool, "H21"))
     #dbout("Coolants value: ", coolants_value)
     coolants_type = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
     #dbout("Coolants type: ", coolants_type)
 
-    coolants_value = coolants_type[coolants_value]
+    #coolants_value = coolants_type[coolants_value]
 
 
     groupe_mat = get_property_value(tool, "J3")
@@ -134,36 +136,47 @@ def parse_new_xml_data(tool):
 
     d3 = float(get_property_value(tool, "C3"))
     l1 = get_property_value(tool, "B2")
+    print("L1: ", l1)
     if l1 == 0:
         l1 = get_property_value(tool, "B4")
 
     l2 = float(get_property_value(tool, "B3"))
+    print("L2: ", l2)
     l3 = float(get_property_value(tool, "B5"))
+    print("L3: ", l3)
     no_tt = get_property_value(tool, "F21")
     if no_tt == 0:
         no_tt = get_property_value(tool, "D1")
+    print("NoTT: ", no_tt)
     
     rayon_bout = get_property_value(tool, "G1", default_value="0.0")
     try:
         rayon_bout = float(rayon_bout)
     except ValueError:
         rayon_bout = 0
+    print("RayonBout: ", rayon_bout)
     
     chanfrein = get_property_value(tool, "D6")
+    print("Chanfrein: ", chanfrein)
     
     manuf_ref_sec = get_property_value(tool, "H5")
+    print("ManufRefSec: ", manuf_ref_sec)
     code_bar = get_property_value(tool, "J21")
+    print("CodeBar: ", code_bar)
     comment = get_property_value(tool, "J8")
+    print("Comment: ", comment)
 
-    manuf = tool.find('.//Main-Data/Manufacturer').text.strip()
-    if manuf == "FSA": manuf = "FRAISA"
+    tool_type = ""
 
-    name = tool.find('.//Main-Data/PrimaryId').text.strip()
-
-    manuf_ref = name
-
-    tool_type = check_fraisa_types(name)  # Certifique-se de fornecer o ID correto da ferramenta.
-
+    try:
+        manuf = tool.find('.//Main-Data/Manufacturer').text.strip()
+        name = tool.find('.//Main-Data/PrimaryId').text.strip()
+        manuf_ref = name
+        if manuf == "FSA": 
+            manuf = "FRAISA"
+            tool_type = check_fraisa_types(name)  # Certifique-se de fornecer o ID correto da ferramenta.
+    except:
+        manuf == ""
 
     tool_data = {
         'Name': name,

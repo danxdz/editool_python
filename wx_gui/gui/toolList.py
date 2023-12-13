@@ -172,7 +172,8 @@ class ToolList(wx.Panel):
        
     def db_click(self, event):
         print("edit tool: ", self.getSelectedTool().Name)
-        EditDialog(self.getSelectedTool()).ShowModal()
+        print("edit tool: ", self)
+        EditDialog(self.getSelectedTool(), self).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -231,10 +232,12 @@ class ToolList(wx.Panel):
 
         if count > 1:
             print("multiple items selected")
+            for i in range(count):
+                print("selected item :: ", self.getSelectedTool()[i].Name)
         else:
             print("single item selected")
+            print("selected item :: ", self.getSelectedTool().Name)
 
-        print("selected item :: ", self.getSelectedTool().Name)
 
         if id == 0:
             print("Create")           

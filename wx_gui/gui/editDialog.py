@@ -2,13 +2,16 @@ import wx
 import ts as ts
 import databaseTools
 
+from gui.guiTools import load_tools
+
 class EditDialog(wx.Dialog):
-    def __init__(self, tool):
+    def __init__(self, tool, parent):
         title = f'Editing "{tool.Name}"'
         super().__init__(parent=None, title=title)
         self.tool = tool
         self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
-                
+        self.parent = parent
+        print("parent :: ", parent)      
         #Attributes from Tool class
         #get all Tool attributes
         self.toolAttributes = self.tool.getAttributes()
@@ -57,7 +60,9 @@ class EditDialog(wx.Dialog):
     def on_save(self, event):
         print("updating tool ", self.tool.Name, " in database")
         #Update the database with the changes
-        databaseTools.update_tool(self.tool)        
+        databaseTools.update_tool(self.tool)
+
+        load_tools(self.parent)
 
         #self.Destroy()  # Close the dialog after saving
 

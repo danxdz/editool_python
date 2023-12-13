@@ -5,6 +5,7 @@ import import_xml_wx as iXml
 
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
+from gui.guiTools import add_line
 from importTools.pasteDialog import pasteDialog
 
 
@@ -99,7 +100,7 @@ class ToolManagerUI(wx.Frame):
         if tool:
             self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
             print("Tool added:", tool.Name)
-            index = self.panel.add_line(tool)
+            index = add_line(self.panel, tool)
             #self.tools_list.append(tool)
             self.panel.list_ctrl.Select(index)
 

@@ -22,14 +22,14 @@ def load_tools_from_database(self):
             print("tool added: ", tool.Name)
         return tools_list
 
-def deleteTool(id):
+def deleteTool(tool):
     #connect to the database
     conn = sqlite3.connect('tool_manager.db')
     #create a cursor
     cursor = conn.cursor()
     #delete a record
-    print("delete :: "+str(id.Name))
-    tmp = "DELETE from tools WHERE name='" + str(id.Name) + "'"
+    print("delete :: "+str(tool.Name))
+    tmp = "DELETE from tools WHERE id='" + str(tool.id) + "'"
     cursor.execute(tmp)
     #commit changes
     conn.commit()
@@ -87,13 +87,13 @@ def saveTool(tool):
 
 def update_tool(tool):
     #print all tool attributes
-    #for key, value in tool.getAttributes().items():
-    #    print(key, value)
+    for key, value in tool.getAttributes().items():
+        print(key, value)
 
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
-    tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', TypeTar='" + str(tool.TypeTar) + "', PasTar='" + str(tool.PasTar) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "' WHERE id='" + str(tool.id) + "'"
-    #print(tmp)
+    tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', TypeTar='" + str(tool.TypeTar) + "', PasTar='" + str(tool.PasTar) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "' WHERE id='" + str(tool.id) + "'"
+    print(tmp)
     cursor.execute(tmp)
     conn.commit()
 

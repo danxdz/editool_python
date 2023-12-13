@@ -219,9 +219,28 @@ def copy_tool(tool):
         savedToolModif = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
 
         #print("savedToolModif: ", savedToolModif.PdmDocumentId)
+
         
+        #Debug -> get elements param list
+        """
+        sys_pard = ts_ext.Elements.GetElements(savedToolModif)
+        print("sys_pard: ", sys_pard)
+        for i in range(len(sys_pard)):
+            print("sys_pard: ", sys_pard[i])
+            print("sys_pard: ", ts_ext.Elements.GetName(sys_pard[i]))            
+            if ts_ext.Elements.GetName(sys_pard[i]) == "":
+                print("sys_pard: ", ts_ext.Elements.GetDescription(sys_pard[i]))
+        
+        exit()
+        """
 
         ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.ManufRef)
+        #TODO: add tool parameters config
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), tool.ManufRef)
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), tool.Manuf)
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), tool.CodeBar)
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), tool.Code)
+        ts_ext.Parameters.SetBooleanValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
         
         Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(tool.NoTT))
    

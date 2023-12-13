@@ -55,7 +55,7 @@ class pasteDialog(wx.Dialog):
         
         #print(str(self.text_area.GetValue()))
 
-        self.tool = import_past.process_input(self.text_area.GetValue())
+        self.tool = import_past.process_input_13999(self.text_area.GetValue())
         print("tool :: ", self.tool)
         #Attributes from Tool class
         #get all Tool attributes
