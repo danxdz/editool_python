@@ -1,9 +1,11 @@
 
 import wx
 from gui.editDialog import EditDialog
-import databaseTools as db
+
 from gui.guiTools import load_tools
 from gui.guiTools import delete_selected_item
+from gui.guiTools import add_line
+
 
 import ts
 
@@ -110,7 +112,7 @@ class ToolList(wx.Panel):
         for tool in self.fullToolsList.values():
             if value == 0:  # blank
                 print("value vide :: ", value)
-                self.add_line(tool)
+                ToolList.add_line(tool)
                 new_tool_list.append(tool)
             else:
                 print("value :: ", value , " :: ", tool.D1)
@@ -121,7 +123,7 @@ class ToolList(wx.Panel):
                 if (flt == value):
                     print("adding tool :: ", tool.Name)
                     filter_func(tool,value)
-                    self.add_line(tool)
+                    add_line(tool)
                     new_tool_list.append(tool)
 
         for tool in new_tool_list:
@@ -232,7 +234,7 @@ class ToolList(wx.Panel):
         else:
             print("single item selected")
 
-        print("selected item :: ", self.getSelectedTool())
+        print("selected item :: ", self.getSelectedTool().Name)
 
         if id == 0:
             print("Create")           

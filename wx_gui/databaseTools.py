@@ -87,16 +87,16 @@ def saveTool(tool):
 
 def update_tool(tool):
     #print all tool attributes
-    for key, value in tool.getAttributes().items():
-        print(key, value)
+    #for key, value in tool.getAttributes().items():
+    #    print(key, value)
 
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
-    tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', TypeTar='" + str(tool.TypeTar) + "', PasTar='" + str(tool.PasTar) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "' WHERE Name='" + str(tool.id) + "'"
-    print(tmp)
+    tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', TypeTar='" + str(tool.TypeTar) + "', PasTar='" + str(tool.PasTar) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "' WHERE id='" + str(tool.id) + "'"
+    #print(tmp)
     cursor.execute(tmp)
     conn.commit()
 
-    print('Tool updated in database.', tool.Name , conn.total_changes)
+    print('Tool updated in database.', tool.Name , "tool changed: ", conn.total_changes)
     conn.close()
 

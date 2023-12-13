@@ -24,14 +24,14 @@ class EditDialog(wx.Dialog):
 
         # Add save and cancel buttons        
         btn_sizer = wx.BoxSizer()
-        save_btn = wx.Button(self, label='Save')
+        save_btn = wx.Button(self, label='save')
         save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         btn_sizer.Add(save_btn, 5, wx.ALL, 15)
 
-        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 5, wx.ALL, 15)  
+        btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL, label="close"), 5, wx.ALL, 15)  
 
         
-        create_btn = wx.Button(self, label='Create')
+        create_btn = wx.Button(self, label='create')
         create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(create_btn, 5, wx.ALL, 15)
 
@@ -52,9 +52,7 @@ class EditDialog(wx.Dialog):
         sizer.Add(label_text, 0, wx.ALL, 5)
         sizer.Add(widget, 0, wx.ALL, 5)
         self.main_sizer.Add(sizer, 0, wx.ALL, 5)
-        
-
-        
+                
 
     def on_save(self, event):
         print("updating tool ", self.tool.Name, " in database")
@@ -71,16 +69,12 @@ class EditDialog(wx.Dialog):
 
     def on_change(self, event, label_text ):
         #get the value of the widget and the textbox name changed
-        print("change",label_text, event.GetString())
+        #print("change",label_text, event.GetString())
+
         #nice we are getting the value of the widget label, now i need to set the tool attribute
         tool = self.tool
         #set object attribute with the value of the widget
         setattr(tool, label_text, event.GetString())
         self.tool = tool
 
-        print("gret" , getattr(tool, label_text))
-
-        
-
-
-    
+        #print("gret" , getattr(tool, label_text))    

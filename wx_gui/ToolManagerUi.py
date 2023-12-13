@@ -50,7 +50,7 @@ class ToolManagerUI(wx.Frame):
         )
         self.Bind(
             event=wx.EVT_MENU, 
-            handler=self.paste_iso13999,
+            handler=self.on_paste_iso13999,
             source=ISO13999,
         )
         self.Bind(
@@ -60,7 +60,7 @@ class ToolManagerUI(wx.Frame):
         )
         self.Bind(
             event=wx.EVT_MENU, 
-            handler=self.export_xml,
+            handler=self.on_export_xml,
             source=exp_xml,
         )
         self.Bind(
@@ -89,7 +89,8 @@ class ToolManagerUI(wx.Frame):
     def toolTypeSel(self, id):
         print("id: ", id)
 
-        
+    
+    #menu bar functions
     def on_open_xml(self, event):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
@@ -102,23 +103,22 @@ class ToolManagerUI(wx.Frame):
             #self.tools_list.append(tool)
             self.panel.list_ctrl.Select(index)
 
-    def paste_iso13999(self, event):
+    def on_paste_iso13999(self, event):
         title = "Paste ISO13999 data"        
         pasteDialog(title).ShowModal()
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
         wcard ="Zip files (*.zip)|*.zip"
-        iXml.open_file(self, title, wcard)    
+        iXml.open_file(self, title, wcard)   #TODO: add zip file import  - get p21 data from zip file 
     
-    def export_xml(self, event):
+    def on_export_xml(self, event):
         print("export_xml")
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        tool = self.panel.get_selected_item()
-        print("tool :: ", tool)
+        tool = ToolList.getSelectedTool(self.panel)
+        print("tool selected to export :: ", tool.Name)
         xml_data = create_xml_data(tool)
-        #iXml.save_file(self, title, wcard, xml_data)
 
     def close_app(event, handle):
         print("exit",event.Title, handle, sep=" :: ")
