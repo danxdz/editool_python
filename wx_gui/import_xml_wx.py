@@ -205,7 +205,9 @@ def parse_new_xml_data(tool):
     if manuf == "CE":
         manuf = "CERATIZIT"    
     if manuf == "HOG":
-        manuf = "HOFFMAN"  
+        manuf = "HOFFMAN"
+    if manuf == "JO":
+        manuf = "JONGEN" 
 
     
     
