@@ -21,7 +21,7 @@ def add_line(self, tool):
 
     self.fullToolsList[index] = tool
 
-    print("adding tool line :: ", index, " :: ", tool.Name)
+    #print("adding tool line :: ", index, " :: ", tool.Name)
 
     index = self.list_ctrl.InsertItem(index, str(index + 1))
     self.list_ctrl.SetItem(index, 1, str(tool.Name))
@@ -40,9 +40,13 @@ def add_line(self, tool):
 def load_tools(self):
     print("loading tools", self)
     self.list_ctrl.DeleteAllItems()
+
     tools = db.load_tools_from_database(self)
 
-    tools = reversed(tools)
+    if tools is None:
+        return
+    
+    #tools = reversed(tools) #reverse list to get last added tool first
 
     #add " " (empty) to dropboxs to clear selection
     self.D1_cb.Append(str(" "))
@@ -62,4 +66,4 @@ def load_tools(self):
         #dropbox = self.Z_cb
         #self.fill_dropboxs(tool.NoTT, dropbox)
 
-    
+    self.list_ctrl.Refresh()

@@ -93,6 +93,7 @@ class ToolManagerUI(wx.Frame):
     
     #menu bar functions
     def on_open_xml(self, event):
+        print("import from xml file")
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tool = iXml.open_file(self, title, wcard)
@@ -101,12 +102,11 @@ class ToolManagerUI(wx.Frame):
             self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
             print("Tool added:", tool.Name)
             index = add_line(self.panel, tool)
-            #self.tools_list.append(tool)
             self.panel.list_ctrl.Select(index)
 
     def on_paste_iso13999(self, event):
         title = "Paste ISO13999 data"        
-        pasteDialog(title).ShowModal()
+        pasteDialog(self.panel, title).ShowModal()
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"

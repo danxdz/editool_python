@@ -5,20 +5,31 @@ import databaseTools
 from gui.guiTools import load_tools
 
 class EditDialog(wx.Dialog):
-    def __init__(self, tool, parent):
+    def __init__(self, parent,tool):
         title = f'Editing "{tool.Name}"'
         super().__init__(parent=None, title=title)
         self.tool = tool
         self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.parent = parent
-        print("parent :: ", parent)      
+         
         #Attributes from Tool class
         #get all Tool attributes
         self.toolAttributes = self.tool.getAttributes()
         
         for key, value in self.toolAttributes.items():
             #print(key, value)
-            self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
+            if key == 'toolType':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == 'Manuf':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == 'GroupeMat':
+                groupMat = ["P", "H", "K", "S", "M", "S", "N"]
+                
+                groupMat_CB = self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+                groupMat_CB.AppendItems(groupMat)
+
+            else:
+                self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
 
         #TODO: add a combobox for toolType
         #TODO: add a combobox for GroupeMat
@@ -54,7 +65,10 @@ class EditDialog(wx.Dialog):
 
         sizer.Add(label_text, 0, wx.ALL, 5)
         sizer.Add(widget, 0, wx.ALL, 5)
+
         self.main_sizer.Add(sizer, 0, wx.ALL, 5)
+
+        return widget
                 
 
     def on_save(self, event):

@@ -111,8 +111,8 @@ class ToolList(wx.Panel):
         print(" ********************************* value :: ", value)
         for tool in self.fullToolsList.values():
             if value == 0:  # blank
-                print("value vide :: ", value)
-                ToolList.add_line(tool)
+                print("empty value :: ", value)
+                add_line(self,tool)
                 new_tool_list.append(tool)
             else:
                 print("value :: ", value , " :: ", tool.D1)
@@ -171,9 +171,8 @@ class ToolList(wx.Panel):
 
        
     def db_click(self, event):
-        print("edit tool: ", self.getSelectedTool().Name)
-        print("edit tool: ", self)
-        EditDialog(self.getSelectedTool(), self).ShowModal()
+        #print("edit tool: ", self.getSelectedTool().Name)
+        EditDialog(self, self.getSelectedTool()).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -189,7 +188,7 @@ class ToolList(wx.Panel):
         self.show_popup(event)
 
     def fill_dropboxs(self, tool, dropbox):
-                #add the D1 value to the dropbox if it is not already there
+        #add the D1 value to the dropbox if it is not already there
         items = dropbox.GetItems()
         d1 = str(tool)
         if str(d1) not in items:
@@ -236,7 +235,7 @@ class ToolList(wx.Panel):
                 print("selected item :: ", self.getSelectedTool()[i].Name)
         else:
             print("single item selected")
-            print("selected item :: ", self.getSelectedTool().Name)
+            #print("selected item :: ", self.getSelectedTool().Name)
 
 
         if id == 0:
@@ -250,7 +249,7 @@ class ToolList(wx.Panel):
             
         elif id == 1:
             print("Edit")
-            EditDialog(self.getSelectedTool()).ShowModal()
+            EditDialog(self, self.getSelectedTool()).ShowModal()
 
         elif id == 2:
             print("Delete")

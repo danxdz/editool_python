@@ -239,24 +239,39 @@ def copy_tool(tool):
 
         ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.ManufRef)
         #TODO: add tool parameters config
-        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), tool.ManufRef)
-        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), tool.Manuf)
-        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), tool.CodeBar)
-        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), tool.Code)
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), str(tool.ManufRef))
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), str(tool.Manuf))
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), str(tool.CodeBar))
+        ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.Code))
         ts_ext.Parameters.SetBooleanValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
         
-        Nott = ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(tool.NoTT))
-   
+        NoTT = tool.NoTT        
+        if NoTT:
+            ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(NoTT))
+            print("Nott: ", NoTT)
+
         d1 = tool.D1 / 1000 if tool.D1 is not None and tool.D1 != 0 else 0
-        d2 = tool.D2 / 1000 if tool.D2 is not None and tool.D2 != 0 else d1-(0.2/1000)
+        print("d1: ", d1)
+        print("tool.d2: ", tool.D2)
+        if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None": #Fix for D2 = "None"
+            d2 = tool.D2 / 1000
+        else:
+            d2 = d1-(0.2/1000)            
+        print("d2: ", d2)
+
         d3 = tool.D3 / 1000 if tool.D3 is not None and tool.D3 != 0 else 0
+        print("d3: ", d3)
         l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
+        print("l1: ", l1)
         l2 = tool.L2 / 1000 if tool.L2 is not None and tool.L2 != 0 else 0
+        print("l2: ", l2)
         l3 = tool.L3 / 1000 if tool.L3 is not None and tool.L3 != 0 else 0
-
+        print("l3: ", l3)
         r = tool.RayonBout / 1000
+        print("r: ", r)
 
-        print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", Nott)
+        print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", NoTT)
+
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)

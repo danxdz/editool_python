@@ -4,12 +4,16 @@ import importTools.import_past as import_past
 import tool
 from databaseTools import saveTool
 
+from gui.guiTools import add_line
+
 
 class pasteDialog(wx.Dialog):
-    def __init__(self,title):
+    def __init__(self,parent, title):
         title = 'Add new tool from ISO13999 data'
         super().__init__(parent=None, title=title)
       
+        self.parent = parent
+
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
                 
         self.text_area = wx.TextCtrl(self,style = wx.TE_MULTILINE)
@@ -88,6 +92,14 @@ class pasteDialog(wx.Dialog):
     def on_save(self, event):
         print("on_save")
         saveTool(self.tool)
+
+        print("tool :: ", self.parent)
+        if self.tool:
+            self.parent.list_ctrl.Select(self.parent.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
+            print("Tool added:", self.tool.Name)
+            index = add_line(self.parent, self.tool)
+            self.parent.list_ctrl.Select(index)
+        
         #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):

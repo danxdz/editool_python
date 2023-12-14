@@ -131,7 +131,7 @@ def parse_new_xml_data(tool):
     
     print("D1: ", d1)
     d2 = get_property_value(tool, "A5")
-    if d2 == 0:
+    if d2 == 0 or not d2 or d2 == "None":
         d2 = d1 - 0.2
 
     d3 = float(get_property_value(tool, "C3"))
@@ -172,22 +172,44 @@ def parse_new_xml_data(tool):
     comment = get_property_value(tool, "J8")
     print("Comment: ", comment)
 
+    tool_type = "endMill" #TODO: find way to get tool type from xml
+    name = ""    
+    manuf = ""
+    manuf_ref = ""
+
     angle = get_property_value(tool, "E1")
     if angle:
         if int(angle) < 140 or int(angle) > 100:
             tool_type = "drill"
         else:
-            tool_type = ""
-
+            tool_type = "endMill"
+    print("Angle: ", angle)
+    print("Tool type: ", tool_type)
     try:
         manuf = tool.find('.//Main-Data/Manufacturer').text.strip()
         name = tool.find('.//Main-Data/PrimaryId').text.strip()
-        manuf_ref = name
-        if manuf == "FSA": 
-            manuf = "FRAISA"
-            tool_type = check_fraisa_types(name)  # Certifique-se de fornecer o ID correto da ferramenta.
     except:
-        manuf == ""
+        print("*****name: ", name)
+
+    if not name:
+        name = tool.find('.//Main-Data/ID21002').text.strip()
+    
+    print("*****name: ", name)
+
+    manuf_ref = name
+    #TODO MAKE EXTERNAL EDITABLE LIST
+    if manuf == "FSA": 
+        manuf = "FRAISA"
+        tool_type = check_fraisa_types(name)  # Certifique-se de fornecer o ID correto da ferramenta.
+
+    if manuf == "CE":
+        manuf = "CERATIZIT"    
+    if manuf == "HOG":
+        manuf = "HOFFMAN"  
+
+    
+    
+
 
     tool_data = {
         'Name': name,
