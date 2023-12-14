@@ -250,8 +250,10 @@ def copy_tool(tool):
             ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(NoTT))
             print("Nott: ", NoTT)
 
-        d1 = tool.D1 / 1000 if tool.D1 is not None and tool.D1 != 0 else 0
-        print("d1: ", d1)
+        if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
+            d1 = tool.D1 / 1000
+            print("d1: ", d1)
+            
         print("tool.d2: ", tool.D2)
         if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None": #Fix for D2 = "None"
             d2 = tool.D2 / 1000
