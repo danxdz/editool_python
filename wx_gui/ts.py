@@ -1,3 +1,4 @@
+from math import pi
 import winreg
 import os
 import clr
@@ -170,6 +171,8 @@ def copy_tool(tool):
         toolModel = "Radiused Mill D16 L40 r3 SD16"
     elif tool.toolType == "ballMill":
         toolModel = "Ball Nose Mill D8 L30 SD8"
+    elif tool.toolType == "drill":
+        toolModel = "Twisted Drill D10 L35 SD10"
     else:
         toolModel = "Side Mill D20 L35 SD20"
 
@@ -256,11 +259,20 @@ def copy_tool(tool):
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", Nott)
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
+        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
+
+        if tool.toolType == "endMill":
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+        elif tool.toolType == "drill":
+            if not tool.AngleDeg:
+                tool.AngleDeg = 140
+            print("AngleDeg: ", tool.AngleDeg)
+            tmpAngleRad = int(tool.AngleDeg) * pi / 180
+            print("tmpAngleRad: ", tmpAngleRad)
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
 
         if tool.toolType == "radiusMill":
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)

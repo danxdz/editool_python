@@ -1,6 +1,6 @@
 class Tool:
  
-    def __init__(self,id="", Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, CoupeCentre=0.0,
+    def __init__(self,id="", Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
                   ArrCentre="", TypeTar=0, PasTar=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial=""):
    
         self.id = id
@@ -16,6 +16,7 @@ class Tool:
         self.NoTT = NoTT
         self.RayonBout = RayonBout
         self.Chanfrein = Chanfrein
+        self.AngleDeg = AngleDeg
         self.CoupeCentre = CoupeCentre
         self.ArrCentre = ArrCentre
         self.TypeTar = TypeTar
@@ -43,6 +44,7 @@ class Tool:
             'NoTT': self.NoTT,
             'RayonBout': self.RayonBout,
             'Chanfrein': self.Chanfrein,
+            'AngleDeg': self.AngleDeg,
             'CoupeCentre': self.CoupeCentre,
             'ArrCentre': self.ArrCentre,
             'TypeTar': self.TypeTar,

@@ -126,7 +126,7 @@ def parse_new_xml_data(tool):
     groupe_mat = get_property_value(tool, "J3")
     d1 = get_property_value(tool, "A1")
     #for drills: A11-Cutting diameter 1st step minimum
-    if d1 == 0:
+    if not d1:
         d1 = get_property_value(tool, "A11")
     
     print("D1: ", d1)
@@ -135,19 +135,25 @@ def parse_new_xml_data(tool):
         d2 = d1 - 0.2
 
     d3 = float(get_property_value(tool, "C3"))
+
     l1 = get_property_value(tool, "B2")
     print("L1: ", l1)
-    if l1 == 0:
+    if not l1:
         l1 = get_property_value(tool, "B4")
 
     l2 = float(get_property_value(tool, "B3"))
     print("L2: ", l2)
+    #less it 0 if not defined, so no tool neck
+    if not l2:
+        l2 = 0 
+
     l3 = float(get_property_value(tool, "B5"))
     print("L3: ", l3)
+
     no_tt = get_property_value(tool, "F21")
-    if no_tt == 0:
+    if not no_tt:
         no_tt = get_property_value(tool, "D1")
-    print("NoTT: ", no_tt)
+    print("NoTT: ", no_tt,"_")
     
     rayon_bout = get_property_value(tool, "G1", default_value="0.0")
     try:
@@ -166,7 +172,12 @@ def parse_new_xml_data(tool):
     comment = get_property_value(tool, "J8")
     print("Comment: ", comment)
 
-    tool_type = ""
+    angle = get_property_value(tool, "E1")
+    if angle:
+        if int(angle) < 140 or int(angle) > 100:
+            tool_type = "drill"
+        else:
+            tool_type = ""
 
     try:
         manuf = tool.find('.//Main-Data/Manufacturer').text.strip()

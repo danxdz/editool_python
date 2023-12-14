@@ -17,7 +17,6 @@ class Tool:
         self.CorRadius = 0.0
         self.CorChamfer = 0.0
         self.AngleColl = 0.0
-        self.AnglePoint = 0.0
         self.AngleDeg = 0.0
         self.NoTT = 0
         self.GroupeMat = ""
@@ -50,7 +49,7 @@ def CreateToolTable():
                     CorRadius REAL,
                     CorChamfer REAL,
                     AngleColl REAL,
-                    AnglePoint REAL,
+                    AngleDeg REAL,
                     NoTT INTEGER,
                     GroupeMat TEXT,
                     ToolMaterial TEXT,
@@ -76,7 +75,7 @@ def InsertToolData(tool):
     # Insere os dados da ferramenta na tabela
     c.execute('''INSERT INTO tools VALUES ( ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)''',
               (tool.Id, tool.Type, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.CorRadius,
-               tool.CorChamfer, tool.AngleColl, tool.AnglePoint, tool.NoTT, tool.GroupeMat, tool.ToolMaterial,
+               tool.CorChamfer, tool.AngleColl, tool.Deg, tool.NoTT, tool.GroupeMat, tool.ToolMaterial,
                tool.CoupeCentre, tool.ArrCentre, tool.TypeTar, tool.PasTar, tool.Manuf, tool.ManufRef,
                tool.ManufRefSec, tool.Code, tool.CodeBar, tool.Comment))
 
