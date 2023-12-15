@@ -109,10 +109,13 @@ def parse_new_xml_data(tool):
     print("Parse the XML file")
     print("TOOL :: ",tool)
     #print each element's tag and text
-    for elem in tool.iter():
-        print(elem.tag, elem.text)
+    #for elem in tool.iter():
+    #   print(elem.tag, elem.text)
     
-
+    tool_type = ""
+    l2 = 0
+    threadPitch = 0
+    threadTolerance = 0
 
     # Extract the properties using a function to handle missing properties
     coolants_value = get_property_value(tool, "H21")#int(get_property_value(tool, "H21"))
@@ -141,10 +144,22 @@ def parse_new_xml_data(tool):
     if not d1:
         d1 = get_property_value(tool, "A11")
     
+    if d1 == "M":
+        print("d1 is M")
+        tool_type = "tap"
+        d1 = get_property_value(tool, "A21")  
+        threadPitch = get_property_value(tool, "A3")
+        threadTolerance = get_property_value(tool, "A5")
+
     print("D1: ", d1)
+
     d2 = get_property_value(tool, "A5")
-    if d2 == 0 or not d2 or d2 == "None":
-        d2 = d1 - 0.2
+    #check if d2 is numeric
+    try:
+        d2 = float(d2)
+    except ValueError:
+        d2 = 0
+
 
     d3 = float(get_property_value(tool, "C3"))
 
@@ -153,13 +168,22 @@ def parse_new_xml_data(tool):
     if not l1:
         l1 = get_property_value(tool, "B4")
 
-    l2 = float(get_property_value(tool, "B3"))
-    print("L2: ", l2)
-    #less it 0 if not defined, so no tool neck
+    if tool_type:
+        if tool_type == "tap":
+            l2 = get_property_value(tool, "B1")
+        else:
+            l2 = float(get_property_value(tool, "B3"))
+        #less it 0 if not defined, so no tool neck
     if not l2:
         l2 = 0 
+    print("L2: ", l2)
 
-    l3 = float(get_property_value(tool, "B5"))
+
+    l3 = get_property_value(tool, "B5")
+    if not l3:        
+        l3 = get_property_value(tool, "B3")
+    elif l3:
+        l3 = float(l3)
     print("L3: ", l3)
 
     no_tt = get_property_value(tool, "F21")
@@ -186,14 +210,16 @@ def parse_new_xml_data(tool):
     comment = get_property_value(tool, "J8")
     print("Comment: ", comment)
 
-    tool_type = "endMill" #TODO: find way to get tool type from xml
+    if not tool_type:
+        tool_type = "endMill" #TODO: find way to get tool type from xml
+
     name = ""    
     manuf = ""
     manuf_ref = ""
 
     angle = get_property_value(tool, "E1")
     if angle:
-        if int(angle) < 140 or int(angle) > 100:
+        if int(angle) > 91 or int(angle) < 181:#TODO: check if this is correct
             tool_type = "drill"
         else:
             tool_type = "endMill"
@@ -242,8 +268,8 @@ def parse_new_xml_data(tool):
         'Chanfrein': chanfrein,
         'CoupeCentre': "no",
         'ArrCentre': coolants_value,
-        'TypeTar': "",
-        'PasTar': "",
+        'TypeTar': threadTolerance,
+        'PasTar': threadPitch,
         'Manuf': manuf,
         'ManufRef': manuf_ref,
         'ManufRefSec': manuf_ref_sec,

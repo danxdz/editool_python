@@ -173,8 +173,27 @@ def copy_tool(tool):
         toolModel = "Ball Nose Mill D8 L30 SD8"
     elif tool.toolType == "drill":
         toolModel = "Twisted Drill D10 L35 SD10"
+    elif tool.toolType == "tap":
+        toolModel = "Tap M10*1,5 L35 SD10"
     else:
         toolModel = "Side Mill D20 L35 SD20"
+
+    """
+        Case "endMill", ""
+                    model_name = "Side Mill D20 L35 SD20"'"Fraise 2 tailles D20 L35 SD20"
+                Case "radiusMill"
+                    model_name = "Radiused Mill D16 L40 r3 SD16"'"Fraise torique D16 L40 r3 SD16"
+                Case "FRHE"
+                    model_name = "Ball Nose Mill D8 L30 SD8"'"Fraise hémisphérique D8 L30 SD8"
+                Case "FOP9"
+                    model_name = "Spotting Drill D10 SD10"
+                Case "FOCA", "FOHS", "drill"
+                    model_name = "Twisted Drill D10 L35 SD10"
+                Case "ALFI", "reamer"
+                    model_name = "Constant Reamer D10 L20 SD9"
+                Case Else
+                    model
+    """
 
     print("TS model: ", toolModel)
 
@@ -245,6 +264,16 @@ def copy_tool(tool):
         ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.Code))
         ts_ext.Parameters.SetBooleanValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
         
+
+        d1 = 0
+        d2 = 0
+        d3 = 0
+        l1 = 0
+        l2 = 0
+        l3 = 0
+        r = 0
+        NoTT = 0
+
         NoTT = tool.NoTT        
         if NoTT:
             ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(NoTT))
@@ -254,15 +283,17 @@ def copy_tool(tool):
                 d1 = float(tool.D1) / 1000
                 print("d1: ", d1)
             
-        if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None": #Fix for D2 = "None"
-            d2 = tool.D2 / 1000
+        if tool.D2: #Fix for D2 = "None"
+            if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
+                d2 = float(tool.D2) / 1000
         else:
             d2 = d1-(0.2/1000)            
         print("d2: ", d2)
 
-        if tool.D3 is not None and tool.D3 != 0: 
-            d3 = tool.D3 / 1000
-            print("d3: ", d3)
+        if tool.D3:
+            if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
+                d3 = float(tool.D3) / 1000
+                print("d3: ", d3)
         
         if tool.L1:
             l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
@@ -275,16 +306,19 @@ def copy_tool(tool):
             print("l3: ", l3)
         
         if tool.RayonBout:
-            r = tool.RayonBout / 1000
-            print("r: ", r)
+            if tool.RayonBout != None and tool.RayonBout != 0 and tool.RayonBout != "None":
+                r = tool.RayonBout / 1000
+                print("r: ", r)
 
-        print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", NoTT)
+        #print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", NoTT)
 
     
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
+
+        print("tool type: ", tool.toolType)
 
         if tool.toolType == "drill":
             if not tool.AngleDeg:
@@ -293,10 +327,13 @@ def copy_tool(tool):
             tmpAngleRad = int(tool.AngleDeg) * pi / 180
             print("tmpAngleRad: ", tmpAngleRad)
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
-
+        elif tool.toolType == "tap":
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.PasTar)/1000)
+            #ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)
         else:
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+            if l2 > 0:
+                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
 
         if tool.toolType == "radiusMill":
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)

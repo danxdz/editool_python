@@ -2,7 +2,10 @@
 DIN4000-82;endMill;types
 BLD;Classification par image
 A1;D1;Diamètre de coupe 1 (diamètre nominal):mm
+A1;Thread form type
 A2;D1;Diamètre de coupe 2
+A3;Thread pitch
+A5;Thread tolerance class
 A5;D2;Diamètre extension:mm
 A9;D2;Diamètre du col
 A11;D1;Diamètre de coupe min. ou nominal;Diameter - first stage

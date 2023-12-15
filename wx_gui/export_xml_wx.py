@@ -2,7 +2,7 @@ import xmltodict
 
 def create_xml_data(Tool):
     print("Tool.ArrCentre", Tool.ArrCentre)
-    if Tool.ArrCentre:
+    if Tool.ArrCentre: #TODO set ArrCentre to integer on DB
         if Tool.ArrCentre == "No" or Tool.ArrCentre == "0: 'Unkown'":
             Tool.ArrCentre = "0"
         elif Tool.ArrCentre == "Yes":
