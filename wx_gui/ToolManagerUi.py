@@ -6,7 +6,10 @@ import import_xml_wx as iXml
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
 from gui.guiTools import add_line
+
 from importTools.pasteDialog import pasteDialog
+
+from gui.toolSetup import toolSetupPanel
 
 
 class ToolManagerUI(wx.Frame):
@@ -24,6 +27,7 @@ class ToolManagerUI(wx.Frame):
     def create_menu(self):
         menu_bar = wx.MenuBar()
         file_menu = wx.Menu()
+
         open_xml = file_menu.Append(
             wx.ID_ANY, 'Open xml file', 
             'open a xml file with tool data'
@@ -43,7 +47,8 @@ class ToolManagerUI(wx.Frame):
         exit = file_menu.Append(
             wx.ID_ANY, "exit", "close app"
         )
-        menu_bar.Append(file_menu, '&File')
+        
+
         self.Bind(
             event=wx.EVT_MENU, 
             handler=self.on_open_xml,
@@ -69,7 +74,28 @@ class ToolManagerUI(wx.Frame):
             handler=self.close_app,
             source=exit
         )
+
+        menu_bar.Append(file_menu, '&File')
+
+        config = wx.Menu()
+
+        toolSetup = config.Append(
+            wx.ID_ANY, 'Tool Setup', 
+            'setup tool data'
+        )
+
+        self.Bind(
+            event=wx.EVT_MENU,
+            handler=self.toolSetupPanel,
+            source=toolSetup
+        )
+
+
+        menu_bar.Append(config, '&Config')
+
+
         self.SetMenuBar(menu_bar)
+
 
         #add icon to toolbar with tooltip
 
@@ -84,6 +110,7 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=1)
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=2)
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=3)
+
     
     
     #TODO: add tool type selection
@@ -125,3 +152,6 @@ class ToolManagerUI(wx.Frame):
         print("exit",event.Title, handle, sep=" :: ")
         sys.exit()        
     
+
+    def toolSetupPanel(self, event):
+        toolSetupPanel(self).ShowModal()
