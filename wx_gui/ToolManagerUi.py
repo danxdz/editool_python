@@ -97,7 +97,7 @@ class ToolManagerUI(wx.Frame):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tool = iXml.open_file(self, title, wcard)
-        print("tool : ", tool)
+        #print("tool : ", tool)
         if tool:
             self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
             print("Tool added:", tool.Name)

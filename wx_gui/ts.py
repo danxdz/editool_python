@@ -264,14 +264,19 @@ def copy_tool(tool):
             d3 = tool.D3 / 1000
             print("d3: ", d3)
         
-        l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
-        print("l1: ", l1)
-        l2 = tool.L2 / 1000 if tool.L2 is not None and tool.L2 != 0 else 0
-        print("l2: ", l2)
-        l3 = tool.L3 / 1000 if tool.L3 is not None and tool.L3 != 0 else 0
-        print("l3: ", l3)
-        r = tool.RayonBout / 1000
-        print("r: ", r)
+        if tool.L1:
+            l1 = tool.L1 / 1000 if tool.L1 is not None and tool.L1 != 0 else 0
+            print("l1: ", l1)
+        if tool.L2:
+            l2 = tool.L2 / 1000 if tool.L2 is not None and tool.L2 != 0 else 0
+            print("l2: ", l2)
+        if tool.L3:
+            l3 = tool.L3 / 1000 if tool.L3 is not None and tool.L3 != 0 else 0
+            print("l3: ", l3)
+        
+        if tool.RayonBout:
+            r = tool.RayonBout / 1000
+            print("r: ", r)
 
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", NoTT)
 
