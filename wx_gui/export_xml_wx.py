@@ -1,6 +1,14 @@
 import xmltodict
 
 def create_xml_data(Tool):
+    print("Tool.ArrCentre", Tool.ArrCentre)
+    if Tool.ArrCentre:
+        if Tool.ArrCentre == "No" or Tool.ArrCentre == "0: 'Unkown'":
+            Tool.ArrCentre = "0"
+        elif Tool.ArrCentre == "Yes":
+            Tool.ArrCentre = "1"
+    else :
+        Tool.ArrCentre = "0"
     xml_data = {
         'omtdx': {
             '@version': '23',
@@ -56,8 +64,11 @@ def create_xml_data(Tool):
             },
             'cuttingMaterials': {
                 'cuttingMaterial': {
-                    '@name': Tool.CuttingMaterial,
-                    'params': None
+                    '@name': "Carbure",#Tool.CuttingMaterial,
+                    'params': {
+                        '@name':"predefinedObjGuid",
+                        '@value':"{3755D6C7-90E4-4134-AD07-72FE5EB19F63}",
+                    }
                 }
             },
             'couplings': None,
@@ -95,7 +106,7 @@ def create_xml_data(Tool):
                         },
                         {
                             '@name': 'cuttingMaterial',
-                            '@value': Tool.CuttingMaterial
+                            '@value': 'Carbure',#Tool.CuttingMaterial
                         },
                         {
                             '@name': 'lengthOfUnit',
@@ -188,7 +199,7 @@ def create_xml_data(Tool):
                                 },
                                 {
                                     '@name': 'coolants',
-                                    '@value': Tool.ArrCentre                                },
+                                    '@value': int(float(Tool.ArrCentre))                                },
                                 {
                                     '@name': 'cuttingDirection',
                                     '@value': 'upAndDown'
@@ -229,7 +240,7 @@ def create_xml_data(Tool):
         }
     }
 
-    output = Tool.Name + ".xml"
+    output = "output_xml/" + Tool.Name + ".xml"
     create_xml_file(xml_data, output)
 
     return xml_data

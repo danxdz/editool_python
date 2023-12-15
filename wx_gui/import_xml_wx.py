@@ -116,11 +116,19 @@ def parse_new_xml_data(tool):
 
     # Extract the properties using a function to handle missing properties
     coolants_value = get_property_value(tool, "H21")#int(get_property_value(tool, "H21"))
-    #dbout("Coolants value: ", coolants_value)
+    print("Coolants value: ", coolants_value)
     coolants_type = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
-    #dbout("Coolants type: ", coolants_type)
+    print ("Coolants type: ", coolants_type)
+    if coolants_value:
+        if coolants_value == "0.0"  or not coolants_value or coolants_value == "No":
+            coolants_value = 0
+    else:
+        coolants_value = 0
 
     #coolants_value = coolants_type[coolants_value]
+
+    coolants_value = coolants_type[coolants_value]
+    print("Coolants value: ", coolants_value)
 
 
     groupe_mat = get_property_value(tool, "J3")

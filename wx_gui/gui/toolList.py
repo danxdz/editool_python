@@ -232,7 +232,7 @@ class ToolList(wx.Panel):
         if count > 1:
             print("multiple items selected")
             for i in range(count):
-                print("selected item :: ", self.getSelectedTool()[i].Name)
+                print("selected item :: ")#, self.getSelectedTool()[i].Name)
         else:
             print("single item selected")
             #print("selected item :: ", self.getSelectedTool().Name)

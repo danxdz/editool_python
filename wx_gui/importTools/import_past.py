@@ -81,6 +81,7 @@ def detect_tool_manuf(name):
         'XV': 'X-Heads - VHM General machining',
         'XHF': 'X-Heads - HFM High feed machining',
         '440': 'High speed',
+        'SMB': 'JABRO MINI' 
     }
 
     for code, pattern in patterns.items():

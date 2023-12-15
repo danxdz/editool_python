@@ -79,9 +79,9 @@ def saveTool(tool):
 
     # Add tool into table 'tools'
     cursor.execute('''
-        INSERT INTO tools (Name, toolType, GroupeMat, D1, L1, L2, L3, D3, NoTT, RayonBout, Chanfrein,AngleDeg, CoupeCentre,
+        INSERT INTO tools (Name, toolType, GroupeMat, D1, L1, D2, L2, L3, D3, NoTT, RayonBout, Chanfrein,AngleDeg, CoupeCentre,
             ArrCentre, TypeTar, PasTar, Manuf, ManufRef, ManufRefSec, Code, CodeBar,Comment)
-        VALUES (:Name, :toolType, :GroupeMat, :D1, :L1, :L2, :L3, :D3, :NoTT, :RayonBout, :Chanfrein,:AngleDeg, :CoupeCentre,
+        VALUES (:Name, :toolType, :GroupeMat, :D1, :L1, :D2, :L2, :L3, :D3, :NoTT, :RayonBout, :Chanfrein,:AngleDeg, :CoupeCentre,
             :ArrCentre, :TypeTar, :PasTar, :Manuf, :ManufRef, :ManufRefSec, :Code, :CodeBar, :Comment)
     ''', tool.__dict__)
 
