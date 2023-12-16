@@ -71,10 +71,14 @@ def create_xml_data(Tool):
                     }
                 }
             },
-            'couplings': None,
+            #'couplings': None,
+            
+            #TODO: add couplings            
+            #TODO: add coolants
+            """
             'coolants': {
                 'coolant': {
-                    '@number': '1',
+                    '@number': int(float(Tool.ArrCentre)),
                     'param': [
                         {
                             '@name': 'comment',
@@ -87,6 +91,7 @@ def create_xml_data(Tool):
                     ]
                 }
             },
+            """
             'tools': {
                 'tool': {
                     '@type': Tool.toolType,
@@ -199,7 +204,8 @@ def create_xml_data(Tool):
                                 },
                                 {
                                     '@name': 'coolants',
-                                    '@value': int(float(Tool.ArrCentre))                                },
+                                    '@value': int(float(Tool.ArrCentre))
+                                },
                                 {
                                     '@name': 'cuttingDirection',
                                     '@value': 'upAndDown'

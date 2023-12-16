@@ -1,5 +1,5 @@
 import wx
-import sys
+import sys, os
 
 import import_xml_wx as iXml
 
@@ -18,7 +18,24 @@ class ToolManagerUI(wx.Frame):
         super().__init__(parent=None, title='Tool Manager')
         #load tools from database to ToolPanel
         
-        self.toolType = "endMill"        
+        self.toolType = "endMill"
+        #read folder with icons to get tool types
+        iconPath = "icons/"
+        iconFiles = os.listdir(iconPath)
+        
+        #create dictionary with tool types and icon files
+        self.toolTypes = {}
+        i=0
+        for iconFile in iconFiles:
+            if os.path.isfile(iconPath+iconFile):
+                print(iconFile)                  
+                i += 1
+                name = iconFile.split(".")[0]
+                name = name.split("-")[1]
+                print(name)
+                self.toolTypes[i] = name
+
+
 
         self.panel = ToolList(self, self)
         self.create_menu()
@@ -26,7 +43,6 @@ class ToolManagerUI(wx.Frame):
         self.Centre()
         self.Show()
         
-
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
@@ -94,42 +110,28 @@ class ToolManagerUI(wx.Frame):
             source=toolSetup
         )
 
-
         menu_bar.Append(config, '&Config')
-
-
         self.SetMenuBar(menu_bar)
 
-
         #add icon to toolbar with tooltip
-
         self.toolbar = self.CreateToolBar()
-        self.toolbar.SetToolBitmapSize((15,28))
-        self.toolbar.AddTool(1, "endMill", wx.Bitmap("icons/fr2t.png"))
-        self.toolbar.AddTool(2, "radiusMill", wx.Bitmap("icons/frto.png"))
-        self.toolbar.AddTool(3, "ballMill", wx.Bitmap("icons/frhe.png"))
-        self.toolbar.AddTool(4, "drill", wx.Bitmap("icons/drill.png"))
-
-        self.toolbar.Realize()
-        
-        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=1)
-        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=2)
-        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=3)
-        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=4)
-
+        self.toolbar.SetToolBitmapSize((15,30))
+        i = 0
+        for toolType in self.toolTypes:
+            i += 1
+            name = self.toolTypes[toolType]
+            print(name)
+            icon = "icons/"+str(i)+"-"+name+".png"
+            print(icon)
+            icon = self.toolbar.AddTool(toolType, name , wx.Bitmap(icon))
+            icon.SetShortHelp(name)
+            self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)
 
 
-    
-    
-    #TODO: add tool type selection
-    def toolTypeSel(self, event):
-        case = {
-            1: "endMill",
-            2: "radiusMill",
-            3: "ballMill",
-            4: "drill",
-        }
-        self.toolType = case.get(event.GetId(), "endMill")
+        self.toolbar.Realize()     
+            
+    def toolTypeSel(self, event):        
+        self.toolType = self.toolTypes.get(event.GetId(), "endMill")
         print("toolType filter: ", self.toolType)
         load_tools(self.panel, self.toolType)
     
