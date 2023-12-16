@@ -4,7 +4,7 @@ import importTools.import_past as import_past
 import tool
 from databaseTools import saveTool
 
-from gui.guiTools import add_line
+from gui.guiTools import load_tools
 
 
 class pasteDialog(wx.Dialog):
@@ -94,12 +94,14 @@ class pasteDialog(wx.Dialog):
         saveTool(self.tool)
 
         print("tool :: ", self.parent)
+        load_tools(self.parent, self.parent.toolType)
+        """
         if self.tool:
             self.parent.list_ctrl.Select(self.parent.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
             print("Tool added:", self.tool.Name)
             index = add_line(self.parent, self.tool)
             self.parent.list_ctrl.Select(index)
-        
+        """
         #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):
