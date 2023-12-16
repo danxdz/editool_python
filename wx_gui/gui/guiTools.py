@@ -1,19 +1,37 @@
 import databaseTools as db
+import os
 
+def getToolTypes(self):
+    #read folder with icons to get tool types
+    iconPath = "icons/"
+    iconFiles = os.listdir(iconPath)
+    i=0
+    toolTypes = {}
+    for iconFile in iconFiles:
+        if os.path.isfile(iconPath+iconFile):
+            #print(iconFile)                  
+            i += 1
+            name = iconFile.split(".")[0]
+            name = name.split("-")[1]
+            #print(name)
+            toolTypes[i] = name
+
+    return toolTypes
 
 def delete_selected_item(self, toolType):
-    index = self.getSelectedTool()
-    print("INDEX :: ",index)
+    
     index = self.list_ctrl.GetFirstSelected()
-    print("INDEX :: ",index)
 
     print("deleting tool :: ", index, " :: ", self.fullToolsList[index].Name)
+
     db.deleteTool(self.fullToolsList[index])
-    self.list_ctrl.DeleteItem(index)
+
+    #self.list_ctrl.DeleteItem(index)
+
     del self.fullToolsList[index]
+
     self.list_ctrl.DeleteAllItems()
     load_tools(self,toolType)
-
 
 
 def add_line(self, tool):
@@ -48,12 +66,11 @@ def load_tools(self, toolType):
         return
     
     #print("tooltype :: ", toolType)
-
-
-
+    
     #tools = reversed(tools) #reverse list to get last added tool first
 
     #add " " (empty) to dropboxs to clear selection
+    
     self.D1_cb.Append(str(" "))
     self.L1_cb.Append(str(" "))
     self.L2_cb.Append(str(" "))

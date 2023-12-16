@@ -6,6 +6,7 @@ import import_xml_wx as iXml
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
 from gui.guiTools import load_tools
+from gui.guiTools import getToolTypes
 
 from importTools.pasteDialog import pasteDialog
 
@@ -19,21 +20,9 @@ class ToolManagerUI(wx.Frame):
         #load tools from database to ToolPanel
         
         self.toolType = "endMill"
-        #read folder with icons to get tool types
-        iconPath = "icons/"
-        iconFiles = os.listdir(iconPath)
         
         #create dictionary with tool types and icon files
-        self.toolTypes = {}
-        i=0
-        for iconFile in iconFiles:
-            if os.path.isfile(iconPath+iconFile):
-                #print(iconFile)                  
-                i += 1
-                name = iconFile.split(".")[0]
-                name = name.split("-")[1]
-                #print(name)
-                self.toolTypes[i] = name
+        self.toolTypes = getToolTypes(self)
 
         self.panel = ToolList(self, self)
         self.create_menu()
