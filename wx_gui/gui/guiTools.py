@@ -1,7 +1,7 @@
 import databaseTools as db
 
 
-def delete_selected_item(self):
+def delete_selected_item(self, toolType):
     index = self.getSelectedTool()
     print("INDEX :: ",index)
     index = self.list_ctrl.GetFirstSelected()
@@ -12,7 +12,7 @@ def delete_selected_item(self):
     self.list_ctrl.DeleteItem(index)
     del self.fullToolsList[index]
     self.list_ctrl.DeleteAllItems()
-    load_tools(self)
+    load_tools(self,toolType)
 
 
 
@@ -31,13 +31,14 @@ def add_line(self, tool):
     self.list_ctrl.SetItem(index, 5, str(tool.L2))
     self.list_ctrl.SetItem(index, 6, str(tool.D3))
     self.list_ctrl.SetItem(index, 7, str(tool.L3))
-    self.list_ctrl.SetItem(index, 8, str(tool.RayonBout))
-    self.list_ctrl.SetItem(index, 9, str(tool.toolType))
-    self.list_ctrl.SetItem(index, 10, str(tool.Manuf))
+    self.list_ctrl.SetItem(index, 8, str(tool.NoTT))
+    self.list_ctrl.SetItem(index, 9, str(tool.RayonBout))
+    self.list_ctrl.SetItem(index, 10, str(tool.toolType))
+    self.list_ctrl.SetItem(index, 11, str(tool.Manuf))
 
     return index
 
-def load_tools(self):
+def load_tools(self, toolType):
     print("loading tools", self)
     self.list_ctrl.DeleteAllItems()
 
@@ -46,6 +47,10 @@ def load_tools(self):
     if tools is None:
         return
     
+    print("tooltype :: ", toolType)
+
+
+
     #tools = reversed(tools) #reverse list to get last added tool first
 
     #add " " (empty) to dropboxs to clear selection
@@ -55,7 +60,8 @@ def load_tools(self):
     self.Z_cb.Append(str(" "))
 
     for tool in tools:
-        add_line(self, tool)
+        if toolType == "" or toolType == tool.toolType:
+            add_line(self, tool)
 
         #dropbox = self.D1_cb
         #self.fill_dropboxs(tool.D1, dropbox)    

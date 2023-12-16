@@ -4,6 +4,8 @@ import xml.etree.ElementTree as ET
 
 
 from tool import Tool
+from gui.guiTools import add_line
+from gui.guiTools import load_tools
 
 from databaseTools import saveTool
 
@@ -19,9 +21,9 @@ def parse_hyper_xml_data(root):
     # Extract the value of the 'coolants' parameter from the milling_tecset
     coolants_value = milling_tecset.find(
         ".//param[@name='coolants']").attrib['value']
-    print("Coolants value: ", coolants_value)
+    #print("Coolants value: ", coolants_value)
 
-    print(tool.attrib['name'])
+    #print(tool.attrib['name'])
 
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
@@ -119,9 +121,9 @@ def parse_new_xml_data(tool):
 
     # Extract the properties using a function to handle missing properties
     coolants_value = get_property_value(tool, "H21")#int(get_property_value(tool, "H21"))
-    print("Coolants value: ", coolants_value)
+    #print("Coolants value: ", coolants_value)
     coolants_type = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
-    print ("Coolants type: ", coolants_type)
+    #print ("Coolants type: ", coolants_type)
     if coolants_value:
         coolants_value = int(float(coolants_value))
         if coolants_value == "0.0"  or not coolants_value or coolants_value == "No":
@@ -132,7 +134,7 @@ def parse_new_xml_data(tool):
         coolants_value = 0
 
     #coolants_value = coolants_type[coolants_value]
-    print("Coolants value: ", coolants_value)
+    #print("Coolants value: ", coolants_value)
 
     #coolants_value = coolants_type[coolants_value]
 
@@ -294,6 +296,10 @@ def open_file(self,title,wCard):
         print("PATH", xml_file_path)
         dlg.Destroy()
 
+        if len(xml_file_path) > 1:
+            print("More than one file selected")
+            #exit()
+
         if not xml_file_path:
             print('No file seleted.')
             return None
@@ -302,7 +308,7 @@ def open_file(self,title,wCard):
 
 
         for path in xml_file_path:
-            print('File selected: ', path)
+            #print('File selected: ', path)
             
             tree = ET.parse(path)
             #dbout(tree)
@@ -310,24 +316,35 @@ def open_file(self,title,wCard):
             #dbout("ROOT",root.tag)
             
             # Try to obtain the 'Tool' element
-            print("Try to get Tool Elem")
+            #print("Try to get Tool Elem")
             try:
                 tool = root.find('.//Tool')
                 #dbout("TOOL",tool)
                 if tool:
-                    rest = parse_new_xml_data(tool)
+                    tool = parse_new_xml_data(tool)
                 else:
-                    rest = parse_hyper_xml_data(root)
+                    tool = parse_hyper_xml_data(root)
                 
-                print ("rest :: ",)
-                saveTool(rest)
+                
+                saveTool(tool)
+
+                print("Import xml", path ,"finished")
+
+                #print("tool : ", tool)
+                if tool:
+                    load_tools(self.panel, self.toolType)
+                    """self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
+                    print("Tool added to list:", tool.Name)
+                    index = add_line(self.panel, tool)
+                    self.panel.list_ctrl.Refresh()
+                    """
 
             except:
-                print("rest :: ", rest)
+                print("rest :: ", tool)
                 print("no tool string found")
-        
+ 
 
-            return rest
+        return tool
 
    
 

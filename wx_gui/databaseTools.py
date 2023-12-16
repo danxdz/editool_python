@@ -20,7 +20,7 @@ def load_tools_from_database(self):
             for tool_data in tools:
                 tool = Tool(*tool_data[0:])
                 tools_list.append(tool)
-                print("tool added: ", tool.Name)
+                #print("tool added: ", tool.Name)
             return tools_list
         
         except Exception as e:

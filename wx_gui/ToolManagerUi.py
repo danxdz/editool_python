@@ -5,7 +5,7 @@ import import_xml_wx as iXml
 
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
-from gui.guiTools import add_line
+from gui.guiTools import load_tools
 
 from importTools.pasteDialog import pasteDialog
 
@@ -17,12 +17,16 @@ class ToolManagerUI(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title='Tool Manager')
         #load tools from database to ToolPanel
+        
+        self.toolType = "endMill"        
+
         self.panel = ToolList(self, self)
         self.create_menu()
         self.SetSize(800, 800)
         self.Centre()
         self.Show()
-        self.tools_list = []
+        
+
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
@@ -104,19 +108,30 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.AddTool(1, "endMill", wx.Bitmap("icons/fr2t.png"))
         self.toolbar.AddTool(2, "radiusMill", wx.Bitmap("icons/frto.png"))
         self.toolbar.AddTool(3, "ballMill", wx.Bitmap("icons/frhe.png"))
+        self.toolbar.AddTool(4, "drill", wx.Bitmap("icons/drill.png"))
 
         self.toolbar.Realize()
         
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=1)
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=2)
         self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=3)
+        self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel, id=4)
+
+
 
     
     
     #TODO: add tool type selection
-    def toolTypeSel(self, id):
-        print("id: ", id)
-
+    def toolTypeSel(self, event):
+        case = {
+            1: "endMill",
+            2: "radiusMill",
+            3: "ballMill",
+            4: "drill",
+        }
+        self.toolType = case.get(event.GetId(), "endMill")
+        print("toolType filter: ", self.toolType)
+        load_tools(self.panel, self.toolType)
     
     #menu bar functions
     def on_open_xml(self, event):
@@ -124,12 +139,7 @@ class ToolManagerUI(wx.Frame):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tool = iXml.open_file(self, title, wcard)
-        #print("tool : ", tool)
-        if tool:
-            self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
-            print("Tool added:", tool.Name)
-            index = add_line(self.panel, tool)
-            self.panel.list_ctrl.Select(index)
+               
 
     def on_paste_iso13999(self, event):
         title = "Paste ISO13999 data"        

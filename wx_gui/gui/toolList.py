@@ -77,7 +77,9 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=3)
 
         #load tools from database to list control
-        load_tools(self)
+        load_tools(self, parent.toolType)
+
+        self.toolType = parent.toolType
 
     def add_columns(self):
         self.list_ctrl.InsertColumn(0, "n" , width=50)
@@ -88,6 +90,7 @@ class ToolList(wx.Panel):
         self.list_ctrl.InsertColumn(5, 'L2', width=50)
         self.list_ctrl.InsertColumn(6, 'D3', width=50)
         self.list_ctrl.InsertColumn(7, 'L3', width=50)
+        self.list_ctrl.InsertColumn(8, 'Z', width=50)
         self.list_ctrl.InsertColumn(9, 'r', width=50)
         self.list_ctrl.InsertColumn(10, 'toolType', width=100)
         self.list_ctrl.InsertColumn(11, 'Manuf', width=100)
@@ -253,7 +256,7 @@ class ToolList(wx.Panel):
 
         elif id == 2:
             print("Delete")
-            delete_selected_item(self) 
+            delete_selected_item(self, self.toolType) 
 
 
     #show popup menu
