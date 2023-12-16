@@ -82,7 +82,7 @@ class ToolList(wx.Panel):
         self.toolType = parent.toolType
 
     def add_columns(self):
-        self.list_ctrl.InsertColumn(0, "n" , width=50)
+        self.list_ctrl.InsertColumn(0, "n" , width=30)
         self.list_ctrl.InsertColumn(1, 'name', width=100)
         self.list_ctrl.InsertColumn(2, 'D1', width=50)
         self.list_ctrl.InsertColumn(3, 'L1', width=50)
@@ -222,7 +222,7 @@ class ToolList(wx.Panel):
         
         #ts.conn()
         ts.copy_tool(tool)
-        print("tool :: ", tool)
+        print("tool :: ", tool.Name, " created")
 
     def on_menu_click(self, event):
         id = event.GetId()        

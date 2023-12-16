@@ -39,7 +39,7 @@ def add_line(self, tool):
     return index
 
 def load_tools(self, toolType):
-    print("loading tools", self)
+    #print("loading tools", self)
     self.list_ctrl.DeleteAllItems()
 
     tools = db.load_tools_from_database(self)
@@ -47,7 +47,7 @@ def load_tools(self, toolType):
     if tools is None:
         return
     
-    print("tooltype :: ", toolType)
+    #print("tooltype :: ", toolType)
 
 
 

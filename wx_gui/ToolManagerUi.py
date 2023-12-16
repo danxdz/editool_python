@@ -28,14 +28,12 @@ class ToolManagerUI(wx.Frame):
         i=0
         for iconFile in iconFiles:
             if os.path.isfile(iconPath+iconFile):
-                print(iconFile)                  
+                #print(iconFile)                  
                 i += 1
                 name = iconFile.split(".")[0]
                 name = name.split("-")[1]
-                print(name)
+                #print(name)
                 self.toolTypes[i] = name
-
-
 
         self.panel = ToolList(self, self)
         self.create_menu()
@@ -117,10 +115,11 @@ class ToolManagerUI(wx.Frame):
         self.toolbar = self.CreateToolBar()
         self.toolbar.SetToolBitmapSize((15,30))
         i = 0
+        print("adding icons to toolbar")
         for toolType in self.toolTypes:
             i += 1
             name = self.toolTypes[toolType]
-            print(name)
+            #print(name)
             icon = "icons/"+str(i)+"-"+name+".png"
             print(icon)
             icon = self.toolbar.AddTool(toolType, name , wx.Bitmap(icon))
