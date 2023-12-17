@@ -6,6 +6,8 @@ from gui.guiTools import load_tools
 from gui.guiTools import delete_selected_item
 from gui.guiTools import add_line
 
+import databaseTools as db
+
 
 import ts
 
@@ -77,7 +79,9 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=3)
 
         #load tools from database to list control
-        load_tools(self, parent.toolType)
+        print("loading tools", parent.toolType)
+        tools = db.load_tools_from_database(self)
+        load_tools(self, tools, parent.toolType)
 
         self.toolType = parent.toolType
 
@@ -254,7 +258,8 @@ class ToolList(wx.Panel):
 
             elif id == 2:
                 print("Delete")
-                delete_selected_item(self,i, self.toolType) 
+                toolType = self.fullToolsList[i].toolType
+                delete_selected_item(self,i+1, toolType) 
 
 
     #show popup menu

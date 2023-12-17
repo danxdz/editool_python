@@ -1,6 +1,6 @@
 import wx
 import ts as ts
-import databaseTools
+import databaseTools 
 
 from gui.guiTools import load_tools
 
@@ -75,8 +75,8 @@ class EditDialog(wx.Dialog):
         print("updating tool ", self.tool.Name, " in database")
         #Update the database with the changes
         databaseTools.update_tool(self.tool)
-
-        load_tools(self.parent)
+        tools = databaseTools.load_tools_from_database(self.parent)
+        load_tools(self.parent, tools, self.tool.toolType)
 
         #self.Destroy()  # Close the dialog after saving
 

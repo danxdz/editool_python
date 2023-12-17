@@ -24,11 +24,19 @@ def parse_hyper_xml_data(root):
     #print("Coolants value: ", coolants_value)
 
     #print(tool.attrib['name'])
+    toolType = 0
+    print("Tool type: ", toolType)
+
+    if tool.attrib['type'] == "Tslotcutter":
+        toolType = "tslotMill"
+    else:
+        toolType == tool.attrib['type']
+    print("Tool type: ", toolType)
 
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
         'Name': tool.attrib['name'],
-        'toolType': tool.attrib['type'],
+        'toolType': toolType,
         'GroupeMat': tool.find('param[@name="cuttingMaterial"]').attrib['value'],
         'D1': float(tool.find('param[@name="toolDiameter"]').attrib['value']),
         'D2': float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2,
@@ -50,6 +58,8 @@ def parse_hyper_xml_data(root):
         'CodeBar': tool.find('param[@name="orderingCode"]').attrib['value'],
         'Comment': tool.find('param[@name="comment"]').attrib['value'],
     }
+
+
     print("Tool :: ", tool_data)
     return Tool(**tool_data)
 
@@ -113,7 +123,7 @@ def check_fraisa_types(tool_id):
 def parse_new_xml_data(tool):
     # Parse the XML file
     print("Parse the XML file")
-    print("TOOL :: ",tool)
+    
     #print each element's tag and text
     #for elem in tool.iter():
     #   print(elem.tag, elem.text)
@@ -220,8 +230,7 @@ def parse_new_xml_data(tool):
     comment = get_property_value(tool, "J8")
     print("Comment: ", comment)
 
-    if not tool_type:
-        tool_type = "endMill" #TODO: find way to get tool type from xml
+
 
     name = ""    
     manuf = ""
@@ -244,7 +253,7 @@ def parse_new_xml_data(tool):
     if not name:
         name = tool.find('.//Main-Data/ID21002').text.strip()
     
-    print("*****name: ", name)
+    print("name: ", name)
 
     manuf_ref = name
     #TODO MAKE EXTERNAL EDITABLE LIST
@@ -259,8 +268,21 @@ def parse_new_xml_data(tool):
     if manuf == "JO":
         manuf = "JONGEN" 
 
+    if not tool_type:
+        tool_type = get_property_value(tool, "J22")
+    if not tool_type:
+        tool_data = "endMill" #TODO: find way to get tool type from xml
+
     
-    
+    #change tslootcutter to tslotMill
+    if tool_type == "tslotcutter" or tool_type == "Tslotcutter":
+        tool_type = "tslotMill"
+
+    if tool_type == "drilTool":
+        tool_type = "drill"
+
+    if tool_type == "NC-Anbohrer":
+        tool_type = "spotDrill"
 
 
     tool_data = {
@@ -287,7 +309,7 @@ def parse_new_xml_data(tool):
         'CodeBar': code_bar,
         'Comment': comment,
     }
-    print("tool_data: ",tool_data)
+    #print("tool_data: ",tool_data)
     return Tool(**tool_data)
 
 

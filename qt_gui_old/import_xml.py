@@ -95,7 +95,7 @@ def check_fraisa_types(tool_id):
     elif tool_id.startswith(tuple(str(text_id) for text_id in spot_drill)):
         return "spotDrill"
     elif tool_id.startswith(tuple(str(text_id) for text_id in drill_tool)):
-        return "drilTool"
+        return "drill"
     else:
         return "endMill"
 

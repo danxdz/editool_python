@@ -3,6 +3,7 @@ import ts as ts
 import importTools.import_past as import_past
 import tool
 from databaseTools import saveTool
+from databaseTools import load_tools_from_database
 
 from gui.guiTools import load_tools
 
@@ -94,6 +95,7 @@ class pasteDialog(wx.Dialog):
         saveTool(self.tool)
 
         print("tool :: ", self.parent)
+        tools = load_tools_from_database(self.parent)
         load_tools(self.parent, self.parent.toolType)
         """
         if self.tool:

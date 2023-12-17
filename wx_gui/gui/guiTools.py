@@ -1,26 +1,25 @@
-import databaseTools as db
 import os
 
-def getToolTypes(self):
+def getToolTypes():
     #read folder with icons to get tool types
     iconPath = "icons/"
     iconFiles = os.listdir(iconPath)
     i=0
-    toolTypes = {}
+    toolTypes = []
     for iconFile in iconFiles:
         if os.path.isfile(iconPath+iconFile):
             #print(iconFile)                  
             i += 1
             name = iconFile.split(".")[0]
             name = name.split("-")[1]
-            #print(name)
-            toolTypes[i] = name
+            print(name)
+            toolTypes.append(name)
 
     return toolTypes
 
 def delete_selected_item(self, index, toolType):
     
-    print("deleting tool :: ", index, " :: ", self.fullToolsList[index].Name)
+    print("deleting tool :: ", index, " :: ", self.fullToolsList[index].Name, " toolType :: ", toolType)
 
     db.deleteTool(self.fullToolsList[index])
 
@@ -29,7 +28,8 @@ def delete_selected_item(self, index, toolType):
     del self.fullToolsList[index]
 
     self.list_ctrl.DeleteAllItems()
-    load_tools(self,toolType)
+    tools = db.load_tools_from_database(self, toolType)
+    load_tools(self,tools, toolType)
 
 
 def add_line(self, tool):
@@ -54,12 +54,11 @@ def add_line(self, tool):
 
     return index
 
-def load_tools(self, toolType):
+def load_tools(self, tools, toolType):
     #print("loading tools", self)
     self.list_ctrl.DeleteAllItems()
 
-    tools = db.load_tools_from_database(self)
-
+    
     if tools is None:
         return
     

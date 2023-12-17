@@ -1,5 +1,6 @@
 import sqlite3
 from tool import Tool
+from gui.guiTools import getToolTypes
 
 
 def sqlConn():
@@ -82,7 +83,7 @@ def saveTool(tool):
          CREATE TABLE IF NOT EXISTS tools (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             Name        TEXT,
-            toolType    TEXT    REFERENCES editool_tooltype (id) ON DELETE NO ACTION
+            toolType    INT    REFERENCES editool_tooltype (id) ON DELETE NO ACTION
                                                                 ON UPDATE NO ACTION
                                                                 MATCH SIMPLE,
             GroupeMat   INT,
@@ -112,9 +113,36 @@ def saveTool(tool):
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS editool_tooltype (
             id   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            type VARCHAR (100) NOT NULL
+            toolType VARCHAR (100) NOT NULL
             )
     ''')
+
+    #get all tool types from getToolTypes
+    toolTypes = getToolTypes()
+
+    print("tool_type0 :: ", tool.toolType)
+
+    cursor.execute("SELECT * FROM editool_tooltype WHERE toolType = ?", (tool.toolType,))
+    tool_types = cursor.fetchone()
+    print("tool_types :: ", tool_types)
+    if tool_types:
+        if tool_types[1] == tool.toolType:
+            print("tool_type exist ", tool_types[1])
+            tool.toolType = tool_types[0]   
+    else:
+        print("toolTypes :: ", toolTypes)
+        i = 0
+        for toolType in toolTypes:
+            i += 1
+            print("toolType :: ", toolType)
+            cursor.execute('''INSERT INTO editool_tooltype (toolType) VALUES = (:i)''', toolTypes[i].__dict__)
+            conn.commit()
+
+
+    print("tool_type added to table 'editool_tooltype'")
+    tool.toolType = cursor.lastrowid
+
+
 
 
     # Add tool into table 'tools'

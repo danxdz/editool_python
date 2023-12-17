@@ -165,16 +165,18 @@ def copy_tool(tool):
     toolModel = ""
     print("tool type: ", tool.toolType)
     #tool switch case
-    if tool.toolType == "endMill":
+    if tool.toolType == 1:#"endMill":
        toolModel = "Side Mill D20 L35 SD20"
-    elif tool.toolType == "radiusMill":
+    elif tool.toolType == 2:#"radiusMill":
         toolModel = "Radiused Mill D16 L40 r3 SD16"
-    elif tool.toolType == "ballMill":
+    elif tool.toolType == 3:#"ballMill":
         toolModel = "Ball Nose Mill D8 L30 SD8"
-    elif tool.toolType == "drill":
+    elif tool.toolType == 4:#"drill":
         toolModel = "Twisted Drill D10 L35 SD10"
-    elif tool.toolType == "tap":
+    elif tool.toolType == 5:#"tap":
         toolModel = "Tap M10*1,5 L35 SD10"
+    elif tool.toolType == 6:#"tslotMill":
+        toolModel = "T Slot Mill D20 L5 SD10"
     else:
         toolModel = "Side Mill D20 L35 SD20"
 

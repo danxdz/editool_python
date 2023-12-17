@@ -3,6 +3,8 @@ import sys, os
 
 import import_xml_wx as iXml
 
+import databaseTools as db
+
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
 from gui.guiTools import load_tools
@@ -19,10 +21,10 @@ class ToolManagerUI(wx.Frame):
         super().__init__(parent=None, title='Tool Manager')
         #load tools from database to ToolPanel
         
-        self.toolType = "endMill"
+        self.toolType = "1"
         
         #create dictionary with tool types and icon files
-        self.toolTypes = getToolTypes(self)
+        self.toolTypes = getToolTypes()
 
         self.panel = ToolList(self, self)
         self.create_menu()
@@ -105,13 +107,14 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.SetToolBitmapSize((15,30))
         i = 0
         print("adding icons to toolbar")
-        for toolType in self.toolTypes:
+        print(self.toolTypes)
+        for toolType in self.toolTypes:            
             i += 1
-            name = self.toolTypes[toolType]
+            name = toolType
             #print(name)
             icon = "icons/"+str(i)+"-"+name+".png"
             print(icon)
-            icon = self.toolbar.AddTool(toolType, name , wx.Bitmap(icon))
+            icon = self.toolbar.AddTool(i, str(i) , wx.Bitmap(icon))
             icon.SetShortHelp(name)
             self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)
 
@@ -123,9 +126,14 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.Realize()     
             
     def toolTypeSel(self, event):        
-        self.toolType = self.toolTypes.get(event.GetId(), "endMill")
-        print("toolType filter: ", self.toolType)
-        load_tools(self.panel, self.toolType)
+        self.toolTypeName = self.toolTypes[event.GetId()-1]
+        #get the index in the dictionary
+        self.toolType = str(event.GetId())
+
+        print("toolType filter: ", self.toolType, self.toolTypeName)
+        
+        tools = db.load_tools_from_database(self)
+        load_tools(self.panel, tools , self.toolType)
     
     #menu bar functions
     def on_open_xml(self, event):

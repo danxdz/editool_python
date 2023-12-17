@@ -2,7 +2,7 @@ class Tool:
     """
     This class represents a tool with all its attributes.
     """
-    def __init__(self,id="", Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
+    def __init__(self,id=0, Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
                   ArrCentre=0, TypeTar=0, PasTar=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial=""):
    
         self.id = id
