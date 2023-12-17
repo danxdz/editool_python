@@ -18,10 +18,8 @@ def getToolTypes(self):
 
     return toolTypes
 
-def delete_selected_item(self, toolType):
+def delete_selected_item(self, index, toolType):
     
-    index = self.list_ctrl.GetFirstSelected()
-
     print("deleting tool :: ", index, " :: ", self.fullToolsList[index].Name)
 
     db.deleteTool(self.fullToolsList[index])

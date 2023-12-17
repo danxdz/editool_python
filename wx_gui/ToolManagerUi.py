@@ -115,7 +115,11 @@ class ToolManagerUI(wx.Frame):
             icon.SetShortHelp(name)
             self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)
 
-
+         # Combo Box (Dropdown) toolbar
+        combo = wx.ComboBox(self.toolbar, choices=["Selection 1", "Selection 2"])
+        self.toolbar.AddControl(combo)
+        
+        self.Centre()
         self.toolbar.Realize()     
             
     def toolTypeSel(self, event):        

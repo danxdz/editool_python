@@ -241,22 +241,20 @@ class ToolList(wx.Panel):
             #print("selected item :: ", self.getSelectedTool().Name)
 
 
-        if id == 0:
-            print("Create")           
-            
-            for i in range(count):
+        for i in range(count):
+            if id == 0:
                 self.list_ctrl.SetItemBackgroundColour(item=i+ind, col='#f0f2f0')
                 self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
                 self.list_ctrl.RefreshItem(i+ind)
+                print("Create")           
                 self.create_tool(i+ind)
-            
-        elif id == 1:
-            print("Edit")
-            EditDialog(self, self.getSelectedTool()).ShowModal()
+            elif id == 1:
+                print("Edit")
+                EditDialog(self, self.getSelectedTool()).ShowModal()
 
-        elif id == 2:
-            print("Delete")
-            delete_selected_item(self, self.toolType) 
+            elif id == 2:
+                print("Delete")
+                delete_selected_item(self,i, self.toolType) 
 
 
     #show popup menu

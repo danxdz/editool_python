@@ -46,7 +46,7 @@ def saveTool(tool):
     # Connect to db or create it, if not exists
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
-
+    """
     # Create table 'tools' if not exist
     cursor.execute('''
         CREATE TABLE IF NOT EXISTS tools (
@@ -76,6 +76,46 @@ def saveTool(tool):
             Comment TEXT
         )
     ''')
+    
+    """
+    cursor.execute('''
+         CREATE TABLE IF NOT EXISTS tools (
+            id          INTEGER PRIMARY KEY AUTOINCREMENT,
+            Name        TEXT,
+            toolType    TEXT    REFERENCES editool_tooltype (id) ON DELETE NO ACTION
+                                                                ON UPDATE NO ACTION
+                                                                MATCH SIMPLE,
+            GroupeMat   INT,
+            D1          REAL,
+            D2          REAL,
+            D3          REAL,
+            L1          REAL,
+            L2          REAL,
+            L3          REAL,
+            NoTT        INTEGER,
+            RayonBout   REAL,
+            Chanfrein   REAL,
+            AngleDeg    INTEGER,
+            CoupeCentre TEXT,
+            ArrCentre   TEXT,
+            TypeTar     TEXT,
+            PasTar      REAL,
+            Manuf       TEXT,
+            ManufRef    TEXT,
+            ManufRefSec TEXT,
+            Code        TEXT,
+            CodeBar     TEXT,
+            Comment     TEXT
+        )
+    ''')
+
+    cursor.execute('''
+        CREATE TABLE IF NOT EXISTS editool_tooltype (
+            id   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
+            type VARCHAR (100) NOT NULL
+            )
+    ''')
+
 
     # Add tool into table 'tools'
     cursor.execute('''

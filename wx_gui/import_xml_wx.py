@@ -85,6 +85,10 @@ def check_fraisa_types(tool_id):
 
     if tool_id[0].isalpha():
         tool_id = tool_id[1:]
+        if tool_id[0] == "0":
+            tool_id = tool_id.replace("0", "", 1)
+            
+    print("TOOL ID: ", tool_id)
 
     if tool_id.startswith(tuple(str(text_id) for text_id in radius_mill)):
         return "radiusMill"
@@ -164,11 +168,15 @@ def parse_new_xml_data(tool):
 
 
     d3 = float(get_property_value(tool, "C3"))
+    print("D3: ",d3)
 
     l1 = get_property_value(tool, "B2")
     print("L1: ", l1)
     if not l1:
         l1 = get_property_value(tool, "B4")
+    if not l1:
+        l1 = get_property_value(tool, "B3")
+
 
     if tool_type:
         if tool_type == "tap":
