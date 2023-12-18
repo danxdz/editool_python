@@ -5,7 +5,6 @@ import tool
 from databaseTools import saveTool
 from databaseTools import load_tools_from_database
 
-from gui.guiTools import load_tools
 
 
 class pasteDialog(wx.Dialog):
@@ -95,8 +94,8 @@ class pasteDialog(wx.Dialog):
         saveTool(self.tool)
 
         print("tool :: ", self.parent)
-        tools = load_tools_from_database(self.parent)
-        load_tools(self.parent, self.parent.toolType)
+        tools = load_tools_from_database(self.parent, self.parent.toolType )
+        print("tools :: ", tools)
         """
         if self.tool:
             self.parent.list_ctrl.Select(self.parent.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 

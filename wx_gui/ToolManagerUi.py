@@ -7,8 +7,7 @@ import databaseTools as db
 
 from export_xml_wx import create_xml_data
 from gui.toolList import ToolList
-from gui.guiTools import load_tools
-from gui.guiTools import getToolTypes
+from databaseTools import getToolTypes
 
 from importTools.pasteDialog import pasteDialog
 
@@ -21,12 +20,20 @@ class ToolManagerUI(wx.Frame):
         super().__init__(parent=None, title='Tool Manager')
         #load tools from database to ToolPanel
         
-        self.toolType = "1"
-        
+        self.toolType = 0
+
         #create dictionary with tool types and icon files
         self.toolTypes = getToolTypes()
 
+        self.toolTypeName = self.toolTypes[self.toolType]
+
         self.panel = ToolList(self, self)
+
+        #load tools from database to list control
+        print("loading tools :: type : ", self.toolTypeName)
+        tools = db.load_tools_from_database(self,self.toolType)
+        print("tools loaded :: ", tools)
+
         self.create_menu()
         self.SetSize(800, 800)
         self.Centre()
@@ -132,9 +139,9 @@ class ToolManagerUI(wx.Frame):
 
         print("toolType filter: ", self.toolType, self.toolTypeName)
         
-        tools = db.load_tools_from_database(self)
-        load_tools(self.panel, tools , self.toolType)
-    
+        tools = db.load_tools_from_database(self,self.toolType)
+        print("tools loaded :: ", tools)
+   
     #menu bar functions
     def on_open_xml(self, event):
         print("import from xml file")

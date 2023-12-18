@@ -1,89 +1,15 @@
-import os
-
-def getToolTypes():
-    #read folder with icons to get tool types
-    iconPath = "icons/"
-    iconFiles = os.listdir(iconPath)
-    i=0
-    toolTypes = []
-    for iconFile in iconFiles:
-        if os.path.isfile(iconPath+iconFile):
-            #print(iconFile)                  
-            i += 1
-            name = iconFile.split(".")[0]
-            name = name.split("-")[1]
-            print(name)
-            toolTypes.append(name)
-
-    return toolTypes
-
-def delete_selected_item(self, index, toolType):
-    
-    print("deleting tool :: ", index, " :: ", self.fullToolsList[index].Name, " toolType :: ", toolType)
-
-    db.deleteTool(self.fullToolsList[index])
-
-    #self.list_ctrl.DeleteItem(index)
-
-    del self.fullToolsList[index]
-
-    self.list_ctrl.DeleteAllItems()
-    tools = db.load_tools_from_database(self, toolType)
-    load_tools(self,tools, toolType)
 
 
-def add_line(self, tool):
-    index = self.list_ctrl.GetItemCount()
-
-    self.fullToolsList[index] = tool
-
-    #print("adding tool line :: ", index, " :: ", tool.Name)
-
-    index = self.list_ctrl.InsertItem(index, str(index + 1))
-    self.list_ctrl.SetItem(index, 1, str(tool.Name))
-    self.list_ctrl.SetItem(index, 2, str(tool.D1))
-    self.list_ctrl.SetItem(index, 3, str(tool.L1))
-    self.list_ctrl.SetItem(index, 4, str(tool.D2))
-    self.list_ctrl.SetItem(index, 5, str(tool.L2))
-    self.list_ctrl.SetItem(index, 6, str(tool.D3))
-    self.list_ctrl.SetItem(index, 7, str(tool.L3))
-    self.list_ctrl.SetItem(index, 8, str(tool.NoTT))
-    self.list_ctrl.SetItem(index, 9, str(tool.RayonBout))
-    self.list_ctrl.SetItem(index, 10, str(tool.toolType))
-    self.list_ctrl.SetItem(index, 11, str(tool.Manuf))
-
-    return index
-
-def load_tools(self, tools, toolType):
-    #print("loading tools", self)
-    self.list_ctrl.DeleteAllItems()
-
-    
-    if tools is None:
-        return
-    
-    #print("tooltype :: ", toolType)
-    
-    #tools = reversed(tools) #reverse list to get last added tool first
-
-    #add " " (empty) to dropboxs to clear selection
-    
-    self.D1_cb.Append(str(" "))
-    self.L1_cb.Append(str(" "))
-    self.L2_cb.Append(str(" "))
-    self.Z_cb.Append(str(" "))
-
-    for tool in tools:
-        if toolType == "" or toolType == tool.toolType:
-            add_line(self, tool)
-
-        #dropbox = self.D1_cb
-        #self.fill_dropboxs(tool.D1, dropbox)    
-        #dropbox = self.L1_cb
-        #self.fill_dropboxs(tool.L1, dropbox)
-        #dropbox = self.L2_cb
-        #self.fill_dropboxs(tool.L2, dropbox)
-        #dropbox = self.Z_cb
-        #self.fill_dropboxs(tool.NoTT, dropbox)
-
-    self.list_ctrl.Refresh()
+def add_columns(self):
+    self.list_ctrl.InsertColumn(0, "n" , width=30)
+    self.list_ctrl.InsertColumn(1, 'name', width=100)
+    self.list_ctrl.InsertColumn(2, 'D1', width=50)
+    self.list_ctrl.InsertColumn(3, 'L1', width=50)
+    self.list_ctrl.InsertColumn(4, 'D2', width=50)
+    self.list_ctrl.InsertColumn(5, 'L2', width=50)
+    self.list_ctrl.InsertColumn(6, 'D3', width=50)
+    self.list_ctrl.InsertColumn(7, 'L3', width=50)
+    self.list_ctrl.InsertColumn(8, 'Z', width=50)
+    self.list_ctrl.InsertColumn(9, 'r', width=50)
+    self.list_ctrl.InsertColumn(10, 'Manuf', width=100)
+    self.list_ctrl.InsertColumn(11, 'eval', width=100)

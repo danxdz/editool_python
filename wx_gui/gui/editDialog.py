@@ -2,11 +2,11 @@ import wx
 import ts as ts
 import databaseTools 
 
-from gui.guiTools import load_tools
 
 class EditDialog(wx.Dialog):
-    def __init__(self, parent,tool):
-        title = f'Editing "{tool.Name}"'
+    def __init__(self, parent,tool, toolType):
+        print("EditDialog :: ", tool)
+        title = f'Editing "{tool.Name}" :: {toolType}'
         super().__init__(parent=None, title=title)
         self.tool = tool
         self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
@@ -19,7 +19,7 @@ class EditDialog(wx.Dialog):
         for key, value in self.toolAttributes.items():
             #print(key, value)
             if key == 'toolType':
-                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+                self.add_widgets(key, wx.ComboBox(self, value=str(toolType)))
             elif key == 'Manuf':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             elif key == 'GroupeMat':
@@ -75,8 +75,8 @@ class EditDialog(wx.Dialog):
         print("updating tool ", self.tool.Name, " in database")
         #Update the database with the changes
         databaseTools.update_tool(self.tool)
-        tools = databaseTools.load_tools_from_database(self.parent)
-        load_tools(self.parent, tools, self.tool.toolType)
+        tools = databaseTools.load_tools_from_database(self.parent.GetParent(), self.tool.toolType)
+        print("tools loaded :: ", tools)
 
         #self.Destroy()  # Close the dialog after saving
 

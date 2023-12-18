@@ -2,9 +2,11 @@
 import wx
 from gui.editDialog import EditDialog
 
-from gui.guiTools import load_tools
-from gui.guiTools import delete_selected_item
-from gui.guiTools import add_line
+from gui.guiTools import add_columns
+
+from databaseTools import delete_selected_item
+from databaseTools import add_line
+
 
 import databaseTools as db
 
@@ -15,9 +17,9 @@ class ToolList(wx.Panel):
     def __init__(self, parent, main_frame):
         super().__init__(parent)
         self.main_frame = main_frame
-        
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.fullToolsList = {}
+        self.toolType =  parent.toolTypes[parent.toolType]
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
@@ -35,7 +37,7 @@ class ToolList(wx.Panel):
         #double left click event
         self.list_ctrl.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.list_ctrl)
 
-        self.add_columns()
+        add_columns(self)
         
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
 
@@ -78,28 +80,7 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=2)
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=3)
 
-        #load tools from database to list control
-        print("loading tools", parent.toolType)
-        tools = db.load_tools_from_database(self)
-        load_tools(self, tools, parent.toolType)
-
-        self.toolType = parent.toolType
-
-    def add_columns(self):
-        self.list_ctrl.InsertColumn(0, "n" , width=30)
-        self.list_ctrl.InsertColumn(1, 'name', width=100)
-        self.list_ctrl.InsertColumn(2, 'D1', width=50)
-        self.list_ctrl.InsertColumn(3, 'L1', width=50)
-        self.list_ctrl.InsertColumn(4, 'D2', width=50)
-        self.list_ctrl.InsertColumn(5, 'L2', width=50)
-        self.list_ctrl.InsertColumn(6, 'D3', width=50)
-        self.list_ctrl.InsertColumn(7, 'L3', width=50)
-        self.list_ctrl.InsertColumn(8, 'Z', width=50)
-        self.list_ctrl.InsertColumn(9, 'r', width=50)
-        self.list_ctrl.InsertColumn(10, 'toolType', width=100)
-        self.list_ctrl.InsertColumn(11, 'Manuf', width=100)
-        self.list_ctrl.InsertColumn(12, 'eval', width=100)
-
+    
 
 
     def on_select(self, event, filter_func, filter, *dropboxes):
@@ -151,25 +132,10 @@ class ToolList(wx.Panel):
             self.fill_dropboxs(tool.NoTT, self.Z_cb)
 
 
-    #returns the selected tool or the number of selected tools
-    def getSelectedTool(self):
-        index = self.list_ctrl.GetFocusedItem()
-        if index > -1:
-            return self.fullToolsList.get(index)
-        else:
-            len = self.list_ctrl.GetSelectedItemCount()
-            selectedTools = []
-            for i in range(len):
-                index = self.list_ctrl.GetNextSelected(index)
-                print (self.fullToolsList.get(index).Name)
-                selectedTools.append(self.fullToolsList.get(index).Name)
-
-            return selectedTools
-
-
+ 
 
     def toolSelected(self, event):
-        tool = self.getSelectedTool()
+        tool = self.list_ctrl.GetFirstSelected()
         try :
             print ("tool selected: ", tool.Name )
         except AttributeError:
@@ -179,7 +145,7 @@ class ToolList(wx.Panel):
        
     def db_click(self, event):
         #print("edit tool: ", self.getSelectedTool().Name)
-        EditDialog(self, self.getSelectedTool()).ShowModal()
+        EditDialog(self, self.fullToolsList[self.list_ctrl.GetFirstSelected()], self.toolType).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -239,27 +205,22 @@ class ToolList(wx.Panel):
         if count > 1:
             print("multiple items selected")
             for i in range(count):
-                print("selected item :: ")#, self.getSelectedTool()[i].Name)
+                print("selected item :: ")
         else:
             print("single item selected")
-            #print("selected item :: ", self.getSelectedTool().Name)
 
 
         for i in range(count):
-            if id == 0:
-                self.list_ctrl.SetItemBackgroundColour(item=i+ind, col='#f0f2f0')
-                self.list_ctrl.SetItemTextColour(item=i+ind, col='#000000')
-                self.list_ctrl.RefreshItem(i+ind)
+            if id == 0:                
                 print("Create")           
                 self.create_tool(i+ind)
             elif id == 1:
-                print("Edit")
-                EditDialog(self, self.getSelectedTool()).ShowModal()
-
+                print("Edit :: ", self.fullToolsList[i+ind].Name )
+                EditDialog(self, self.fullToolsList[i+ind], self.toolType ).ShowModal()
             elif id == 2:
                 print("Delete")
-                toolType = self.fullToolsList[i].toolType
-                delete_selected_item(self,i+1, toolType) 
+                toolType = self.fullToolsList[i+ind].toolType
+                delete_selected_item(self.GetParent(),i+ind, toolType) 
 
 
     #show popup menu
