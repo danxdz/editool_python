@@ -111,7 +111,7 @@ class ToolManagerUI(wx.Frame):
 
         #add icon to toolbar with tooltip
         self.toolbar = self.CreateToolBar()
-        self.toolbar.SetToolBitmapSize((15,30))
+        self.toolbar.SetToolBitmapSize((20,40))
         i = 0
         print("adding icons to toolbar")
         print(self.toolTypes)
