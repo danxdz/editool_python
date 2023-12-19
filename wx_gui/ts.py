@@ -179,6 +179,8 @@ def copy_tool(tool):
         toolModel = "Tap M10*1,5 L35 SD10"
     elif tool.toolType == 6:#"tslotMill":
         toolModel = "T Slot Mill D20 L5 SD10"
+    elif tool.toolType == 7:#"threadMilll":
+        toolModel = "Internal Thread Mill ISO P1,5 L30 SD10"
     else:
         toolModel = "Side Mill D20 L35 SD20"
 
@@ -267,7 +269,8 @@ def copy_tool(tool):
         ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), str(tool.CodeBar))
         ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.Code))
         ts_ext.Parameters.SetBooleanValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
-        
+
+        print("tool: ", tool.Name, tool.Manuf, tool.CodeBar, tool.Code)
 
         d1 = 0
         d2 = 0
@@ -277,47 +280,73 @@ def copy_tool(tool):
         l3 = 0
         r = 0
         NoTT = 0
+        threadPitch = 0.0
+        threadTolerance = ""
+        print("tool type: ", tool.toolType)
 
-        NoTT = tool.NoTT        
-        if NoTT:
+
+        if tool.threadTolerance and tool.threadTolerance != "0":
+            print("thread Tolerance: ", tool.threadTolerance)
+            threadTolerance = tool.threadTolerance
+            if tool.toolType == 7:
+                ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif,"Type"), threadTolerance)
+            else:
+                ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif,"Norm"), threadTolerance)
+            print("thread Tolerance: ", threadTolerance)
+
+        if tool.threadPitch and int(float(tool.threadPitch != 0)):
+            print("thread pitch : ", tool.threadPitch)
+            threadPitch = float(tool.threadPitch / 1000).__round__(5)
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
+            print("threadPitch: ", threadPitch)
+       
+        if tool.NoTT:
+            NoTT = tool.NoTT
             ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(NoTT))
+            print("NoTT: ", NoTT)
 
         if tool.D1:
             if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
                 d1 = float(tool.D1 / 1000).__round__(5)
+                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
             
         if tool.D2: #Fix for D2 = "None"
             if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
                 d2 = float(tool.D2 / 1000).__round__(5)
         else:
-            d2 = d1-0.002
+            if tool.toolType == 7:
+                d2 = float(d1-threadPitch-0.2).__round__(5)
+            d2 = float(d1-0.002).__round__(5)
 
         if tool.D3:
             if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
                 d3 = float(tool.D3 / 1000).__round__(5)
+                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
+                print("d3: ", d3)
         
         if tool.L1:
             l1 = float(tool.L1 / 1000).__round__(5) if tool.L1 is not None and tool.L1 != 0 else 0
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
 
         if tool.L2:
             l2 = float(tool.L2 / 1000).__round__(5) if tool.L2 is not None and tool.L2 != 0 else 0
 
         if tool.L3:
             l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
         
         if tool.RayonBout:
             if tool.RayonBout != None and tool.RayonBout != 0 and tool.RayonBout != "None":
                 r = float(tool.RayonBout / 1000).__round__(5)
+                if tool.toolType == 2:
+                    ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)  
                
         print("d1: " ,d1 , "d2: ", d2, "d3: ", d3, "l1: ", l1, "l2: ", l2, "l3: ", l3, "Z: ", NoTT)
     
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
-        ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)
 
         print("tool type parms: ", tool.toolType)
 
+        #if drill
         if tool.toolType == 4:
             if not tool.AngleDeg:
                 tool.AngleDeg = 140
@@ -329,12 +358,13 @@ def copy_tool(tool):
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
             #ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)
         else:
-            if l2 > 0:
-                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
-                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
-
-        if tool.toolType == 2:
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"r"), r)        
+            if tool.toolType == 7:
+                ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)             
+            else:
+                if l2 > 0:
+                    ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+                    ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+      
           
         #ts_ext.Application.EndModification(True, False)
         EndModif(True, False)

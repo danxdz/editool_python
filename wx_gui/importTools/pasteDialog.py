@@ -94,7 +94,7 @@ class pasteDialog(wx.Dialog):
         saveTool(self.tool)
 
         print("tool :: ", self.parent)
-        tools = load_tools_from_database(self.parent, self.parent.toolType )
+        tools = load_tools_from_database(self.parent.GetParent(), self.tool.toolType )
         print("tools :: ", tools)
         """
         if self.tool:
