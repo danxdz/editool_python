@@ -139,7 +139,7 @@ class ToolList(wx.Panel):
         try :
             print ("tool selected: ", tool.Name )
         except AttributeError:
-            print("tool selected: ", tool)
+            print("tool selected:: ", tool)
 
 
        

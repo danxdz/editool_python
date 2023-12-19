@@ -51,9 +51,13 @@ def add_line(self, tool):
 def load_tools_from_database(self,toolType):
         cursor = sqlConn()
         try:
-            cursor.execute("SELECT * FROM tools WHERE toolType = ?", (toolType,))
+            #print("load_tools_from_database :: toolType :: ", toolType)
+            if toolType == 0:
+                cursor.execute("SELECT * FROM tools")
+            else:
+                cursor.execute("SELECT * FROM tools WHERE toolType = ?", (toolType,))
             tools = cursor.fetchall()
-            print("tools readed from DB: ", len(tools))
+            #print("tools readed from DB: ", len(tools))
             # add tools to list
             tools_list = []
             for tool_data in tools:
@@ -77,8 +81,8 @@ def load_tools_from_database(self,toolType):
 
             for tool in tools_list:
                 #print("tool :: ", tool.Name, " :: ", tool.toolType, " :: ", toolType)
-                if toolType == "" or str(toolType) == str(tool.toolType):
-                    add_line(self, tool)
+                #if toolType == "0" or str(toolType) == str(tool.toolType):
+                add_line(self, tool)
 
                 #dropbox = self.D1_cb
                 #self.fill_dropboxs(tool.D1, dropbox)    

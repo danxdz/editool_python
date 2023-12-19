@@ -120,7 +120,7 @@ class ToolManagerUI(wx.Frame):
             name = toolType
             #print(name)
             icon = "icons/"+str(i)+"-"+name+".png"
-            print(icon)
+            #print(icon)
             icon = self.toolbar.AddTool(i, str(i) , wx.Bitmap(icon))
             icon.SetShortHelp(name)
             self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)

@@ -21,14 +21,20 @@ def parse_hyper_xml_data(root):
     #print("Coolants value: ", coolants_value)
 
     #print(tool.attrib['name'])
-    toolType = 0
-    print("Tool type: ", toolType)
 
-    if tool.attrib['type'] == "Tslotcutter":
-        toolType = "tslotMill"
+    
+    toolType = tool.attrib['type']
+    #check if toolType is not empty
+    print("Tool type hyper: ")
+    print(toolType)
+
+    if not toolType:
+        toolType == 0
     else:
-        toolType == tool.attrib['type']
-    print("Tool type: ", toolType)
+        if toolType == "Tslotcutter":
+            toolType = "tslotMill"
+        
+        
 
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
@@ -200,9 +206,9 @@ def parse_new_xml_data(tool):
 
     if newTool.AngleDeg:
         if int(newTool.AngleDeg) > 91 or int(newTool.AngleDeg) < 181:#TODO: check if this is correct
-            newTool.toolType = "drill"
+            newTool.toolType = 4
         else:
-            newTool.toolType = "endMill"
+            newTool.toolType = 0
 
     try:
         newTool.Manuf = tool.find('.//Main-Data/Manufacturer').text.strip()
@@ -239,16 +245,16 @@ def parse_new_xml_data(tool):
     
     #change tslootcutter to tslotMill
     if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
-        newTool.toolType = "tslotMill"
+        newTool.toolType = 6
 
     if newTool.toolType == "drilTool":
-        newTool.toolType = "drill"
+        newTool.toolType = 4
 
     if newTool.toolType == "NC-Anbohrer":
         newTool.toolType = "spotDrill"
 
     if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
-        newTool.toolType = "endMill"
+        newTool.toolType = 1
 
     print("tool_data: ",newTool.Manuf, newTool.Name, newTool.toolType, newTool.GroupeMat, newTool.AngleDeg, newTool.CoupeCentre, newTool.ArrCentre, newTool.threadTolerance, newTool.threadPitch, newTool.Manuf, newTool.ManufRef, newTool.ManufRefSec, newTool.Code, newTool.CodeBar, newTool.Comment, newTool.CuttingMaterial)
 
@@ -303,7 +309,7 @@ def open_file(self,title,wCard):
 
                 print("tool : ", tool)
                 if tool:
-                    tools = load_tools_from_database(self.panel, self.toolType)
+                    tools = load_tools_from_database(self, self.toolType)
                     print("tools loaded :: ", tools)
                     """self.panel.list_ctrl.Select(self.panel.list_ctrl.GetFirstSelected(),0) #TODO: deselect all 
                     print("Tool added to list:", tool.Name)
