@@ -316,7 +316,7 @@ def copy_tool(tool):
         else:
             if tool.toolType == 7:
                 d2 = float(d1-threadPitch-0.2).__round__(5)
-            d2 = float(d1-0.002).__round__(5)
+            d2 = float(d1-(0.2/1000)).__round__(5)
 
         if tool.D3:
             if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
