@@ -16,9 +16,8 @@ def parse_hyper_xml_data(root):
     milling_tecset = tool.find(".//tecset")
 
     # Extract the value of the 'coolants' parameter from the milling_tecset
-    coolants_value = milling_tecset.find(
-        ".//param[@name='coolants']").attrib['value']
-    #print("Coolants value: ", coolants_value)
+    coolants_value = milling_tecset.find(".//param[@name='coolants']").attrib['value']
+    print("Coolants value: ", coolants_value)
 
     #print(tool.attrib['name'])
 
@@ -34,8 +33,54 @@ def parse_hyper_xml_data(root):
         if toolType == "Tslotcutter":
             toolType = "tslotMill"
         
-        
+    name = tool.attrib['name']
+    print("Name: ", name)
+    groupMat = tool.find('param[@name="cuttingMaterial"]').attrib['value']
+    print("GroupMat: ", groupMat)
+    d1 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])
+    print("D1: ", d1)
+    d2 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2
+    print("D2: ", d2)
+    d3 = tool.find('param[@name="toolShaftDiameter"]')
+    if d3:
+        d3 = float(d3.attrib['value'])
+        print("D3: ", d3)
+    l1 = float(tool.find('param[@name="cuttingLength"]').attrib['value'])
+    print("L1: ", l1)
+    l2 = float(tool.find('param[@name="taperHeight"]').attrib['value'])
+    print("L2: ", l2)
+    l3 = float(tool.find('param[@name="toolTotalLength"]').attrib['value'])
+    print("L3: ", l3)
 
+    noTT = tool.find('param[@name="cuttingEdges"]').attrib['value']
+    if noTT:
+        print("NoTT: ", noTT)
+
+        
+    rayonBout = tool.find('param[@name="cornerRadius"]')
+    if rayonBout:
+        rayonBout = float(rayonBout.attrib['value'])
+        print("RayonBout: ", rayonBout)
+        
+    
+    chanfrein = tool.find('param[@name="toolShaftChamferAbsPos"]')
+    if chanfrein:
+        chanfrein = chanfrein.attrib['value']
+        print("Chanfrein: ", chanfrein)
+
+    arrCentre = coolants_value
+    print("ArrCentre: ", arrCentre)
+
+    manuf = tool.find('param[@name="manufacturer"]').attrib['value']
+    print("Manuf: ", manuf)
+
+    codeBar = tool.find('param[@name="orderingCode"]').attrib['value']
+    print("CodeBar: ", codeBar)
+    
+    comment = tool.find('param[@name="comment"]').attrib['value']
+    print("Comment: ", comment)
+
+        
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
         'Name': tool.attrib['name'],

@@ -30,7 +30,7 @@ class ToolManagerUI(wx.Frame):
         self.panel = ToolList(self, self)
 
         #load tools from database to list control
-        print("loading tools :: type : ", self.toolTypeName)
+        print("loading tools :: type : ", self.toolType, " :: ",  self.toolTypeName)
         tools = db.load_tools_from_database(self,self.toolType)
         print("tools loaded :: ", tools)
 

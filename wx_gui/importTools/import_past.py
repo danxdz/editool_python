@@ -8,17 +8,17 @@ def process_input_13999(input_text):
     name_mapping = {}
     for line in config_lines:
         parts = line.split(';')
-        print("parts: ", parts)
+        #print("parts: ", parts)
         if len(parts) >= 4 and parts[0].isdigit():
             name_mapping[parts[1]] = parts[2].replace('@', '')
-            print("parts filter: ", parts)
+            #print("parts filter: ", parts)
 
 
-    print("name_mapping: ", name_mapping)
+    #print("name_mapping: ", name_mapping)
     # Parse the input text and populate the Tool object
     lines = input_text.split('\n')
-    for line in lines: 
-        print("line: ", line)
+    #for line in lines: 
+        #print("line: ", line)
         
     tool = Tool()
     for line in lines:
@@ -89,34 +89,3 @@ def detect_tool_manuf(name):
             return  'SECO', pattern
 
     return None, None
-
-
-"""
-
-    tool_data = {
-        'Name': tool.Name,
-        'toolType': tool.toolType,
-        'GroupeMat': tool.GroupeMat,
-        'D1': float(tool.D1),
-        'D2': float(tool.D2),
-        'D3': float(tool.D3),
-        'L1': float(tool.L1),
-        'L2': float(tool.L2),
-        'L3': float(tool.L3),
-        'NoTT': int(tool.NoTT),
-        'RayonBout': float(tool.RayonBout),
-        'Chanfrein': float(tool.Chanfrein),
-        'CoupeCentre': float(tool.CoupeCentre),
-        'ArrCentre': tool.ArrCentre,
-        'threadTolerance': int(tool.threadTolerance),
-        'PasTar': float(tool.threadPitch),
-        'Manuf': tool.Manuf,
-        'ManufRef': tool.ManufRef,
-        'ManufRefSec': tool.ManufRefSec,
-        'Code': tool.Code,
-        'CodeBar': tool.CodeBar,
-        'Comment': tool.Comment,
-    }
-    print("tool_data: ", tool_data)
-    return Tool(**tool_data)
-"""
