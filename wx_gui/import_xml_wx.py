@@ -255,7 +255,7 @@ def parse_new_xml_data(tool):
     if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
         newTool.toolType = 1
 
-    if newTool.toolType == "Eckradiusfräser":
+    if newTool.toolType == "Eckradiusfräser" or newTool.toolType == "VHM-Torusfräser":
         newTool.toolType = 2
 
     if newTool.toolType == "NC-Anbohrer":
