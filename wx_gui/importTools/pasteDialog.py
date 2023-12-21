@@ -13,7 +13,7 @@ class pasteDialog(wx.Dialog):
         super().__init__(parent=None, title=title)
       
         self.parent = parent
-
+        self.tool = tool.Tool()
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)
                 
         self.text_area = wx.TextCtrl(self,style = wx.TE_MULTILINE)
@@ -56,14 +56,57 @@ class pasteDialog(wx.Dialog):
         self.textboxSizer.Add(sizer, 0, wx.ALL, 5)
 
     def on_refresh(self, event):
-        
-        #print(str(self.text_area.GetValue()))
+        data = str(self.text_area.GetValue())
+        len_data = len(data)
 
-        self.tool = import_past.process_input_13999(self.text_area.GetValue())
-        #print("tool :: ", self.tool)
-        #Attributes from Tool class
+        print(len_data , " :: " ,  data)
+
+        if len(data) > 100:
+            self.tool = import_past.process_input_13999(self.text_area.GetValue())
+            #print("tool :: ", self.tool)
+        else:
+            #lets process data without headers
+            #divide data by tab and spaces into list
+            tool_data = data.split()
+            for element in tool_data:
+                print(element)
+
+            #strip M from tool diameter
+            self.tool.Name = tool_data[0]
+            self.tool.D1 = tool_data[1]
+            if self.tool.D1[0] == 'M':
+                #check if it is a threadMill , if its number is a threadMill, if is '6HX' one number and letters its a tap
+                for letter in tool_data[3]:
+                    if letter.isalpha():
+                        self.tool.toolType = 5
+                        break
+                if self.tool.toolType == 7:
+                    # 167081	M1.4	1.06	0.300	39.0	0.6	6	3.00	3	1.10
+                    print("threadMill")
+                    self.tool.toolType = 7
+                    self.tool.D1 = self.tool.D1[2:]
+                    self.tool.D2 = tool_data[2]
+                    self.tool.threadPitch = tool_data[3]
+                    self.tool.L3 = tool_data[4]
+                    self.tool.L1 = tool_data[5]
+                    self.tool.L2 = tool_data[6]
+                    self.tool.D3 = tool_data[7]
+                    self.tool.NoTT = tool_data[8]
+                else:
+                    # 176692	M8	8.00	6H 	1.250 	90.0 	20.0 	6.00 	4.9 	2 	6.80
+                    print("tap")
+                    self.tool.toolType = 5
+                    self.tool.D1 = tool_data[2]
+                    self.tool.threadTolerance = tool_data[3]
+                    self.tool.threadPitch = tool_data[4]
+                    self.tool.L3 = tool_data[5]
+                    self.tool.L1 = tool_data[6]
+                    self.tool.D3 = tool_data[7]
+                    self.tool.NoTT = tool_data[9]
+
         #get all Tool attributes
         self.toolAttributes = self.tool.getAttributes()        
+        print("toolAttributes :: ", self.toolAttributes)
 
         #clear all widgets
         self.textboxSizer.Clear(True)
@@ -90,11 +133,13 @@ class pasteDialog(wx.Dialog):
 
 
     def on_save(self, event):
+
         print("on_save")
         saveTool(self.tool)
 
         print("tool :: ", self.parent)
         tools = load_tools_from_database(self.parent.GetParent(), self.tool.toolType )
+
         print("tools :: ", tools)
         """
         if self.tool:
