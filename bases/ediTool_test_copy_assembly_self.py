@@ -137,6 +137,14 @@ def copy_tool(toolModel):
     # Open project
     modelLib = get_default_lib()
 
+    top_solid_kernel_design = get_ts_design_dll()
+
+    ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(ts_ext)
+
+    # Connect to TopSolid
+    print(ts_design_ext.Connect())
+
+
     print("model lib: ", modelLib[0].Id)
     #EndModif(False, False)
 
@@ -147,27 +155,23 @@ def copy_tool(toolModel):
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
         output_lib = ts_ext.Pdm.GetCurrentProject()
 
-        toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
-        elemModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], "Side Mill D20 L35 SD20")
+        #toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
+        toolModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "123")
+        elemModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "PO Weldon Ø12 L120")
+        print("elemModelId",elemModelId, len(elemModelId))
+   
 
-        newModel = ts_ext.Pdm.SearchDocumentByName(output_lib, "Foret")
-        print("newModel: ", newModel, len(newModel))
-        for i in newModel:
-            print("i: ", i.Id)
-
-
-        print("elemModelId: ", elemModelId[0])
-
+        
         print("toolModelId len : ", len(toolModelId))
         for i in toolModelId:
             print("toolModelId: ", i.Id)
 
         #firstTool = toolModelId[0]
-        firstTool = newModel[0]
+        firstTool = toolModelId[0]
         toolModelId.Clear()
         toolModelId.Add(firstTool)
 
-        print("toolModelId: ", toolModelId[0].Id)
+        print("toolModelId: ", toolModelId[0].Id, output_lib.Id)
 
 
         savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
@@ -179,34 +183,65 @@ def copy_tool(toolModel):
         #ts_ext.Documents.Open(tmp)
 
         
+    
+        
         savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
+
+        ts_ext.Documents.Open(savedToolDocId)
+
+        ts_ext.Application.StartModification("tmp", True)
+
         print("savedToolDocId.PdmDocumentId: ", savedToolDocId.PdmDocumentId)
+                        
+        dirt = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
 
-        top_solid_kernel_design = get_ts_design_dll()
- 
-        ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(ts_ext)
+        print("dirt:: ", dirt.PdmDocumentId)
 
-        # Connect to TopSolid
-        print(ts_design_ext.Connect())
+        ops = ts_ext.Operations.GetOperations(dirt)
+        print("ops", ops)
+        for o in ops:
+            print(o)            
+            IsInclusion = ts_design_ext.Assemblies.IsInclusion(o)
+            Name = ts_ext.Elements.GetName(o)
+            print("name::: ",Name)
+            print("child: ", IsInclusion, o.DocumentId)
 
-        dd = get_ts_dll()
-        question = dd.UserQuestion("Do you want to open the tool?", "zerzer")
+            if IsInclusion == True:
+                
+  
 
+                newTool = ts_ext.Documents.GetDocument(elemModelId[0])
+                print("newTool: ", newTool.PdmDocumentId)
+
+                ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
+                
+                EndModif(True,True)
+
+                exit()
+        
 
         isAssembly = ts_design_ext.Assemblies.IsAssembly(savedToolDocId)
         print("assembly: ", isAssembly)
-
+   
+        sok = ts_ext.Documents.GetReferencedDocuments (savedToolDocId,True)
+        for e in sok:
+            print("zzzzz: " , e)
+        
+        base = ts_design_ext.Tools.GetBaseDocument(savedToolDocId)
+        print("base",base)
 
         
         parts = ts_design_ext.Assemblies.GetParts(savedToolDocId)
         print("parts: ", parts)
-        #define type as outPart as TopSolid.Kernel.Automating.ElementId
-        outPart = clr.System.Activator.CreateInstance(dd.ElementId)
 
         for part in parts:
+            
+            ocot = ts_design_ext.Assemblies.GetOccurrenceDefinition(part)
+            print("ocot",ocot.PdmDocumentId)
+            returnValue = ts_ext.Documents.Open(ocot)
+            print("return :: ", returnValue)
+
             print("part: ", part)
-            ask = ts_design_ext.Assemblies.AskOccurrence(question,True,True,True,True,True,part,outPart)
-            print("ask: ", ask[1].DocumentId.PdmDocumentId)
             child = ts_design_ext.Assemblies.IsInclusion(part)
             print("child: ", child)
             local = ts_design_ext.Assemblies.IsLocalPartOrLocalAssembly(part)
