@@ -10,64 +10,10 @@ key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 global ts_ext
 
-global json_data 
-global export_path
-
-json_data = {}
-
-
-
-
-
-def GetConstituents(folder):
-    global ts_ext
-
-    folders = []
-
-    folder_const = ts_ext.Pdm.GetConstituents(folder)
-    folder_name = getName(folder)
-
-    printFolder(folder_const, folder_name)
-    #write_json(folder_name, "dir")
-    #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
-  
-    folder = checkFolderOrFile(folder_const)
-
-    folders.append(folder)
-
-    return folders
-
-
-def checkFolderOrFile(folder_const):
-    print ("folder path ::")
-    
-    files = []
-    folders = []
-    full = []
-
-    for file in folder_const[1]:
-        #printInfo(file, "files")
-        filterTypes(getType(file))
-        files.append(getName(file))
-        
-    for dir in folder_const[0]:
-        folder =  GetConstituents(dir)
-        folders.append(folder)
-    
-    full.append(folders)
-    full.append(files)
-
-
-    return full
-       
-
 
 def initFolders():
     global ts_ext
     global json_data
-
-    folders = []
-    files = []
 
     try:
         #get topsolid API
@@ -91,15 +37,50 @@ def initFolders():
         
         ts_ext.Disconnect()
 
-        return current_proj_name        
+        return consts        
         
     except Exception as ex:
         # Handle
         print("error :: ", ex)
 
+
+def GetConstituents(folder):
+    global ts_ext
+
+    folder_const = ts_ext.Pdm.GetConstituents(folder)
+    folder_name = getName(folder)
+
+    printFolder(folder_const, folder_name)
+    #write_json(folder_name, "dir")
+    #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
+    
+    files = checkFolderOrFile(folder_const)
+    print ("GetConstituents :: files :: " , files)
+    return files
+    
+
+def checkFolderOrFile(folder_const):
+    print ("folder path ::")
+    
+    files = []
+
+    for file in folder_const[1]:
+        #printInfo(file, "files")
+        filterTypes(file)
+        files.append(getName(file))
+        
+    for dir in folder_const[0]:
+        iFiles = GetConstituents(dir)
+        for i in iFiles:
+            files.append(i)
+
+
+    return files
+       
+
 def filterTypes(file):
     fileType = getType(file)
-    #select case fileType 
+    #select case fileType     
     match fileType:
         case ".TopPrt":
             print("part file ::", getName(file))
@@ -117,6 +98,7 @@ def getType(obj):
     
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
+    from TopSolid.Kernel.Automating import ElementId
     
     ts_type = ""
 
@@ -135,6 +117,9 @@ def getType(obj):
         print ("getType :: isPart ::" , isPart)
         ts_type = str(ts_ext.Documents.GetType(obj)[0])
     #print ("getType :: res obj_type :: ::" , ts_type)
+    elif obj_type is ElementId:
+        ts_type = str(ts_ext.Elements.GetTypeFullName(obj))
+        #print ("getType :: res elem_type :: ::" , ts_type)
     return ts_type
 
 
@@ -243,6 +228,8 @@ def conn():
         #print connected with version
         print("TopSolid " + top_solid_version + " connected successfully!")
 
+        return ts_ext
+
 
     except Exception as ex:
         # Handle
@@ -267,14 +254,15 @@ def get_top_solid_path():
     try:
         key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
         value = winreg.QueryValueEx(key, "InstallDir")
-        return value[0]
+        return (value[0], top_solid_version)
     except Exception as ex:
         # Handle exception
         return ex
 
 
 def get_ts_design_dll():
-    top_solid_path = get_top_solid_path()
+    ts = get_top_solid_path()
+    top_solid_path = ts[0]
     if top_solid_path is None:
         # Handle
         return None
@@ -292,7 +280,8 @@ def get_ts_design_dll():
     return Automating
 
 def get_ts_dll():
-    top_solid_path = get_top_solid_path()
+    ts = get_top_solid_path()
+    top_solid_path = ts[0]
     if top_solid_path is None:
         # Handle
         return None
@@ -593,8 +582,10 @@ def copy_tool(tool):
 
         EndModif(True, False)
         
-        ts_ext.Documents.Open(savedToolModif)
+        #ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
+
+        copyHolder(savedToolModif)
        
     except Exception as ex:
         EndModif(True,False)
@@ -606,8 +597,7 @@ def copy_tool(tool):
 
 
 
-def copyHolder():
-
+def copyHolder(tool):
     global ts_ext
 
     modelLib = get_default_lib()
@@ -628,79 +618,97 @@ def copyHolder():
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
         output_lib = ts_ext.Pdm.GetCurrentProject()
 
+        openHolder = ts_ext.Documents.GetOpenDocuments()
+
+
+        for holder in openHolder:
+            print("holder: ", holder.PdmDocumentId, len(openHolder))
         
-        elemModelId = []
+            elemModelId = []
 
-        #toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
-        assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "123")
-        elemModelId.append(ts_ext.Pdm.SearchDocumentByName(output_lib, "PO Weldon Ø12 L120"))
-        elemModelId.append(ts_ext.Pdm.SearchDocumentByName(output_lib, "12"))
-        print("elemModelId",elemModelId, len(elemModelId))
-        
-
-        
-        #print("toolModelId len : ", len(toolModelId))
-        #for i in toolModelId:
-            #print("toolModelId: ", i.Id)
-
-
-        firstTool = assemblyModelId[0]
-        assemblyModelId.Clear()
-        assemblyModelId.Add(firstTool)
-
-        #print("toolModelId: ", toolModelId[0].Id, output_lib.Id)
+            #toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
+            assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "123")
+            print("assemblyModelId: ", assemblyModelId[0].Id)
+            
+            #elemModelId.append(ts_ext.Pdm.SearchDocumentByName(output_lib, "PO Weldon Ø12 L120"))
+            
+            elemModelId.append(tool)
+            print("elemModelId",elemModelId, len(elemModelId))
+            for i in elemModelId:
+                print("elemModelId: ", i.PdmDocumentId)
 
 
-        savedTool = ts_ext.Pdm.CopySeveral(assemblyModelId, output_lib)
+            elemModelId.append(holder)
+            
+            #print("toolModelId len : ", len(toolModelId))
+            #for i in toolModelId:
+                #print("toolModelId: ", i.Id)
 
-        print("savedtool: ",savedTool[0].Id)
-        print(f"Tool copied successfully!")
 
-        # print("savedTool: ", ts_ext.Documents.Save(tmp))
-        
+            firstTool = assemblyModelId[0]
+            assemblyModelId.Clear()
+            assemblyModelId.Add(firstTool)
 
-        
+            #print("toolModelId: ", toolModelId[0].Id, output_lib.Id)
 
-        
-        savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
 
-        ts_ext.Documents.Open(savedToolDocId)
+            savedTool = ts_ext.Pdm.CopySeveral(assemblyModelId, output_lib)
 
-        ts_ext.Application.StartModification("tmp", True)
+            print("savedtool: ",savedTool[0].Id)
+            print(f"Tool copied successfully!")
 
-        print("savedToolDocId.PdmDocumentId: ", savedToolDocId.PdmDocumentId)
+            # print("savedTool: ", ts_ext.Documents.Save(tmp))
+            
+
+            
+
+            
+            savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
+
+            ts_ext.Documents.Open(savedToolDocId)
+
+
+            ts_ext.Application.StartModification("tmp", True)
+
+            print("savedToolDocId.PdmDocumentId: ", savedToolDocId.PdmDocumentId)
+                            
+            dirt = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
+
+            print("dirt:: ", dirt.PdmDocumentId)
+
+
+            ops = ts_ext.Operations.GetOperations(dirt)
+
+            print("ops", ops, len(ops))
+            i = 0
+
+            for o in ops:
+                if i > 1:
+                    break      
+
+                Name = ts_ext.Elements.GetName(o)
+                #check if it's an inclusion : 3 first letters of name = "Inc"
+                if Name:
+                    elemType = getType(o)
+                    print("elemType: ", elemType)
+                    if elemType == "TopSolid.Cad.Design.DB.Inclusion.InclusionOperation":
+                        print("name::: ",Name)
+                        print("child: ", o.DocumentId)
                         
-        dirt = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
+                        IsInclusion = ts_design_ext.Assemblies.IsInclusion(o)
+                        print("child: ", IsInclusion, o.DocumentId)
 
-        print("dirt:: ", dirt.PdmDocumentId)
+                        if IsInclusion == True:
+                            ts_ext.Application.StartModification("tmp", True)
 
-        ops = ts_ext.Operations.GetOperations(dirt)
+                            newTool = elemModelId[i]#ts_ext.Documents.GetDocument(elemModelId[i])
+                            i = i + 1
+                            print("newTool: ", newTool.PdmDocumentId)
 
-        print("ops", ops)
-        i = 0
-
-        for o in ops:
-            print(o)  
-            if i > 1:
-                break          
-            IsInclusion = ts_design_ext.Assemblies.IsInclusion(o)
-            Name = ts_ext.Elements.GetName(o)
-            print("name::: ",Name)
-            print("child: ", IsInclusion, o.DocumentId)
-
-            if IsInclusion == True:
-                ts_ext.Application.StartModification("tmp", True)
-
-                newTool = ts_ext.Documents.GetDocument(elemModelId[i][0])
-                i = i + 1
-                print("newTool: ", newTool.PdmDocumentId)
-
-                ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
-                
-                EndModif(True,True)
-     
-        
-        
+                            ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
+                            
+                            EndModif(True,True)
+            
 
     except Exception as ex:
         print("Error copying tool: " + str(ex))

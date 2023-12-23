@@ -11,9 +11,28 @@ class HoldersSetupPanel(wx.Dialog):
         title = 'Holders setup'
         super().__init__(parent=None, title=title)
 
-        self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.parent = parent
-         
+
+        #add panel
+        self.panel = wx.Panel(self)
+
+        #add sizer
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        #add components
+        #combo box for tool type
+        self.elemTool = wx.ComboBox(self, style=wx.CB_READONLY)
+        self.elemTool.Bind(wx.EVT_COMBOBOX, self.on_tool_type)
+        
+        elements = initFolders()
+        print("elements :: ", elements)
+
+        self.elemTool.SetItems(elements)
+        #self.elemTool.SetSelection(0)
+
+        self.main_sizer.Add(self.elemTool, 0, wx.ALL, 5)
+
+        
         # Add save and cancel buttons        
         btn_sizer = wx.BoxSizer()
         save_btn = wx.Button(self, label='save')
@@ -21,19 +40,22 @@ class HoldersSetupPanel(wx.Dialog):
         btn_sizer.Add(save_btn, 5, wx.ALL, 15)
 
         btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL, label="close"), 5, wx.ALL, 15)  
-
         
         create_btn = wx.Button(self, label='create')
         create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(create_btn, 5, wx.ALL, 15)
 
         self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
+
         self.SetSizer(self.main_sizer)
 
         #resize the dialog to fit the content
         self.Fit()
 
-        folders = self.get_folders()
+       
+    def on_tool_type(self, event):
+        print("on tool type")
+        
 
     def get_folders(self):
         print("get folders")
