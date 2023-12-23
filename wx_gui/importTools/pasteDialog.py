@@ -155,6 +155,4 @@ class pasteDialog(wx.Dialog):
         
         ts.copy_tool(self.tool)
         #print("tool :: ", self.tool)
-        self.Destroy()  # Close the dialog after create tool
-
-    
+        self.Destroy()  # Close the dialog after create tool    

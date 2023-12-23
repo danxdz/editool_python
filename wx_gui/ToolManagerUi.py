@@ -12,6 +12,7 @@ from databaseTools import getToolTypes
 from importTools.pasteDialog import pasteDialog
 
 from gui.toolSetup import toolSetupPanel
+from importHolders.holdersPanel import HoldersSetupPanel
 
 
 class ToolManagerUI(wx.Frame):
@@ -105,8 +106,20 @@ class ToolManagerUI(wx.Frame):
             handler=self.toolSetupPanel,
             source=toolSetup
         )
-
         menu_bar.Append(config, '&Config')
+
+        holdersConfig = config.Append(
+            wx.ID_ANY, 'Holders', 
+            'setup holder data'
+        )        
+
+        self.Bind(
+            event=wx.EVT_MENU,
+            handler=self.HoldersSetupPanel,
+            source=holdersConfig
+        )
+        
+
         self.SetMenuBar(menu_bar)
 
         #add icon to toolbar with tooltip
@@ -174,3 +187,7 @@ class ToolManagerUI(wx.Frame):
 
     def toolSetupPanel(self, event):
         toolSetupPanel(self).ShowModal()
+
+    
+    def HoldersSetupPanel(self, event):
+        HoldersSetupPanel(self).ShowModal()
