@@ -34,66 +34,49 @@ def initFolders():
     global ts_ext
     global json_data
 
-    prefix = "\ART "
+    folders = []
+    files = []
 
     try:
         #get topsolid API
-        mll = get_default_lib()
-        
+        ts = get_default_lib()
         
         #get topsolid types
 
         current_project = ts_ext.Pdm.GetCurrentProject()
         current_proj_name = getName(current_project)
-
-        export_path = os.getcwd() + prefix + current_proj_name + "/"
-
-        write_json("project : " , current_proj_name)
-        write_json("export_path : " , export_path)
-        #make_path(export_path)
-
-        #state = ts_ext.Pdm.GetLifeCycleMainState(current_project)
-        #print ("state ::" , state)
+      
         
         proj_const = ts_ext.Pdm.GetConstituents(current_project)
         print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
         print (str(len(proj_const[1])) + " files in root project")
         
-        for file in proj_const[1]:
-            printInfo(file , "files")
-            filterTypes(getType(file))
-
-        for folder in proj_const[0]:
-                if getName(folder) == "Modèles":
-                    pass
-                else:
-                    GetConstituents(folder, export_path)
-        
-        print(json_data)
-
-        with open('data.json', 'w') as outfile:
-            #format json
-            #print("json_data :: ", json_data)
-            json_data = json.dumps(json_data, indent=4, sort_keys=False)
-            #print("json_data :: ", json_data)
-            outfile.write(json_data)
+        checkFolderOrFile(proj_const)
         
         ts_ext.Disconnect()
-        
-        #exit()
 
+        return current_proj_name        
+        
     except Exception as ex:
         # Handle
         print("error :: ", ex)
 
 def filterTypes(file):
-    if getType(file) == ".TopDft":
-                #export_pdf(file, export_path)
-                print("export pdf ::", getName(file))
+    fileType = getType(file)
+    #select case fileType 
+    match fileType:
+        case ".TopPrt":
+            print("part file ::", getName(file))
+        case ".TopAsm":
+            print("assembly file ::", getName(file))
+        case ".TopDft":
+            #export_pdf(file, export_path)
+            print("export pdf ::", getName(file))
             #write_json(getName(file), getType(file))
-
+        case ".TopMillTurn":
+            print("cam file ::", getName(file))
+        
 def getType(obj):
-
     global ts_ext
     
     from TopSolid.Kernel.Automating import PdmObjectId
@@ -112,6 +95,8 @@ def getType(obj):
         else:
             ts_type = str(ts_ext.Pdm.GetType(obj)[1])
     elif obj_type is DocumentId:
+        isPart = ts_ext.Documents.IsPart(obj)
+        print ("getType :: isPart ::" , isPart)
         ts_type = str(ts_ext.Documents.GetType(obj)[0])
     #print ("getType :: res obj_type :: ::" , ts_type)
     return ts_type
@@ -124,6 +109,7 @@ def getName(obj): #get element name - PdmObjectId or DocumentId
     
     from TopSolid.Kernel.Automating import PdmObjectId
     from TopSolid.Kernel.Automating import DocumentId
+    from TopSolid.Kernel.Automating import ElementId
 
     obj_type = type(obj)
     #print ("name obj_type ::" , obj_type)
@@ -135,51 +121,40 @@ def getName(obj): #get element name - PdmObjectId or DocumentId
     return name
     
 
-def GetConstituents(folder, export_path_docs):
+def GetConstituents(folder):
     global ts_ext
 
     folder_const = ts_ext.Pdm.GetConstituents(folder)
     folder_name = getName(folder)
-    export_path_docs += folder_name + "/"
 
-    printFolder(folder_const, folder_name,export_path_docs)
+    printFolder(folder_const, folder_name)
     #write_json(folder_name, "dir")
     #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
 
+    checkFolderOrFile(folder_const)
+
+
+def checkFolderOrFile(folder_const):
+    print ("folder path ::")
     for file in folder_const[1]:
-        printInfo(file, "::")
-        print("select case type ::", getType(file))
-        filterTypes(file)
+        printInfo(file, "files")
+        filterTypes(getType(file))
         
     for dir in folder_const[0]:
-        GetConstituents(dir, export_path_docs)
+        GetConstituents(dir)
+       
 
 
-def export_pdf(file, export_path_docs):
-    global ts_ext
-
-    doc_name = ts_ext.Pdm.GetName(file)
-    doc_id = ts_ext.Documents.GetDocument(file)                
-    exporter_type = ts_ext.Application.GetExporterFileType(10,"outFile","outExt") #10 to pdf \ 8 step
-    ts_ext.Documents.Open(doc_id)
-    ts_ext.Documents.Close(doc_id, False, False)
-    ts_ext.Documents.Save(doc_id)
-    ts_ext.Pdm.CheckIn(file,True)
-
-    complete_path = export_path_docs + "/" + doc_name + exporter_type[1][0]
-    ts_ext.Documents.Export(10, doc_id,complete_path) #10 pdf
-    print ("exported pdf ::" , doc_name)        
-
-def printInfo (file, msg):
+def printInfo(file, msg):
     file_name = getName(file)
     file_type = getType(file)
     print (msg , " ; ", file_name , " ; " ,file_type )
     #write_json(file_name, file_type)
 
 
-def printFolder (folder_const, folder_name, export_path_docs):
+def printFolder (folder_const, folder_name):
     if len(folder_const[0])>0 or len(folder_const[1])>0:
-        print (str("dir " + folder_name + " @ " + export_path_docs + " have "), end="")
+        print (str("dir " + folder_name + " @ " + " have "), end="")
         if len(folder_const[0])>0:
             print (str(len(folder_const[0])) + " folders ",end="")
         if len(folder_const[1])>0:

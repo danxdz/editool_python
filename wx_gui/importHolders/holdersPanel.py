@@ -33,11 +33,12 @@ class HoldersSetupPanel(wx.Dialog):
         #resize the dialog to fit the content
         self.Fit()
 
-        self.get_folders()
+        folders = self.get_folders()
 
     def get_folders(self):
         print("get folders")
-        initFolders()
+        title = initFolders()
+        print("title :: " , title)
 
     def on_save(self, event):
         print("updating tool ", self.tool.Name, " in database")
@@ -49,3 +50,5 @@ class HoldersSetupPanel(wx.Dialog):
     def on_create(self, event):
 
         copyHolder()
+
+        
