@@ -16,19 +16,51 @@ global export_path
 json_data = {}
 
 
-def make_path(path):
-    try:
-        res = os.makedirs(path)
-        print ("MAKE_PATH :: dir created :: ",path, res)
-    except Exception as ex:
-        # Handle
-        print("error :: ", ex)
-        pass
 
-def write_json(key, value):
-    #need to add data at end of json file
-    json_data[key] = value
-    #print ("WRITE_JSON :: write  ::" , key , "::" , value)
+
+
+def GetConstituents(folder):
+    global ts_ext
+
+    folders = []
+
+    folder_const = ts_ext.Pdm.GetConstituents(folder)
+    folder_name = getName(folder)
+
+    printFolder(folder_const, folder_name)
+    #write_json(folder_name, "dir")
+    #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
+  
+    folder = checkFolderOrFile(folder_const)
+
+    folders.append(folder)
+
+    return folders
+
+
+def checkFolderOrFile(folder_const):
+    print ("folder path ::")
+    
+    files = []
+    folders = []
+    full = []
+
+    for file in folder_const[1]:
+        #printInfo(file, "files")
+        filterTypes(getType(file))
+        files.append(getName(file))
+        
+    for dir in folder_const[0]:
+        folder =  GetConstituents(dir)
+        folders.append(folder)
+    
+    full.append(folders)
+    full.append(files)
+
+
+    return full
+       
+
 
 def initFolders():
     global ts_ext
@@ -51,7 +83,11 @@ def initFolders():
         print ((str(len(proj_const[0])-1) + " folders in root project, "),end="")# -1 we don't want to count MODELES folder
         print (str(len(proj_const[1])) + " files in root project")
         
-        checkFolderOrFile(proj_const)
+        consts = []
+
+        consts = checkFolderOrFile(proj_const)
+
+        print ("consts :: " , consts)
         
         ts_ext.Disconnect()
 
@@ -121,29 +157,6 @@ def getName(obj): #get element name - PdmObjectId or DocumentId
     return name
     
 
-def GetConstituents(folder):
-    global ts_ext
-
-    folder_const = ts_ext.Pdm.GetConstituents(folder)
-    folder_name = getName(folder)
-
-    printFolder(folder_const, folder_name)
-    #write_json(folder_name, "dir")
-    #print ("make path ::" , folder_const,  " :: " , folder_name, " : : ",  export_path_docs)
-
-    checkFolderOrFile(folder_const)
-
-
-def checkFolderOrFile(folder_const):
-    print ("folder path ::")
-    for file in folder_const[1]:
-        printInfo(file, "files")
-        filterTypes(getType(file))
-        
-    for dir in folder_const[0]:
-        GetConstituents(dir)
-       
-
 
 def printInfo(file, msg):
     file_name = getName(file)
@@ -165,6 +178,19 @@ def printFolder (folder_const, folder_name):
         print ("dir " + folder_name + " is empty")
 
 
+def make_path(path):
+    try:
+        res = os.makedirs(path)
+        print ("MAKE_PATH :: dir created :: ",path, res)
+    except Exception as ex:
+        # Handle
+        print("error :: ", ex)
+        pass
+
+def write_json(key, value):
+    #need to add data at end of json file
+    json_data[key] = value
+    #print ("WRITE_JSON :: write  ::" , key , "::" , value)
 
 
 
