@@ -70,15 +70,16 @@ class ToolList(wx.Panel):
 
         #create popup menu
         self.popup_menu = wx.Menu()
-        self.popup_menu.Append(0, "Create")
-        self.popup_menu.Append(1, "Edit")
-        self.popup_menu.Append(2, "Delete")
+        self.popup_menu.Append(0, "Create tool")
+        self.popup_menu.Append(1, "Create tool with holder")
+        self.popup_menu.Append(2, "Edit")
+        self.popup_menu.Append(3, "Delete")
         self.popup_menu.AppendSeparator()
-        self.popup_menu.Append(3, "Export")
-        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=0)
-        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=1)
-        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=2)
-        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click, id=3)
+        self.popup_menu.Append(4, "Export")
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
 
     
 
@@ -186,12 +187,12 @@ class ToolList(wx.Panel):
 
 
 
-    def create_tool(self, index):
+    def create_tool(self, index, holder):
         print("create tool :: ", self.fullToolsList[index].Name)
         tool = self.fullToolsList[index]
         
         #ts.conn()
-        ts.copy_tool(tool)
+        ts.copy_tool(tool, holder)
         print("tool :: ", tool.Name, " created")
 
     def on_menu_click(self, event):
@@ -213,11 +214,14 @@ class ToolList(wx.Panel):
         for i in range(count):
             if id == 0:                
                 print("Create")           
-                self.create_tool(i+ind)
-            elif id == 1:
+                self.create_tool(i+ind, False)
+            if id == 1:                
+                print("Create")           
+                self.create_tool(i+ind, True)
+            elif id == 2:
                 print("Edit :: ", self.fullToolsList[i+ind].Name )
                 EditDialog(self, self.fullToolsList[i+ind], self.toolType ).ShowModal()
-            elif id == 2:
+            elif id == 3:
                 print("Delete")
                 toolType = self.fullToolsList[i+ind].toolType
                 delete_selected_item(self.GetParent(),i+ind, toolType) 

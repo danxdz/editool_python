@@ -366,7 +366,7 @@ def EndModif (op, ot):
         print("All modifications ended")
     
 
-def copy_tool(tool):
+def copy_tool(tool, holder):
 
     global ts_ext
     
@@ -584,8 +584,8 @@ def copy_tool(tool):
         
         #ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
-
-        copyHolder(savedToolModif)
+        if holder:
+            copyHolder(savedToolModif)
        
     except Exception as ex:
         EndModif(True,False)
@@ -625,9 +625,10 @@ def copyHolder(tool):
             print("holder: ", holder.PdmDocumentId, len(openHolder))
         
             elemModelId = []
+            elemModelId.append(holder)
 
             #toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
-            assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "123")
+            assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "FR + PO")
             print("assemblyModelId: ", assemblyModelId[0].Id)
             
             #elemModelId.append(ts_ext.Pdm.SearchDocumentByName(output_lib, "PO Weldon Ø12 L120"))
@@ -638,7 +639,6 @@ def copyHolder(tool):
                 print("elemModelId: ", i.PdmDocumentId)
 
 
-            elemModelId.append(holder)
             
             #print("toolModelId len : ", len(toolModelId))
             #for i in toolModelId:
@@ -709,6 +709,12 @@ def copyHolder(tool):
                             
                             EndModif(True,True)
             
+            ts_ext.Application.StartModification("tmp", True)
+
+            name = "[Designation_outil] + [Designation_po]"
+            ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
+            ts_ext.Documents.Save(savedToolDocId)
+            EndModif(True, False)
 
     except Exception as ex:
         print("Error copying tool: " + str(ex))

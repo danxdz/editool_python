@@ -70,7 +70,8 @@ class HoldersSetupPanel(wx.Dialog):
 
 
     def on_create(self, event):
+        print("on create")
+        #self.Destroy()  # Close the dial
 
-        copyHolder()
 
         
