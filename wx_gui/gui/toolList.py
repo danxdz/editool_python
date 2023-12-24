@@ -190,10 +190,18 @@ class ToolList(wx.Panel):
     def create_tool(self, index, holder):
         print("create tool :: ", self.fullToolsList[index].Name)
         tool = self.fullToolsList[index]
-        
-        #ts.conn()
-        ts.copy_tool(tool, holder)
-        print("tool :: ", tool.Name, " created")
+
+        #check if tool is created
+        if tool.TSid == "" or tool.TSid == None:
+            ts.copy_tool(tool, holder)
+            print("tool :: ", tool.Name, " created")
+        else:
+            if holder:
+                print("tool  ", tool.Name, " already created ", tool.TSid)
+                id = ts.get_tool(tool)
+                ts.copy_holder(id)
+            else:
+                resp = wx.MessageBox('tool already created, retry?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)
 
     def on_menu_click(self, event):
         id = event.GetId()        
@@ -231,5 +239,6 @@ class ToolList(wx.Panel):
     def show_popup(self, event):
         pos = event.GetPosition()        
         self.PopupMenu(self.popup_menu, pos)
+
 
 

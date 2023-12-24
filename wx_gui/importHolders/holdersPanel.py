@@ -1,5 +1,5 @@
 import wx
-from ts import copyHolder 
+from ts import copy_holder 
 from ts import initFolders
 
 

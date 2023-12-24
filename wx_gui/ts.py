@@ -2,7 +2,8 @@ from math import pi
 import winreg
 import os
 import clr
-import json
+
+from databaseTools import update_tool
 
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
@@ -10,6 +11,17 @@ key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 global ts_ext
 
+def get_tool(tool):
+    ts = get_default_lib()
+
+    print("tool id:", str(tool.TSid) , '!!' , "123" , ts_ext.Pdm.GetCurrentProject())
+
+    from TopSolid.Kernel.Automating import DocumentId
+
+    #create new tool id PdmObjectId
+    id = DocumentId(tool.TSid)
+   
+    return id
 
 def initFolders():
     global ts_ext
@@ -584,8 +596,15 @@ def copy_tool(tool, holder):
         
         #ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
+
+        print("Created tool id: ", savedToolModif.PdmDocumentId)
+        tool.TSid = savedToolModif.PdmDocumentId
+        #update tool in database
+        update_tool(tool)
+
+
         if holder:
-            copyHolder(savedToolModif)
+            copy_holder(savedToolModif)
        
     except Exception as ex:
         EndModif(True,False)
@@ -597,7 +616,7 @@ def copy_tool(tool, holder):
 
 
 
-def copyHolder(tool):
+def copy_holder(tool):
     global ts_ext
 
     modelLib = get_default_lib()
@@ -622,8 +641,10 @@ def copyHolder(tool):
 
 
         for holder in openHolder:
+
+            #print("tool: ", tool.PdmDocumentId)
             print("holder: ", holder.PdmDocumentId, len(openHolder))
-        
+
             elemModelId = []
             elemModelId.append(holder)
 
@@ -713,8 +734,10 @@ def copyHolder(tool):
 
             name = "[Designation_outil] + [Designation_po]"
             ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
-            ts_ext.Documents.Save(savedToolDocId)
+
             EndModif(True, False)
+            
+            ts_ext.Documents.Save(savedToolDocId)
 
     except Exception as ex:
         print("Error copying tool: " + str(ex))
