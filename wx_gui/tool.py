@@ -6,13 +6,21 @@ class Tool:
     #make comments so i have more info about tool class
 
 
-    def __init__(self,id=0, Name="", toolType="", GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
+    def __init__(self,id=0, Name="", toolType=0, GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
                   ArrCentre=0, threadTolerance=0, threadPitch=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial="", TSid=""):
    
         self.id = id
         self.Name = Name
         self.toolType = toolType 
-        """1-endMill"""
+        """
+            1-endMill
+            2-radiusMill
+            3-ballMill
+            4-drill
+            5-tap
+            6-t-slot
+            7-threadMill
+        """
         self.GroupeMat = GroupeMat
         self.D1 = D1
         self.D2 = D2

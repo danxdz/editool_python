@@ -14,6 +14,7 @@ global ts_ext
 def get_tool(tool):
     ts = get_default_lib()
 
+    print("tool id:", str(tool.TSid) , '!!' , "123" , ts_ext.Pdm.GetCurrentProject())
 
     from TopSolid.Kernel.Automating import DocumentId
 

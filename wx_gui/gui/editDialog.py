@@ -4,13 +4,16 @@ import databaseTools
 
 
 class EditDialog(wx.Dialog):
-    def __init__(self, parent,tool, toolType):
+    def __init__(self, parent,tool, toolTypes):
         print("EditDialog :: ", tool)
-        title = f'Editing "{tool.Name}" :: {toolType}'
+        title = f'Editing "{tool.Name}" :: {toolTypes[tool.toolType]}'
         super().__init__(parent=None, title=title)
         self.tool = tool
         self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.parent = parent
+        self.toolTypes = toolTypes
+
+        print("parent.toolTypes", tool.toolType)
          
         #Attributes from Tool class
         #get all Tool attributes
@@ -18,8 +21,12 @@ class EditDialog(wx.Dialog):
         
         for key, value in self.toolAttributes.items():
             #print(key, value)
+
+            #discard first element from toolTypes[] = "noFilter"            
+            toolTypesChoices = toolTypes[1:]
+
             if key == 'toolType':
-                self.add_widgets(key, wx.ComboBox(self, value=str(toolType)))
+                self.add_widgets(key, wx.ComboBox(self, value=toolTypes[tool.toolType], choices=toolTypesChoices))
             elif key == 'Manuf':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             elif key == 'GroupeMat':
@@ -81,19 +88,34 @@ class EditDialog(wx.Dialog):
         #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):
-
+        
         ts.copy_tool(self.tool)
         #print("tool :: ", self.tool)
         self.Destroy()  # Close the dialog after create tool
 
     def on_change(self, event, label_text ):
         #get the value of the widget and the textbox name changed
+
         #print("change",label_text, event.GetString())
 
-        #nice we are getting the value of the widget label, now i need to set the tool attribute
         tool = self.tool
+       
+        changedValue = event.GetString()
+
+        if label_text == 'toolType':
+            changedValue = self.getToolTypesNumber(self.toolTypes , changedValue)
+
+        print("changedValue :: ", changedValue)
+
         #set object attribute with the value of the widget
-        setattr(tool, label_text, event.GetString())
+        setattr(tool, label_text, changedValue)   
         self.tool = tool
 
-        #print("gret" , getattr(tool, label_text))    
+
+
+    def getToolTypesNumber(self, toolTypes, value): 
+
+        for i, toolType in enumerate(toolTypes):
+            if toolType == value:
+                value = i
+                return i

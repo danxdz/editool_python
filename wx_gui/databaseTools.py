@@ -52,7 +52,7 @@ def load_tools_from_database(self,toolType):
         cursor = sqlConn()
         try:
             #print("load_tools_from_database :: toolType :: ", toolType)
-            if toolType == 0:
+            if toolType == str(0) or toolType == 0:
                 cursor.execute("SELECT * FROM tools ORDER by D1 ASC")
             else:
                 cursor.execute("SELECT * FROM tools WHERE toolType = ? ORDER by D1 ASC", (toolType,))
@@ -180,11 +180,14 @@ def saveTool(tool):
     #get all tool types from getToolTypes
     toolTypes = getToolTypes()
 
-    #print("new tool_type :: ", tool.toolType)
+    toolTypeText = toolTypes[int(tool.toolType)]
 
-    cursor.execute("SELECT * FROM editool_tooltype WHERE toolType = ?", (tool.toolType,))
+    cursor.execute("SELECT * FROM editool_tooltype WHERE toolType = ?", (toolTypeText,))
+    
     tool_types = cursor.fetchone()
-    #print("tool_types from db :: ", tool_types)
+
+    print("tool_types found on db :: ", tool_types,  tool.toolType, toolTypes[int(tool.toolType)] )
+
     if tool_types:
         if tool_types[1] == tool.toolType:
             tool.toolType = tool_types[0] 
@@ -216,8 +219,8 @@ def saveTool(tool):
 
     conn.commit()
 
-    print('Tool added to database.', tool.Name , conn.total_changes)
-
+    print('Tool added to database.', tool.Name , toolTypes[int(tool.toolType)], "changed: " ,  conn.total_changes)
+ 
     conn.close()
 
 def update_tool(tool):

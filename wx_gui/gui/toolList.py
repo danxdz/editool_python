@@ -14,12 +14,12 @@ import databaseTools as db
 import ts
 
 class ToolList(wx.Panel):    
-    def __init__(self, parent, main_frame):
+    def __init__(self, parent):
         super().__init__(parent)
-        self.main_frame = main_frame
+        
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.fullToolsList = {}
-        self.toolType =  parent.toolTypes[parent.toolType]
+        self.toolTypes =  parent.toolTypes
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
@@ -146,7 +146,10 @@ class ToolList(wx.Panel):
        
     def db_click(self, event):
         #print("edit tool: ", self.getSelectedTool().Name)
-        EditDialog(self, self.fullToolsList[self.list_ctrl.GetFirstSelected()], self.toolType).ShowModal()
+
+        tool =  self.fullToolsList[self.list_ctrl.GetFirstSelected()]         
+
+        EditDialog(self,tool, self.toolTypes).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()

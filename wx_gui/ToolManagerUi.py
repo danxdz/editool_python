@@ -18,17 +18,17 @@ from importHolders.holdersPanel import HoldersSetupPanel
 class ToolManagerUI(wx.Frame):
 
     def __init__(self):
-        super().__init__(parent=None, title='Tool Manager')
-        #load tools from database to ToolPanel
-        
-        self.toolType = 0
+        super().__init__(parent=None, title="ediTool - tools manager")
+
+        # no tool type selected
+        self.toolType = 0 
 
         #create dictionary with tool types and icon files
         self.toolTypes = getToolTypes()
-
+        
         self.toolTypeName = self.toolTypes[self.toolType]
 
-        self.panel = ToolList(self, self)
+        self.panel = ToolList(self)
 
         #load tools from database to list control
         print("loading tools :: type : ", self.toolType, " :: ",  self.toolTypeName)
@@ -129,14 +129,14 @@ class ToolManagerUI(wx.Frame):
         print("adding icons to toolbar")
         print(self.toolTypes)
         for toolType in self.toolTypes:            
-            i += 1
             name = toolType
             #print(name)
             icon = "icons/"+str(i)+"-"+name+".png"
-            #print(icon)
+            print(icon)
             icon = self.toolbar.AddTool(i, str(i) , wx.Bitmap(icon))
             icon.SetShortHelp(name)
             self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)
+            i += 1
 
          # Combo Box (Dropdown) toolbar
         combo = wx.ComboBox(self.toolbar, choices=["Selection 1", "Selection 2"])
@@ -146,7 +146,7 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.Realize()     
             
     def toolTypeSel(self, event):        
-        self.toolTypeName = self.toolTypes[event.GetId()-1]
+        self.toolTypeName = self.toolTypes[event.GetId()]
         #get the index in the dictionary
         self.toolType = str(event.GetId())
 
