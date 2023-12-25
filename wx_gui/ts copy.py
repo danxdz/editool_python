@@ -9,12 +9,10 @@ from databaseTools import update_tool
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 
-global ts_ext
+#global ts_ext
 
-def get_tool(tool):
+def get_tool_TSid(tool):
     ts = get_default_lib()
-
-    print("tool id:", str(tool.TSid) , '!!' , "123" , ts_ext.Pdm.GetCurrentProject())
 
     from TopSolid.Kernel.Automating import DocumentId
 
@@ -619,7 +617,7 @@ def copy_tool(tool, holder):
 def copy_holder(tool):
     global ts_ext
 
-    modelLib = get_default_lib()
+    ts = get_default_lib()
     
     top_solid_kernel_design = get_ts_design_dll()
 
@@ -633,8 +631,9 @@ def copy_holder(tool):
 
     try:
 
-        # find model tool to copy from default lib
+        # find model holer to copy from default lib
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+
         output_lib = ts_ext.Pdm.GetCurrentProject()
 
         openHolder = ts_ext.Documents.GetOpenDocuments()
@@ -642,7 +641,6 @@ def copy_holder(tool):
 
         for holder in openHolder:
 
-            #print("tool: ", tool.PdmDocumentId)
             print("holder: ", holder.PdmDocumentId, len(openHolder))
 
             elemModelId = []

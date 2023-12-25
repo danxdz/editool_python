@@ -1,24 +1,6 @@
 import sqlite3
 from tool import Tool
 
-import os
-
-def getToolTypes():
-    #read folder with icons to get tool types
-    iconPath = "icons/"
-    iconFiles = os.listdir(iconPath)
-    i=0
-    toolTypes = []
-    for iconFile in iconFiles:
-        if os.path.isfile(iconPath+iconFile):
-            #print(iconFile)                  
-            i += 1
-            name = iconFile.split(".")[0]
-            name = name.split("-")[1]
-            #print(name)
-            toolTypes.append(name)
-
-    return toolTypes
 
 def sqlConn():
     # Connect to the SQLite database
@@ -27,28 +9,8 @@ def sqlConn():
     return cursor
 
 
-def add_line(self, tool):
-    index = self.panel.list_ctrl.GetItemCount()
 
-    self.panel.fullToolsList[index] = tool
-
-    #print("adding tool line :: ", index, " :: ", tool.Name)
-
-    index = self.panel.list_ctrl.InsertItem(index, str(index + 1))
-    self.panel.list_ctrl.SetItem(index, 1, str(tool.Name))
-    self.panel.list_ctrl.SetItem(index, 2, str(tool.D1))
-    self.panel.list_ctrl.SetItem(index, 3, str(tool.L1))
-    self.panel.list_ctrl.SetItem(index, 4, str(tool.D2))
-    self.panel.list_ctrl.SetItem(index, 5, str(tool.L2))
-    self.panel.list_ctrl.SetItem(index, 6, str(tool.D3))
-    self.panel.list_ctrl.SetItem(index, 7, str(tool.L3))
-    self.panel.list_ctrl.SetItem(index, 8, str(tool.NoTT))
-    self.panel.list_ctrl.SetItem(index, 9, str(tool.RayonBout))
-    self.panel.list_ctrl.SetItem(index, 10, str(tool.Manuf))
-
-    return index
-
-def load_tools_from_database(self,toolType):
+def load_tools_from_database(toolType):
         cursor = sqlConn()
         try:
             #print("load_tools_from_database :: toolType :: ", toolType)
@@ -57,45 +19,26 @@ def load_tools_from_database(self,toolType):
             else:
                 cursor.execute("SELECT * FROM tools WHERE toolType = ? ORDER by D1 ASC", (toolType,))
             tools = cursor.fetchall()
-            #print("tools readed from DB: ", len(tools))
+            #print("Tools readed from database: ", len(tools))
             # add tools to list
             tools_list = []
             for tool_data in tools:
                 tool = Tool(*tool_data[0:])
                 tools_list.append(tool)
                 #print("tool added: ", tool.Name)
-
-            self.panel.list_ctrl.DeleteAllItems()
-
-            if tools is None:
-                return "no tools found"
                         
             #tools = reversed(tools) #reverse list to get last added tool first
-
+                
+            '''
             #add " " (empty) to dropboxs to clear selection
             
-            self.panel.D1_cb.Append(str(" "))
-            self.panel.L1_cb.Append(str(" "))
-            self.panel.L2_cb.Append(str(" "))
-            self.panel.Z_cb.Append(str(" "))
+            self.D1_cb.Append(str(" "))
+            self.L1_cb.Append(str(" "))
+            self.L2_cb.Append(str(" "))
+            self.Z_cb.Append(str(" "))
+            '''
 
-            for tool in tools_list:
-                #print("tool :: ", tool.Name, " :: ", tool.toolType, " :: ", toolType)
-                #if toolType == "0" or str(toolType) == str(tool.toolType):
-                add_line(self, tool)
-
-                #dropbox = self.D1_cb
-                #self.fill_dropboxs(tool.D1, dropbox)    
-                #dropbox = self.L1_cb
-                #self.fill_dropboxs(tool.L1, dropbox)
-                #dropbox = self.L2_cb
-                #self.fill_dropboxs(tool.L2, dropbox)
-                #dropbox = self.Z_cb
-                #self.fill_dropboxs(tool.NoTT, dropbox)
-
-            self.panel.list_ctrl.Refresh()
-
-            return len(tools_list)
+            return tools_list
         
         except Exception as e:
             #create_db()
@@ -107,31 +50,26 @@ def deleteTool(tool):
     #create a cursor
     cursor = conn.cursor()
     #delete a record
-    print("delete :: "+str(tool.Name))
     tmp = "DELETE from tools WHERE id='" + str(tool.id) + "'"
     cursor.execute(tmp)
     #commit changes
     conn.commit()
     #close connection
     conn.close()
+    print(f":: deleted from database :: {tool.Name} :: {tool.toolType}")
 
 
 def delete_selected_item(self, index, toolType):
     
-    print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].Name, " toolType :: ", toolType)
+    #print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].Name, " toolType :: ", toolType)
 
+    #delete tool from database
     deleteTool(self.panel.fullToolsList[index])
-
-    #self.list_ctrl.DeleteItem(index)
-
+    #delete tool from list
     del self.panel.fullToolsList[index]
 
-    self.panel.list_ctrl.DeleteAllItems()
-    tools = load_tools_from_database(self, toolType)
-    print("tools loaded :: ", tools)
 
-
-def saveTool(tool):
+def saveTool(tool, toolTypes):
     # Connect to db or create it, if not exists
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
@@ -168,45 +106,6 @@ def saveTool(tool):
             TSid        TEXT
         )
     ''')
-
-
-    cursor.execute('''
-        CREATE TABLE IF NOT EXISTS editool_tooltype (
-            id   INTEGER NOT NULL PRIMARY KEY AUTOINCREMENT,
-            toolType VARCHAR (100) NOT NULL
-            )
-    ''')
-
-    #get all tool types from getToolTypes
-    toolTypes = getToolTypes()
-
-    toolTypeText = toolTypes[int(tool.toolType)]
-
-    cursor.execute("SELECT * FROM editool_tooltype WHERE toolType = ?", (toolTypeText,))
-    
-    tool_types = cursor.fetchone()
-
-    print("tool_types found on db :: ", tool_types,  tool.toolType, toolTypes[int(tool.toolType)] )
-
-    if tool_types:
-        if tool_types[1] == tool.toolType:
-            tool.toolType = tool_types[0] 
-            print("tool_type exist ", tool.toolType, tool_types[1]) 
-    else:
-        print("toolTypes to write :: ", toolTypes)
-         #get the array index of the tool type
-        test = []
-        for i, toolType in enumerate(toolTypes):
-            #print(i, toolType)
-            test.append((i+1, toolType))
-        #print("test :: ", test)
-        #print("toolTypes :: ", toolTypes)
-        try:
-            cursor.executemany("INSERT INTO editool_tooltype (id, toolType) VALUES(?,?)", test)
-            conn.commit()
-
-        except Exception as ex:
-            print("error: ", ex)
 
 
     # Add tool into table 'tools'

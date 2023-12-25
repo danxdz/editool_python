@@ -4,10 +4,9 @@ import xml.etree.ElementTree as ET
 from tool import Tool
 
 from databaseTools import saveTool
-from databaseTools import load_tools_from_database
 
 def parse_hyper_xml_data(root):
-    print("Parse Hyper xml data")
+    print("fraisa xml HM data")
     
     # Obtém os dados da ferramenta
     tool = root.find('.//tool')
@@ -17,16 +16,20 @@ def parse_hyper_xml_data(root):
 
     # Extract the value of the 'coolants' parameter from the milling_tecset
     coolants_value = milling_tecset.find(".//param[@name='coolants']").attrib['value']
-    print("Coolants value: ", coolants_value)
+    #print("Coolants value: ", coolants_value)
 
     #print(tool.attrib['name'])
-
+    
+    arrCentre = coolants_value
+    #print("ArrCentre: ", arrCentre)
     
     toolType = tool.attrib['type']
     #check if toolType is not empty
-    print("Tool type hyper: ")
-    print(toolType)
+    #print("Tool type hyper: ")
+    #print(toolType)
 
+
+    #check if toolType if valid
     if not toolType:
         toolType == 0
     else:
@@ -36,76 +39,76 @@ def parse_hyper_xml_data(root):
             toolType = 6 #tslotMill
         
     name = tool.attrib['name']
-    print("Name: ", name)
+    #print("Name: ", name)
     groupMat = tool.find('param[@name="cuttingMaterial"]').attrib['value']
-    print("GroupMat: ", groupMat)
+    #print("GroupMat: ", groupMat)
     d1 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])
-    print("D1: ", d1)
+    #print("D1: ", d1)
     d2 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2
-    print("D2: ", d2)
-    d3 = tool.find('param[@name="toolShaftDiameter"]')
+    #print("D2: ", d2)
+    d3 = tool.find('param[@name="toolShaftDiameter"]').attrib['value']
     if d3:
-        d3 = float(d3.attrib['value'])
-        print("D3: ", d3)
+        d3 = float(d3)
+        #print("D3: ", d3)
+
     l1 = float(tool.find('param[@name="cuttingLength"]').attrib['value'])
-    print("L1: ", l1)
+    #print("L1: ", l1)
     l2 = float(tool.find('param[@name="taperHeight"]').attrib['value'])
-    print("L2: ", l2)
+    #print("L2: ", l2)
     l3 = float(tool.find('param[@name="toolTotalLength"]').attrib['value'])
-    print("L3: ", l3)
+    #print("L3: ", l3)
 
     noTT = tool.find('param[@name="cuttingEdges"]').attrib['value']
     if noTT:
-        print("NoTT: ", noTT)
+        noTT = int(noTT)
+        #print("NoTT: ", noTT)
 
         
-    rayonBout = tool.find('param[@name="cornerRadius"]')
+    rayonBout = tool.find('param[@name="cornerRadius"]').attrib['value']
     if rayonBout:
-        rayonBout = float(rayonBout.attrib['value'])
-        print("RayonBout: ", rayonBout)
+        rayonBout = float(rayonBout)
+        #print("RayonBout: ", rayonBout)
         
     
-    chanfrein = tool.find('param[@name="toolShaftChamferAbsPos"]')
+    chanfrein = tool.find('param[@name="toolShaftChamferAbsPos"]').attrib['value']
     if chanfrein:
-        chanfrein = chanfrein.attrib['value']
-        print("Chanfrein: ", chanfrein)
+        chanfrein = chanfrein
+        #print("Chanfrein: ", chanfrein)
 
-    arrCentre = coolants_value
-    print("ArrCentre: ", arrCentre)
 
     manuf = tool.find('param[@name="manufacturer"]').attrib['value']
-    print("Manuf: ", manuf)
+    #print("Manuf: ", manuf)
 
     codeBar = tool.find('param[@name="orderingCode"]').attrib['value']
-    print("CodeBar: ", codeBar)
+    #print("CodeBar: ", codeBar)
     
     comment = tool.find('param[@name="comment"]').attrib['value']
-    print("Comment: ", comment)
+    #print("Comment: ", comment)
 
         
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
-        'Name': tool.attrib['name'],
+        'Name': name,
         'toolType': toolType,
-        'GroupeMat': tool.find('param[@name="cuttingMaterial"]').attrib['value'],
-        'D1': float(tool.find('param[@name="toolDiameter"]').attrib['value']),
-        'D2': float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2,
-        'D3': float(tool.find('param[@name="toolShaftDiameter"]').attrib['value']),
-        'L1': float(tool.find('param[@name="cuttingLength"]').attrib['value']),
-        'L2': float(tool.find('param[@name="taperHeight"]').attrib['value']),
-        'L3': float(tool.find('param[@name="toolTotalLength"]').attrib['value']),
-        'NoTT': int(tool.find('param[@name="cuttingEdges"]').attrib['value']),
-        'RayonBout': float(tool.find('param[@name="cornerRadius"]').attrib['value']),
-        'Chanfrein': tool.find('param[@name="toolShaftChamferAbsPos"]').attrib['value'],
+        'GroupeMat': groupMat,
+        'D1': d1,
+        'D2': d2,
+        'D3': d3,
+        'L1': l1,
+        'L2': l2,
+        'L3': l3,
+        'NoTT': noTT,
+        'RayonBout': rayonBout,
+        'Chanfrein': chanfrein,
         'CoupeCentre': "no",
-        'ArrCentre': coolants_value,
+        'ArrCentre': arrCentre,
         'threadPitch': 0,
-        'Manuf': tool.find('param[@name="manufacturer"]').attrib['value'],
+        'Manuf': manuf,
         'ManufRef': tool.find('param[@name="orderingCode"]').attrib['value'],
         'ManufRefSec': tool.find('param[@name="comment"]').attrib['value'],
         'Code': " ",
-        'CodeBar': tool.find('param[@name="orderingCode"]').attrib['value'],
-        'Comment': tool.find('param[@name="comment"]').attrib['value'],
+        'CodeBar': codeBar,
+        'Comment': comment,
     }
 
 
@@ -279,7 +282,7 @@ def parse_new_xml_data(tool):
     if newTool.Manuf == "FSA": 
         newTool.Manuf = "FRAISA"
         newTool.toolType = check_fraisa_types(newTool.Name)  # Certifique-se de fornecer o ID correto da ferramenta.
-        print("tool_type: FRAISA :: ", newTool.toolType)
+        print("found FRAISA tool_type :: ", newTool.toolType)
 
     if newTool.Manuf == "CE":
         newTool.Manuf = "CERATIZIT"    
@@ -344,7 +347,7 @@ def open_file(self,title,wCard):
             #exit()
 
 
-
+        toolsList = []
         for path in xml_file_path:
             #print('File selected: ', path)
             
@@ -364,22 +367,19 @@ def open_file(self,title,wCard):
                     tool = parse_hyper_xml_data(root)
                 
                 
-                saveTool(tool)
+                #saveTool(tool)
 
                 print("Import xml", path ,"finished")
 
-                print("tool : ", tool)
-                if tool:
-                    tools = load_tools_from_database(self, self.toolType)
-                    print("tools loaded :: ", tools)
-    
+                toolsList.append(tool)
+
 
             except Exception as e:
                 print("Error: ", e)
                 print("rest :: ", tool)
- 
 
-        return tool
+        return toolsList
+ 
 
    
 

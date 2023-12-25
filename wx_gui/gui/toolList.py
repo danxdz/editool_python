@@ -3,23 +3,24 @@ import wx
 from gui.editDialog import EditDialog
 
 from gui.guiTools import add_columns
+from gui.guiTools import refreshToolList
 
 from databaseTools import delete_selected_item
-from databaseTools import add_line
-
-
-import databaseTools as db
-
 
 import ts
 
 class ToolList(wx.Panel):    
-    def __init__(self, parent):
+    def __init__(self, parent, toolTypesList):
         super().__init__(parent)
         
         main_sizer = wx.BoxSizer(wx.VERTICAL)
+
+        #initialize the tool list
         self.fullToolsList = {}
-        self.toolTypes =  parent.toolTypes
+
+        self.toolTypesList = toolTypesList
+        # no tool type selected
+        self.toolTypeName = toolTypesList[0]
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
@@ -38,33 +39,12 @@ class ToolList(wx.Panel):
         self.list_ctrl.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.list_ctrl)
 
         add_columns(self)
+
+        self.list_ctrl.Fit()
         
-        main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)        
-
-        #create comboboxes
-        self.cb_contrainer = wx.BoxSizer(wx.HORIZONTAL)
-
-        self.D1_cb = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
-        self.cb_contrainer.Add(self.D1_cb, 0, wx.ALL | wx.CENTER, 5)
-
-        self.L1_cb = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
-        self.cb_contrainer.Add(self.L1_cb, 0, wx.ALL | wx.CENTER, 5)
-
-        self.L2_cb = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
-        self.cb_contrainer.Add(self.L2_cb, 0, wx.ALL | wx.CENTER, 5)
-        
-        self.Z_cb = wx.ComboBox(self, choices=[], style=wx.CB_READONLY)
-        self.cb_contrainer.Add(self.Z_cb, 0, wx.ALL | wx.CENTER, 5)
-
-        main_sizer.Add(self.cb_contrainer, 0, wx.ALL | wx.CENTER, 5)
-        
-        self.D1_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.on_select(event, self.filter_D1,"D1", self.L1_cb, self.L2_cb, self.Z_cb))
-        self.L1_cb.Bind(wx.EVT_COMBOBOX, lambda event: self.on_select(event, self.filter_L1,"L1", self.L2_cb, self.Z_cb))
+        main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)    
 
 
-        edit_button = wx.Button(self, label='Edit')
-        edit_button.Bind(wx.EVT_BUTTON, self.on_menu_click)
-        main_sizer.Add(edit_button, 0, wx.ALL | wx.CENTER, 5)      
 
         self.SetSizer(main_sizer)   
 
@@ -81,7 +61,8 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
 
-    
+        #load tools from database to list control   
+        refreshToolList(self,0)
 
 
     def on_select(self, event, filter_func, filter, *dropboxes):
@@ -149,7 +130,7 @@ class ToolList(wx.Panel):
 
         tool =  self.fullToolsList[self.list_ctrl.GetFirstSelected()]         
 
-        EditDialog(self,tool, self.toolTypes).ShowModal()
+        EditDialog(self,tool, self.toolTypesList).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -187,10 +168,7 @@ class ToolList(wx.Panel):
         #print("items :: ", items)
 
 
-
-
-
-    def create_tool(self, index, holder):
+    def create_tool(self, index, holder): #holder = true or false
         print("create tool :: ", self.fullToolsList[index].Name)
         tool = self.fullToolsList[index]
 
@@ -201,15 +179,14 @@ class ToolList(wx.Panel):
         else:
             if holder:
                 print("tool  ", tool.Name, " already created ", tool.TSid)
-                id = ts.get_tool(tool)
+                id = ts.get_tool_TSid(tool)
                 ts.copy_holder(id)
             else:
-                resp = wx.MessageBox('tool already created, retry?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)
+                resp = wx.MessageBox('tool already created, retry?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)  #TODO: add a dialog to select if recreate or not
 
     def on_menu_click(self, event):
         id = event.GetId()        
         print('on_menu_click :: ', id)
-
 
         count = self.list_ctrl.GetSelectedItemCount()        
         ind = self.list_ctrl.GetFirstSelected()
@@ -224,24 +201,25 @@ class ToolList(wx.Panel):
 
         for i in range(count):
             if id == 0:                
-                print("Create")           
+                print("floatMenu :: Create")      
+                #create tool :: false = no holder     
                 self.create_tool(i+ind, False)
             if id == 1:                
-                print("Create")           
+                print("floatMenu ::  Create with holder")     
+                #create tool :: true = holder
                 self.create_tool(i+ind, True)
             elif id == 2:
-                print("Edit :: ", self.fullToolsList[i+ind].Name )
+                print("floatMenu :: Edit :: ", self.fullToolsList[i+ind].Name )
                 EditDialog(self, self.fullToolsList[i+ind], self.toolType ).ShowModal()
             elif id == 3:
-                print("Delete")
+                print("floatMenu :: Delete")
                 toolType = self.fullToolsList[i+ind].toolType
                 delete_selected_item(self.GetParent(),i+ind, toolType) 
+                self.list_ctrl.DeleteAllItems()
+                refreshToolList(self, toolType)
 
 
     #show popup menu
     def show_popup(self, event):
         pos = event.GetPosition()        
         self.PopupMenu(self.popup_menu, pos)
-
-
-

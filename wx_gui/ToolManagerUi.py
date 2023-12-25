@@ -1,18 +1,19 @@
 import wx
-import sys, os
+import sys
 
-import import_xml_wx as iXml
+from gui.toolList import ToolList
+from gui.toolSetup import toolSetupPanel
+from gui.guiTools import refreshToolList
+from gui.guiTools import getToolTypes
+
 
 import databaseTools as db
 
-from export_xml_wx import create_xml_data
-from gui.toolList import ToolList
-from databaseTools import getToolTypes
-
 from importTools.pasteDialog import pasteDialog
-
-from gui.toolSetup import toolSetupPanel
 from importHolders.holdersPanel import HoldersSetupPanel
+
+import import_xml_wx as iXml
+from export_xml_wx import create_xml_data
 
 
 class ToolManagerUI(wx.Frame):
@@ -20,20 +21,14 @@ class ToolManagerUI(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title="ediTool - tools manager")
 
-        # no tool type selected
-        self.toolType = 0 
-
-        #create dictionary with tool types and icon files
-        self.toolTypes = getToolTypes()
         
-        self.toolTypeName = self.toolTypes[self.toolType]
+        #create dictionary with tool types and icon files
+        self.toolTypesList , self.tsModelsList = getToolTypes()
+        
+        print("toolTypesList :: ", self.toolTypesList)
+        print("tsModelsList :: ", self.tsModelsList)
 
-        self.panel = ToolList(self)
-
-        #load tools from database to list control
-        print("loading tools :: type : ", self.toolType, " :: ",  self.toolTypeName)
-        tools = db.load_tools_from_database(self,self.toolType)
-        print("tools loaded :: ", tools)
+        self.panel = ToolList(self, self.toolTypesList)
 
         self.create_menu()
         self.SetSize(800, 800)
@@ -124,19 +119,29 @@ class ToolManagerUI(wx.Frame):
 
         #add icon to toolbar with tooltip
         self.toolbar = self.CreateToolBar()
+
+        #TODO read app prefs to get toolbar icon size
         self.toolbar.SetToolBitmapSize((20,40))
-        i = 0
-        print("adding icons to toolbar")
-        print(self.toolTypes)
-        for toolType in self.toolTypes:            
-            name = toolType
-            #print(name)
-            icon = "icons/"+str(i)+"-"+name+".png"
-            print(icon)
-            icon = self.toolbar.AddTool(i, str(i) , wx.Bitmap(icon))
-            icon.SetShortHelp(name)
-            self.toolbar.Bind(wx.EVT_TOOL, self.toolTypeSel)
-            i += 1
+      
+        #need to add first icon 0 no filter to show all tools its not on the list
+        icon = "icons/nofilter.png"
+        icon = self.toolbar.AddTool(0, "0" , wx.Bitmap(icon))
+        icon.SetShortHelp("no filter")
+        self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
+
+        #add separator
+        self.toolbar.AddSeparator()
+
+        #add tool types icons to toolbar start on 1, icons on list start on 0
+        for i, toolType in enumerate(self.toolTypesList):
+            icon = "icons/" + toolType + ".png"
+            #print("icon :: ", icon)
+            icon = self.toolbar.AddTool(i+1, toolType , wx.Bitmap(icon))
+            icon.SetShortHelp(toolType)
+            self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
+
+        #add separator
+        self.toolbar.AddSeparator()
 
          # Combo Box (Dropdown) toolbar
         combo = wx.ComboBox(self.toolbar, choices=["Selection 1", "Selection 2"])
@@ -145,23 +150,28 @@ class ToolManagerUI(wx.Frame):
         self.Centre()
         self.toolbar.Realize()     
             
-    def toolTypeSel(self, event):        
-        self.toolTypeName = self.toolTypes[event.GetId()]
+    def filterToolType(self, event):
+        #get the tool type name from the dictionary
+        self.toolTypeName = self.toolTypesList[event.GetId()]
         #get the index in the dictionary
         self.toolType = str(event.GetId())
 
-        print("toolType filter: ", self.toolType, self.toolTypeName)
+        print(f":: filterToolType {self.toolType} :: {self.toolTypeName}")    
         
-        tools = db.load_tools_from_database(self,self.toolType)
-        print("tools loaded :: ", tools)
+        refreshToolList(self.panel, self.toolType)
    
     #menu bar functions
     def on_open_xml(self, event):
         print("import from xml file")
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        tool = iXml.open_file(self, title, wcard)
-               
+        tools = iXml.open_file(self, title, wcard)
+
+
+        for tool in tools:
+            save_tool = db.saveTool(tool, self.toolTypesList)
+            print("tool added: ", tool.Name)
+            refreshToolList(self.panel, tool.toolType)
 
     def on_paste_iso13999(self, event):
         title = "Paste ISO13999 data"        

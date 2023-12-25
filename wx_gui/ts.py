@@ -11,7 +11,7 @@ key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 #global ts_ext
 
-def get_tool(tool):
+def get_tool_TSid(tool):
     ts = get_default_lib()
 
     from TopSolid.Kernel.Automating import DocumentId
@@ -270,7 +270,16 @@ def get_top_solid_path():
         return ex
 
 
-def get_ts_design_dll():
+def get_ts_ext():
+    topsolid_kernel = get_ts_dll()
+    if topsolid_kernel is None:
+        # Handle error
+        return None
+    # Get TopSolidHostInstance type
+    top_solid_kernel_type = topsolid_kernel.TopSolidHostInstance
+    return clr.System.Activator.CreateInstance(top_solid_kernel_type)
+
+def get_ts_design_ext():
     ts = get_top_solid_path()
     top_solid_path = ts[0]
     if top_solid_path is None:
@@ -324,15 +333,6 @@ def connect():
     
 
 
-def get_ts_ext():
-    topsolid_kernel = get_ts_dll()
-    if topsolid_kernel is None:
-        # Handle error
-        return None
-    # Get TopSolidHostInstance type
-    top_solid_kernel_type = topsolid_kernel.TopSolidHostInstance
-    return clr.System.Activator.CreateInstance(top_solid_kernel_type)
-
 def get_default_lib():
     global ts_ext
       # Load TopSolid DLLs
@@ -381,7 +381,8 @@ def copy_tool(tool, holder):
     global ts_ext
     
     toolModel = ""
-    print("tool type: ", tool.toolType)
+    
+    print(":: copy tool :: tooltype :: ", tool.toolType)
 
     #TODO add all tool types to txt external file
 
@@ -592,8 +593,9 @@ def copy_tool(tool, holder):
 
         EndModif(True, False)
         
-        #ts_ext.Documents.Open(savedToolModif)
+        ts_ext.Documents.Open(savedToolModif)
         ts_ext.Documents.Save(savedToolModif)
+
 
         print("Created tool id: ", savedToolModif.PdmDocumentId)
         tool.TSid = savedToolModif.PdmDocumentId
@@ -617,9 +619,9 @@ def copy_tool(tool, holder):
 def copy_holder(tool):
     global ts_ext
 
-    modelLib = get_default_lib()
+    ts = get_default_lib()
     
-    top_solid_kernel_design = get_ts_design_dll()
+    top_solid_kernel_design = get_ts_design_ext()
 
     ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(ts_ext)
 
@@ -631,8 +633,9 @@ def copy_holder(tool):
 
     try:
 
-        # find model tool to copy from default lib
+        # find model holer to copy from default lib
         #output_lib = ts_ext.Pdm.SearchProjectByName("Tool Lib")
+
         output_lib = ts_ext.Pdm.GetCurrentProject()
 
         openHolder = ts_ext.Documents.GetOpenDocuments()
@@ -640,7 +643,6 @@ def copy_holder(tool):
 
         for holder in openHolder:
 
-            #print("tool: ", tool.PdmDocumentId)
             print("holder: ", holder.PdmDocumentId, len(openHolder))
 
             elemModelId = []

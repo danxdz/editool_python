@@ -2,6 +2,8 @@ import wx
 import ts as ts
 import databaseTools 
 
+from gui.guiTools import getToolTypesNumber
+
 
 class EditDialog(wx.Dialog):
     def __init__(self, parent,tool, toolTypes):
@@ -82,7 +84,7 @@ class EditDialog(wx.Dialog):
         print("updating tool ", self.tool.Name, " in database")
         #Update the database with the changes
         databaseTools.update_tool(self.tool)
-        tools = databaseTools.load_tools_from_database(self.parent.GetParent(), self.tool.toolType)
+        tools = databaseTools.load_tools_from_database(self.tool.toolType)
         print("tools loaded :: ", tools)
 
         #self.Destroy()  # Close the dialog after saving
@@ -103,7 +105,7 @@ class EditDialog(wx.Dialog):
         changedValue = event.GetString()
 
         if label_text == 'toolType':
-            changedValue = self.getToolTypesNumber(self.toolTypes , changedValue)
+            changedValue = getToolTypesNumber(self.toolTypes , changedValue)
 
         print("changedValue :: ", changedValue)
 
@@ -111,11 +113,3 @@ class EditDialog(wx.Dialog):
         setattr(tool, label_text, changedValue)   
         self.tool = tool
 
-
-
-    def getToolTypesNumber(self, toolTypes, value): 
-
-        for i, toolType in enumerate(toolTypes):
-            if toolType == value:
-                value = i
-                return i

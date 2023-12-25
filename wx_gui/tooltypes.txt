@@ -1,0 +1,7 @@
+1;endMill;Side Mill D20 L35 SD20
+2;radiusMill;Radiused Mill D16 L40 r3 SD16
+3;ballMill;Ball Nose Mill D8 L30 SD8
+4;drill;Twisted Drill D10 L35 SD10
+5;tap;Tap M10*1,5 L35 SD10
+6;tslotMill;T Slot Mill D20 L5 SD10
+7;threadMill;Internal Thread Mill ISO P1,5 L30 SD10
