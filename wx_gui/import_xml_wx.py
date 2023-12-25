@@ -30,8 +30,10 @@ def parse_hyper_xml_data(root):
     if not toolType:
         toolType == 0
     else:
+        if toolType == "endMill":
+            toolType = 1
         if toolType == "Tslotcutter":
-            toolType = "tslotMill"
+            toolType = 6 #tslotMill
         
     name = tool.attrib['name']
     print("Name: ", name)

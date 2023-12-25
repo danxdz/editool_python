@@ -9,11 +9,10 @@ from databaseTools import update_tool
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 
-global ts_ext
+#global ts_ext
 
 def get_tool(tool):
     ts = get_default_lib()
-
 
     from TopSolid.Kernel.Automating import DocumentId
 
