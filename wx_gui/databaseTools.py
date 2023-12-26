@@ -14,7 +14,7 @@ def load_tools_from_database(toolType):
         cursor = sqlConn()
         try:
             #print("load_tools_from_database :: toolType :: ", toolType)
-            if toolType == str(0) or toolType == 0:
+            if toolType == str(-1) or toolType == -1:
                 cursor.execute("SELECT * FROM tools ORDER by D1 ASC")
             else:
                 cursor.execute("SELECT * FROM tools WHERE toolType = ? ORDER by D1 ASC", (toolType,))
@@ -78,9 +78,7 @@ def saveTool(tool, toolTypes):
          CREATE TABLE IF NOT EXISTS tools (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
             Name        TEXT,
-            toolType    INT    REFERENCES editool_tooltype (id) ON DELETE NO ACTION
-                                                                ON UPDATE NO ACTION
-                                                                MATCH SIMPLE,
+            toolType    INT,
             GroupeMat   INT,
             D1          REAL,
             D2          REAL,
@@ -130,7 +128,7 @@ def update_tool(tool):
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
     tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', AngleDeg='" + str(tool.AngleDeg) +  "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', threadTolerance='" + str(tool.threadTolerance) + "', threadPitch='" + str(tool.threadPitch) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "', CuttingMaterial='" + str(tool.CuttingMaterial) + "', TSid='" + str(tool.TSid) + "' WHERE id='" + str(tool.id) + "'"
-    print(tmp)
+    #print(tmp)
     cursor.execute(tmp)
     conn.commit()
 

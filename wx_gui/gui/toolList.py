@@ -10,7 +10,7 @@ from databaseTools import delete_selected_item
 import ts
 
 class ToolList(wx.Panel):    
-    def __init__(self, parent, toolTypesList):
+    def __init__(self, parent, toolTypesList, tsModelsList):
         super().__init__(parent)
         
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -21,6 +21,8 @@ class ToolList(wx.Panel):
         self.toolTypesList = toolTypesList
         # no tool type selected
         self.toolTypeName = toolTypesList[0]
+
+        self.tsModelsList = tsModelsList
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
@@ -174,7 +176,7 @@ class ToolList(wx.Panel):
 
         #check if tool is created
         if tool.TSid == "" or tool.TSid == None:
-            ts.copy_tool(tool, holder)
+            ts.copy_tool(tool, holder, self.tsModelsList)
             print("tool :: ", tool.Name, " created")
         else:
             if holder:
@@ -210,7 +212,7 @@ class ToolList(wx.Panel):
                 self.create_tool(i+ind, True)
             elif id == 2:
                 print("floatMenu :: Edit :: ", self.fullToolsList[i+ind].Name )
-                EditDialog(self, self.fullToolsList[i+ind], self.toolType ).ShowModal()
+                EditDialog(self, self.fullToolsList[i+ind], self.toolTypesList ).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
                 toolType = self.fullToolsList[i+ind].toolType

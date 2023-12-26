@@ -1,5 +1,5 @@
 from databaseTools import load_tools_from_database
-
+from tool import Tool
 
 def add_columns(self):
     self.list_ctrl.InsertColumn(0, "n" , width=30)
@@ -28,7 +28,8 @@ def getToolTypes():
         for line in f:
             #print(line)
             toolTypes.append(line.split(";")[1])
-            tsModels.append(line.split(";")[2])
+            #need to strip /n from end of line
+            tsModels.append(line.split(";")[2].strip())
     
     return toolTypes, tsModels
 
@@ -47,14 +48,17 @@ def getToolTypesNumber(toolTypes, value):
             return i
         
 def refreshToolList(self, toolType):
-  print("refreshToolList :: ", toolType)
-  tools = load_tools_from_database(toolType)
-  if tools:
-    print(f"{len(tools)} tools loaded")
-    self.list_ctrl.DeleteAllItems()
-    for tool in tools:
-        add_line(self, tool)
-
+    print("refreshToolList :: tooltype :: ", toolType)
+    tools = load_tools_from_database(toolType)
+    if tools:
+        print(f"{len(tools)} tools loaded")
+        self.list_ctrl.DeleteAllItems()
+        for tool in tools:
+            add_line(self, tool)
+    else:
+        print("no tools loaded")
+        self.list_ctrl.DeleteAllItems()
+    
     self.list_ctrl.Refresh()
 
 def add_line(self, tool):

@@ -28,7 +28,7 @@ class ToolManagerUI(wx.Frame):
         print("toolTypesList :: ", self.toolTypesList)
         print("tsModelsList :: ", self.tsModelsList)
 
-        self.panel = ToolList(self, self.toolTypesList)
+        self.panel = ToolList(self, self.toolTypesList, self.tsModelsList)
 
         self.create_menu()
         self.SetSize(800, 800)
@@ -125,18 +125,19 @@ class ToolManagerUI(wx.Frame):
       
         #need to add first icon 0 no filter to show all tools its not on the list
         icon = "icons/nofilter.png"
-        icon = self.toolbar.AddTool(0, "0" , wx.Bitmap(icon))
+        icon = self.toolbar.AddTool(-1, "0" , wx.Bitmap(icon))
         icon.SetShortHelp("no filter")
         self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
 
         #add separator
         self.toolbar.AddSeparator()
 
-        #add tool types icons to toolbar start on 1, icons on list start on 0
+        #add tool types icons to toolbar
         for i, toolType in enumerate(self.toolTypesList):
+            #print(f"i :: {i} :: toolType :: {toolType}")
             icon = "icons/" + toolType + ".png"
             #print("icon :: ", icon)
-            icon = self.toolbar.AddTool(i+1, toolType , wx.Bitmap(icon))
+            icon = self.toolbar.AddTool(i, toolType , wx.Bitmap(icon))
             icon.SetShortHelp(toolType)
             self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
 
@@ -151,15 +152,18 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.Realize()     
             
     def filterToolType(self, event):
-        #get the tool type name from the dictionary
-        self.toolTypeName = self.toolTypesList[event.GetId()]
-        #get the index in the dictionary
-        self.toolType = str(event.GetId())
+        i = event.GetId()
+        if i >= 0:
+            #get the tool type name from the dictionary
+            self.toolTypeName = self.toolTypesList[i]
+            #get the index in the dictionary
+            self.toolType = i
+            print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )    
+            refreshToolList(self.panel, self.toolType)
+        else:
+            print("no filter")
+            refreshToolList(self.panel, -1)
 
-        print(f":: filterToolType {self.toolType} :: {self.toolTypeName}")    
-        
-        refreshToolList(self.panel, self.toolType)
-   
     #menu bar functions
     def on_open_xml(self, event):
         print("import from xml file")
@@ -167,9 +171,8 @@ class ToolManagerUI(wx.Frame):
         wcard ="XML files (*.xml)|*.xml"
         tools = iXml.open_file(self, title, wcard)
 
-
         for tool in tools:
-            save_tool = db.saveTool(tool, self.toolTypesList)
+            db.saveTool(tool, self.toolTypesList)
             print("tool added: ", tool.Name)
             refreshToolList(self.panel, tool.toolType)
 

@@ -376,59 +376,20 @@ def EndModif (op, ot):
         print("All modifications ended")
     
 
-def copy_tool(tool, holder):
+def copy_tool(tool, holder, tsModels):
 
-    global ts_ext
     
-    toolModel = ""
+    toolModel = tsModels[tool.toolType]
     
-    print(":: copy tool :: tooltype :: ", tool.toolType)
-
-    #TODO add all tool types to txt external file
-
-    if tool.toolType == 1:#"endMill":
-       toolModel = "Side Mill D20 L35 SD20"
-    elif tool.toolType == 2:#"radiusMill":
-        toolModel = "Radiused Mill D16 L40 r3 SD16"
-    elif tool.toolType == 3:#"ballMill":
-        toolModel = "Ball Nose Mill D8 L30 SD8"
-    elif tool.toolType == 4:#"drill":
-        toolModel = "Twisted Drill D10 L35 SD10"
-    elif tool.toolType == 5:#"tap":
-        toolModel = "Tap M10*1,5 L35 SD10"
-    elif tool.toolType == 6:#"tslotMill":
-        toolModel = "T Slot Mill D20 L5 SD10"
-    elif tool.toolType == 7:#"threadMilll":
-        toolModel = "Internal Thread Mill ISO P1,5 L30 SD10"
-    else:
-        toolModel = "Side Mill D20 L35 SD20"
-
-    """
-        Case "endMill", ""
-                    model_name = "Side Mill D20 L35 SD20"'"Fraise 2 tailles D20 L35 SD20"
-                Case "radiusMill"
-                    model_name = "Radiused Mill D16 L40 r3 SD16"'"Fraise torique D16 L40 r3 SD16"
-                Case "FRHE"
-                    model_name = "Ball Nose Mill D8 L30 SD8"'"Fraise hémisphérique D8 L30 SD8"
-                Case "FOP9"
-                    model_name = "Spotting Drill D10 SD10"
-                Case "FOCA", "FOHS", "drill"
-                    model_name = "Twisted Drill D10 L35 SD10"
-                Case "ALFI", "reamer"
-                    model_name = "Constant Reamer D10 L20 SD9"
-                Case Else
-                    model
-    """
-
-    #print("TS model: ", toolModel)
+    print(":: copy tool :: tooltype :: ", tool.toolType, " :: ", toolModel)
 
     # Open project
     modelLib = get_default_lib() #TODO make it connect only one time if we create multiple tools
 
-    #print("TS model lib ID: ", modelLib[0].Id)
+    print("TS model lib ID: ", modelLib[0].Id)
 
     #print("End modif: ")
-    EndModif(True, False)
+    #EndModif(True, False)
 
     try:
         # find model tool to copy from default lib
@@ -436,8 +397,7 @@ def copy_tool(tool, holder):
 
         #use current project to create tool
         output_lib = ts_ext.Pdm.GetCurrentProject()
-
-        #print("current lib: ", output_lib)
+        print("GetCurrentProject :: ", output_lib.Id)
 
         toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], toolModel)
         
@@ -566,18 +526,18 @@ def copy_tool(tool, holder):
         print("tool type parms: ", tool.toolType)
 
         #if drill
-        if tool.toolType == 4:
+        if tool.toolType == 3:
             if not tool.AngleDeg:
                 tool.AngleDeg = 140
             print("AngleDeg: ", tool.AngleDeg)
             tmpAngleRad = int(tool.AngleDeg) * pi / 180
             print("tmpAngleRad: ", tmpAngleRad)
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
-        elif tool.toolType == 5:
+        elif tool.toolType == 4:
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
             #ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)
         else:
-            if tool.toolType == 7:
+            if tool.toolType == 6:
                 ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)             
             else:
                 if l2 > 0:

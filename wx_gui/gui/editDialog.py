@@ -24,11 +24,8 @@ class EditDialog(wx.Dialog):
         for key, value in self.toolAttributes.items():
             #print(key, value)
 
-            #discard first element from toolTypes[] = "noFilter"            
-            toolTypesChoices = toolTypes[1:]
-
             if key == 'toolType':
-                self.add_widgets(key, wx.ComboBox(self, value=toolTypes[tool.toolType], choices=toolTypesChoices))
+                self.add_widgets(key, wx.ComboBox(self, value=toolTypes[tool.toolType], choices=toolTypes))
             elif key == 'Manuf':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             elif key == 'GroupeMat':
@@ -85,7 +82,8 @@ class EditDialog(wx.Dialog):
         #Update the database with the changes
         databaseTools.update_tool(self.tool)
         tools = databaseTools.load_tools_from_database(self.tool.toolType)
-        print("tools loaded :: ", tools)
+        if tools:
+            print("tools loaded :: ", len(tools))
 
         #self.Destroy()  # Close the dialog after saving
 
@@ -106,8 +104,8 @@ class EditDialog(wx.Dialog):
 
         if label_text == 'toolType':
             changedValue = getToolTypesNumber(self.toolTypes , changedValue)
+            print("changedValue :: ", changedValue)
 
-        print("changedValue :: ", changedValue)
 
         #set object attribute with the value of the widget
         setattr(tool, label_text, changedValue)   

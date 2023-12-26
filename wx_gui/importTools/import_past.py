@@ -51,14 +51,14 @@ def detect_tool_type(diameter, tip_radius):
     # Verifica se a ferramenta tem um raio de ponta significativo para ser considerada ballMill (fresa esférica)
     print("detect_tool_type: D: " + str(diameter) + " r: " + str(tip_radius))
     if tip_radius == diameter / 2:
-        return 3
+        return 2
     
     # Verifica se a ferramenta tem raio de ponta igual a zero ou insignificante para ser considerada endMill (fresa de topo)
     if tip_radius > 0.1:  # Ajuste o valor conforme necessário para definir o limite do raio insignificante
-        return 2
+        return 1
     
     # Se não se encaixar em nenhuma das categorias anteriores, assume-se que é uma radiusMill (fresa com raio de ponta)
-    return 1
+    return 0
 
 
 
