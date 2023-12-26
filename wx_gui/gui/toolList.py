@@ -4,6 +4,7 @@ from gui.editDialog import EditDialog
 
 from gui.guiTools import add_columns
 from gui.guiTools import refreshToolList
+from gui.guiTools import add_line
 
 from databaseTools import delete_selected_item
 
@@ -132,7 +133,7 @@ class ToolList(wx.Panel):
 
         tool =  self.fullToolsList[self.list_ctrl.GetFirstSelected()]         
 
-        EditDialog(self,tool, self.toolTypesList).ShowModal()
+        EditDialog(self,tool, self.toolTypesList,self.tsModelsList).ShowModal()
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -182,7 +183,7 @@ class ToolList(wx.Panel):
             if holder:
                 print("tool  ", tool.Name, " already created ", tool.TSid)
                 id = ts.get_tool_TSid(tool)
-                ts.copy_holder(id)
+                ts.copy_holder(None, id)
             else:
                 resp = wx.MessageBox('tool already created, retry?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)  #TODO: add a dialog to select if recreate or not
 
@@ -212,7 +213,7 @@ class ToolList(wx.Panel):
                 self.create_tool(i+ind, True)
             elif id == 2:
                 print("floatMenu :: Edit :: ", self.fullToolsList[i+ind].Name )
-                EditDialog(self, self.fullToolsList[i+ind], self.toolTypesList ).ShowModal()
+                EditDialog(self, self.fullToolsList[i+ind], self.toolTypesList,self.tsModelsList ).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
                 toolType = self.fullToolsList[i+ind].toolType

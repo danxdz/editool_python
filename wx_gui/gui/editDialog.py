@@ -6,14 +6,15 @@ from gui.guiTools import getToolTypesNumber
 
 
 class EditDialog(wx.Dialog):
-    def __init__(self, parent,tool, toolTypes):
+    def __init__(self, parent,tool, toolTypesList,tsModelsList ):
         print("EditDialog :: ", tool)
-        title = f'Editing "{tool.Name}" :: {toolTypes[tool.toolType]}'
+        title = f'Editing "{tool.Name}" :: {toolTypesList[tool.toolType]}'
         super().__init__(parent=None, title=title)
         self.tool = tool
         self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.parent = parent
-        self.toolTypes = toolTypes
+        self.toolTypesList = toolTypesList
+        self.tsModelsList = tsModelsList
 
         print("parent.toolTypes", tool.toolType)
          
@@ -25,7 +26,7 @@ class EditDialog(wx.Dialog):
             #print(key, value)
 
             if key == 'toolType':
-                self.add_widgets(key, wx.ComboBox(self, value=toolTypes[tool.toolType], choices=toolTypes))
+                self.add_widgets(key, wx.ComboBox(self, value=toolTypesList[tool.toolType], choices=toolTypesList))
             elif key == 'Manuf':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             elif key == 'GroupeMat':
@@ -43,17 +44,14 @@ class EditDialog(wx.Dialog):
         #TODO range items in grid
 
         # Add save and cancel buttons        
-        btn_sizer = wx.BoxSizer()
+        btn_sizer = wx.GridSizer(rows = 0, cols = 2, hgap = 2, vgap = 2)
+
         save_btn = wx.Button(self, label='save')
         save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         btn_sizer.Add(save_btn, 5, wx.ALL, 15)
 
         btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL, label="close"), 5, wx.ALL, 15)  
 
-        
-        create_btn = wx.Button(self, label='create')
-        create_btn.Bind(wx.EVT_BUTTON, self.on_create)
-        btn_sizer.Add(create_btn, 5, wx.ALL, 15)
 
         self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
         self.SetSizer(self.main_sizer)
@@ -87,11 +85,6 @@ class EditDialog(wx.Dialog):
 
         #self.Destroy()  # Close the dialog after saving
 
-    def on_create(self, event):
-        
-        ts.copy_tool(self.tool)
-        #print("tool :: ", self.tool)
-        self.Destroy()  # Close the dialog after create tool
 
     def on_change(self, event, label_text ):
         #get the value of the widget and the textbox name changed
@@ -103,7 +96,7 @@ class EditDialog(wx.Dialog):
         changedValue = event.GetString()
 
         if label_text == 'toolType':
-            changedValue = getToolTypesNumber(self.toolTypes , changedValue)
+            changedValue = getToolTypesNumber(self.toolTypesList , changedValue)
             print("changedValue :: ", changedValue)
 
 

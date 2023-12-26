@@ -135,10 +135,10 @@ class pasteDialog(wx.Dialog):
     def on_save(self, event):
 
         print("on_save")
-        saveTool(self.tool)
+        saveTool(self.tool, self.parent.toolTypesList)
 
         print("tool :: ", self.parent)
-        tools = load_tools_from_database(self.parent.GetParent(), self.tool.toolType )
+        tools = load_tools_from_database(self.tool.toolType)
 
         print("tools :: ", tools)
         """
