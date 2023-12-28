@@ -574,7 +574,7 @@ def copy_holder(ts_ext, tool):
 
         openHolder = ts_ext.Documents.GetOpenDocuments()
 
-        holderFound = False
+        holderFound = 0
         for holder in openHolder:
 
             print("holder: ", holder.PdmDocumentId, len(openHolder))
@@ -594,6 +594,7 @@ def copy_holder(ts_ext, tool):
                     returnValue = instance.GetFunctionOccurrenceName(inElementId)
                     '''
                 holderFunctions = ts_ext.Entities.GetFunctions(holder)
+                
                 print("toolModelen: ", holderFunctions)
                 if holderFunctions and len(holderFunctions) > 0:
                     for  i in holderFunctions:
@@ -601,11 +602,11 @@ def copy_holder(ts_ext, tool):
                         function = ts_ext.Elements.GetFriendlyName(i)
                         if function == "Système de fixation porte-outil <ToolingHolder_1>":
                             print("toolModel: *****************************", function)
-                            holderFound = True
+                            holderFound = holderFound + 1
                             break
                  
-
-                if holderFound == True:
+                    
+                if holderFound >= 1:
                     elemModelId = []
                     elemModelId.append(holder)
 
@@ -699,13 +700,15 @@ def copy_holder(ts_ext, tool):
                     EndModif(ts_ext, True, False)
                     
                     ts_ext.Documents.Save(savedToolDocId)
-
-        if holderFound == False:
-            print("holder not open on TS")
-            #TODO: add a dialog to inform user that holder is not open on TS
-            noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)  #TODO: add a dialog to select if recreate or not
-    
-                    
+                
+                
+            elif holderFound == 0:
+                print("holder not found")
+                noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
+            else:
+                print("assembly open")
+                pass
+                        
                     
 
     except Exception as ex:

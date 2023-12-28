@@ -11,7 +11,7 @@ from databaseTools import delete_selected_item
 import ts
 
 class ToolList(wx.Panel):    
-    def __init__(self, parent, toolTypesList, tsModelsList):
+    def __init__(self, parent, toolData):
         super().__init__(parent)
         
         main_sizer = wx.BoxSizer(wx.VERTICAL)
@@ -19,11 +19,11 @@ class ToolList(wx.Panel):
         #initialize the tool list
         self.fullToolsList = {}
 
-        self.toolTypesList = toolTypesList
-        # no tool type selected
-        self.toolTypeName = toolTypesList[0]
+        self.toolData = toolData
 
-        self.tsModelsList = tsModelsList
+        self.toolTypesList = toolData.toolTypes
+
+        self.tsModelsList = toolData.tsModels
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
@@ -47,8 +47,6 @@ class ToolList(wx.Panel):
         
         main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)    
 
-
-
         self.SetSizer(main_sizer)   
 
         #create popup menu
@@ -65,59 +63,8 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
 
         #load tools from database to list control   
-        refreshToolList(self,0)
+        refreshToolList(self,-1)
 
-
-    def on_select(self, event, filter_func, filter, *dropboxes):
-        print("on_select :: "  + event.GetString() +  " :: " +  filter )
-        self.list_ctrl.ClearAll()
-        self.add_columns()
-        for dropbox in dropboxes:
-            dropbox.Clear()
-
-        new_tool_list = []
-        if event.GetString() == " ": # blank
-            value = 0
-        else:
-            value = float(event.GetString())
-
-        print(" ********************************* value :: ", value)
-        for tool in self.fullToolsList.values():
-            if value == 0:  # blank
-                print("empty value :: ", value)
-                add_line(self,tool)
-                new_tool_list.append(tool)
-            else:
-                print("value :: ", value , " :: ", tool.D1)
-                if filter == "D1":
-                    flt = tool.D1
-                elif filter == "L1":
-                    flt = tool.L1
-                if (flt == value):
-                    print("adding tool :: ", tool.Name)
-                    filter_func(tool,value)
-                    add_line(tool)
-                    new_tool_list.append(tool)
-
-        for tool in new_tool_list:
-            print("filter func: ", filter_func)
-            filter_func(tool,value)
-
-        # Após aplicar todos os filtros, atualize a lista
-        self.list_ctrl.Refresh() 
-
-    def filter_D1(self, tool, value):
-            self.fill_dropboxs(tool.L1, self.L1_cb)
-            self.fill_dropboxs(tool.L2, self.L2_cb)
-            self.fill_dropboxs(tool.NoTT, self.Z_cb)
-
-    def filter_L1(self, tool, value):
-            self.fill_dropboxs(tool.D1, self.D1_cb)
-            self.fill_dropboxs(tool.L2, self.L2_cb)
-            self.fill_dropboxs(tool.NoTT, self.Z_cb)
-
-
- 
 
     def toolSelected(self, event):
         tool = self.list_ctrl.GetFirstSelected()
@@ -125,7 +72,6 @@ class ToolList(wx.Panel):
             print ("tool selected: ", tool.Name )
         except AttributeError:
             print("tool selected:: ", tool)
-
 
        
     def db_click(self, event):

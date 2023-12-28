@@ -1,6 +1,8 @@
 from tool import Tool
+from gui.guiTools import getToolTypesNumber
 
-def process_input_13999(input_text):
+
+def process_input_13999(input_text, toolTypesList):
     # Parse the config file to create the mapping
     with open("13999_paste.txt") as config_file:
         config_text = config_file.read()
@@ -14,7 +16,7 @@ def process_input_13999(input_text):
             #print("parts filter: ", parts)
 
 
-    #print("name_mapping: ", name_mapping)
+    print("name_mapping: ", name_mapping)
     # Parse the input text and populate the Tool object
     lines = input_text.split('\n')
     #for line in lines: 
@@ -23,14 +25,19 @@ def process_input_13999(input_text):
     tool = Tool()
     for line in lines:
         parts = line.split('\t')
+        print("parts: ", parts, len(parts))
         if len(parts) == 3:
             # Use the mapping to get the attribute name
-            attr_name = name_mapping.get(parts[0].replace(' ', ''))
+            attr_name = name_mapping.get(parts[0])#.replace(' ', ''))
             if attr_name is not None:
+                print("attr_name: ", attr_name, parts[2].replace(' mm', ''))
                 setattr(tool, attr_name, parts[2].replace(' mm', ''))
 
     if tool.toolType == "":
-        tool.toolType = detect_tool_type(float(tool.D1), float(tool.RayonBout))
+        detectedToolType = detect_tool_type(float(tool.D1), float(tool.RayonBout))
+        print("detectedToolType: ", detectedToolType)
+        tool.toolType = getToolTypesNumber(toolTypesList, detectedToolType)
+
 
     if tool.Name == "":
         # Extract the manufacturer code (ManufRef) from the first line (Name = ManufRef)
@@ -43,21 +50,26 @@ def process_input_13999(input_text):
     if tool.Manuf == "":
         tool.Manuf, tool.ManufRefSec = detect_tool_manuf(tool.Name)
 
+    if tool.ArrCentre == "Yes":
+        tool.ArrCentre = "1"
+    else:
+        tool.ArrCentre = "0"
+
 
     return tool
 
 
 def detect_tool_type(diameter, tip_radius):
-    # Verifica se a ferramenta tem um raio de ponta significativo para ser considerada ballMill (fresa esférica)
+    # verify if it is a ballMill based on the tip radius
     print("detect_tool_type: D: " + str(diameter) + " r: " + str(tip_radius))
     if tip_radius == diameter / 2:
-        return 2
+        return "ballMill"
     
-    # Verifica se a ferramenta tem raio de ponta igual a zero ou insignificante para ser considerada endMill (fresa de topo)
-    if tip_radius > 0.1:  # Ajuste o valor conforme necessário para definir o limite do raio insignificante
-        return 1
+    # verify if it is a radiusMill based on the tip radius
+    if tip_radius > 0.15:  # 0.1 is the minimum tip radius to be considered a radiusMill
+        return "radiusMill"
     
-    # Se não se encaixar em nenhuma das categorias anteriores, assume-se que é uma radiusMill (fresa com raio de ponta)
+    #else assume it is a endMill
     return 0
 
 

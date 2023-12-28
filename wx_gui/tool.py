@@ -1,3 +1,13 @@
+#hardcoded values for tool types
+class ToolsDefaultsData:
+    toolTypes = ["endMill", "radiusMill", "ballMill", "drill", "tap", "t-slot", "threadMill"]
+    tsModels = ["Side Mill D20 L35 SD20", "Radiused Mill D16 L40 r3 SD16", "Ball Nose Mill D8 L30 SD8", "Twisted Drill D10 L35 SD10", "Tap M10*1,5 L35 SD10", "T Slot Mill D20 L5 SD10", "Internal Thread Mill ISO P1,5 L30 SD10"]
+
+class ToolsCustomData:
+    tsModels = []
+    toolTypes = []
+    toolTypesNumbers = []
+
 class Tool:
     """
     This class represents a tool with all its attributes.

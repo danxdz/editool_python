@@ -1,6 +1,7 @@
 import wx
 import sys
 
+
 from gui.toolList import ToolList
 from gui.toolSetup import toolSetupPanel
 from gui.guiTools import refreshToolList
@@ -12,23 +13,22 @@ import databaseTools as db
 from importTools.pasteDialog import pasteDialog
 from importHolders.holdersPanel import HoldersSetupPanel
 
+from importTools.validateImportDialogue import validateToolDialog
+
 import import_xml_wx as iXml
 from export_xml_wx import create_xml_data
 
 
-class ToolManagerUI(wx.Frame):
 
+class ToolManagerUI(wx.Frame):
     def __init__(self):
         super().__init__(parent=None, title="ediTool - tools manager")
-
         
-        #create dictionary with tool types and icon files
-        self.toolTypesList , self.tsModelsList = getToolTypes()
-        
-        print("toolTypesList :: ", self.toolTypesList)
-        print("tsModelsList :: ", self.tsModelsList)
+        #create dictionary with tool types and ts models
+        self.toolData = getToolTypes()        
 
-        self.panel = ToolList(self, self.toolTypesList, self.tsModelsList)
+        #create the panel with the tool list
+        self.panel = ToolList(self, self.toolData)
 
         self.create_menu()
         self.SetSize(800, 800)
@@ -38,48 +38,52 @@ class ToolManagerUI(wx.Frame):
 
     def create_menu(self):
         menu_bar = wx.MenuBar()
+
+        # add file menu
         file_menu = wx.Menu()
 
         open_xml = file_menu.Append(
             wx.ID_ANY, 'Open xml file', 
             'open a xml file with tool data'
-        )
-        ISO13999 = file_menu.Append(
-            wx.ID_ANY, 'Paste tool ISO13999', 
-            'paste tool data ISO13999'
-        )
-        open_zip = file_menu.Append(
-            wx.ID_ANY, 'Open zip file', 
-            'open a zip file with tool data'
-        )
-        exp_xml = file_menu.Append(
-            wx.ID_ANY, 'Export XML file', 
-            'export tool data into XML file'
-        )
-        exit = file_menu.Append(
-            wx.ID_ANY, "exit", "close app"
-        )
-        
-
+        )        
         self.Bind(
             event=wx.EVT_MENU, 
             handler=self.on_open_xml,
             source=open_xml,
         )
+
+        ISO13999 = file_menu.Append(
+            wx.ID_ANY, 'Paste tool ISO13999', 
+            'paste tool data ISO13999'
+        )        
         self.Bind(
             event=wx.EVT_MENU, 
             handler=self.on_paste_iso13999,
             source=ISO13999,
         )
+
+        open_zip = file_menu.Append(
+            wx.ID_ANY, 'Open zip file', 
+            'open a zip file with tool data'
+        )        
         self.Bind(
             event=wx.EVT_MENU, 
             handler=self.on_open_zip,
             source=open_zip,
         )
+
+        exp_xml = file_menu.Append(
+            wx.ID_ANY, 'Export XML file', 
+            'export tool data into XML file'
+        )
         self.Bind(
             event=wx.EVT_MENU, 
             handler=self.on_export_xml,
             source=exp_xml,
+        )
+
+        exit = file_menu.Append(
+            wx.ID_ANY, "exit", "close app"
         )
         self.Bind(
             event=wx.EVT_MENU,
@@ -87,15 +91,15 @@ class ToolManagerUI(wx.Frame):
             source=exit
         )
 
+        # add file menu to menu bar
         menu_bar.Append(file_menu, '&File')
 
+        # add tools config menu
         config = wx.Menu()
-
         toolSetup = config.Append(
             wx.ID_ANY, 'Tool Setup', 
             'setup tool data'
         )
-
         self.Bind(
             event=wx.EVT_MENU,
             handler=self.toolSetupPanel,
@@ -103,27 +107,25 @@ class ToolManagerUI(wx.Frame):
         )
         menu_bar.Append(config, '&Config')
 
+        # add holders config menu
         holdersConfig = config.Append(
             wx.ID_ANY, 'Holders', 
             'setup holder data'
         )        
-
         self.Bind(
             event=wx.EVT_MENU,
             handler=self.HoldersSetupPanel,
             source=holdersConfig
         )
-        
-
         self.SetMenuBar(menu_bar)
 
-        #add icon to toolbar with tooltip
+        #add icons to toolbar
         self.toolbar = self.CreateToolBar()
 
         #TODO read app prefs to get toolbar icon size
-        self.toolbar.SetToolBitmapSize((20,40))
+        #self.toolbar.SetToolBitmapSize((20,40))
       
-        #need to add first icon 0 no filter to show all tools its not on the list
+        #add tool types icons to toolbar 
         icon = "icons/nofilter.png"
         icon = self.toolbar.AddTool(-1, "0" , wx.Bitmap(icon))
         icon.SetShortHelp("no filter")
@@ -133,7 +135,7 @@ class ToolManagerUI(wx.Frame):
         self.toolbar.AddSeparator()
 
         #add tool types icons to toolbar
-        for i, toolType in enumerate(self.toolTypesList):
+        for i, toolType in enumerate(self.toolData.toolTypes):
             #print(f"i :: {i} :: toolType :: {toolType}")
             icon = "icons/" + toolType + ".png"
             #print("icon :: ", icon)
@@ -143,26 +145,27 @@ class ToolManagerUI(wx.Frame):
 
         #add separator
         self.toolbar.AddSeparator()
-
-         # Combo Box (Dropdown) toolbar
-        combo = wx.ComboBox(self.toolbar, choices=["Selection 1", "Selection 2"])
-        self.toolbar.AddControl(combo)
         
         self.Centre()
         self.toolbar.Realize()     
+
             
     def filterToolType(self, event):
         i = event.GetId()
+
         if i >= 0:
-            #get the tool type name from the dictionary
-            self.toolTypeName = self.toolTypesList[i]
-            #get the index in the dictionary
+            #get the tool type name
+            self.toolTypeName = self.toolData.toolTypes[i]
+            #get the index
             self.toolType = i
-            print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )    
-            refreshToolList(self.panel, self.toolType)
+            #print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )   
         else:
-            print("no filter")
-            refreshToolList(self.panel, -1)
+            #print("no filter")
+            self.toolType = -1
+        
+        refreshToolList(self.panel, self.toolType)
+
+
 
     #menu bar functions
     def on_open_xml(self, event):
@@ -171,8 +174,10 @@ class ToolManagerUI(wx.Frame):
         wcard ="XML files (*.xml)|*.xml"
         tools = iXml.open_file(self, title, wcard)
 
-        for tool in tools:
-            db.saveTool(tool, self.toolTypesList)
+        saveTools = validateToolDialog(self.panel, tools).ShowModal()
+
+        for tool in saveTools:
+            db.saveTool(tool, self.toolData.toolTypes)
             print("tool added: ", tool.Name)
             refreshToolList(self.panel, tool.toolType)
 

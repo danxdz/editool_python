@@ -1,5 +1,10 @@
 from databaseTools import load_tools_from_database
-from tool import Tool
+
+from tool import ToolsCustomData
+
+
+
+#TODO: add columns to config
 
 def add_columns(self):
     self.list_ctrl.InsertColumn(0, "n" , width=30)
@@ -17,21 +22,19 @@ def add_columns(self):
 
 
 
-import os
-
 def getToolTypes():
-    #get all tool types and ts models from getToolTypes txt file
-    toolTypes = []
-    tsModels = []
-
+    #get all tool types and ts models from getToolTypes txt file    
+    toolData = ToolsCustomData()
+    
     with open("./wx_gui/tooltypes.txt", "r") as f:
         for line in f:
             #print(line)
-            toolTypes.append(line.split(";")[1])
+            toolData.toolTypes.append(line.split(";")[1])
             #need to strip /n from end of line
-            tsModels.append(line.split(";")[2].strip())
-    
-    return toolTypes, tsModels
+            toolData.tsModels.append(line.split(";")[2].strip())
+            toolData.toolTypesNumbers.append(line.split(";")[0])
+
+    return toolData
 
 def getToolTypesIcons(tooltypes, path):
     icons = []
@@ -43,20 +46,24 @@ def getToolTypesIcons(tooltypes, path):
 
 def getToolTypesNumber(toolTypes, value): 
     for i, toolType in enumerate(toolTypes):
+        #print("getToolTypesNumber :: ", toolType, " :: ", value)
         if toolType == value:
             value = i
             return i
         
 def refreshToolList(self, toolType):
-    print("refreshToolList :: tooltype :: ", toolType)
+    #print("refreshToolList :: tooltype :: ", toolType)
     tools = load_tools_from_database(toolType)
     if tools:
-        print(f"{len(tools)} tools loaded")
+        if toolType == -1:
+            print(f"{len(tools)} tools loaded :: type : all")
+        else:
+            print(f"{len(tools)} tools loaded :: type : {self.toolTypesList[toolType]}")
         self.list_ctrl.DeleteAllItems()
         for tool in tools:
             add_line(self, tool)
     else:
-        print("no tools loaded")
+        print(f"no tools loaded :: type : {self.toolTypesList[toolType]}")
         self.list_ctrl.DeleteAllItems()
     
     self.list_ctrl.Refresh()

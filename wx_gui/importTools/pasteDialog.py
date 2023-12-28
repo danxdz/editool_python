@@ -62,7 +62,7 @@ class pasteDialog(wx.Dialog):
         print(len_data , " :: " ,  data)
 
         if len(data) > 100:
-            self.tool = import_past.process_input_13999(self.text_area.GetValue())
+            self.tool = import_past.process_input_13999(self.text_area.GetValue(), self.parent.toolTypesList)
             #print("tool :: ", self.tool)
         else:
             #lets process data without headers
