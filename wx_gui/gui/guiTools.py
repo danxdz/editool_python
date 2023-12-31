@@ -1,6 +1,6 @@
 from databaseTools import load_tools_from_database
 
-from tool import ToolsCustomData
+import wx
 
 
 
@@ -22,20 +22,6 @@ def add_columns(self):
 
 
 
-def getToolTypes():
-    #get all tool types and ts models from getToolTypes txt file    
-    toolData = ToolsCustomData()
-    
-    with open("./wx_gui/tooltypes.txt", "r") as f:
-        for line in f:
-            #print(line)
-            toolData.toolTypes.append(line.split(";")[1])
-            #need to strip /n from end of line
-            toolData.tsModels.append(line.split(";")[2].strip())
-            toolData.toolTypesNumbers.append(line.split(";")[0])
-
-    return toolData
-
 def getToolTypesIcons(tooltypes, path):
     icons = []
     for tooltype in tooltypes:
@@ -49,31 +35,38 @@ def getToolTypesNumber(toolTypes, value):
         #print("getToolTypesNumber :: ", toolType, " :: ", value)
         if toolType == value:
             value = i
+            #print("getToolTypesNumber :: ", toolType, " :: ", value, i)
+
             return i
         
 def refreshToolList(self, toolType):
     #print("refreshToolList :: tooltype :: ", toolType)
+
     tools = load_tools_from_database(toolType)
+
+    newToolTypeText = "all"
+    if toolType != -1:
+        newToolTypeText = self.toolData.toolTypesList[toolType]
+       
     if tools:
-        if toolType == -1:
-            print(f"{len(tools)} tools loaded :: type : all")
-        else:
-            print(f"{len(tools)} tools loaded :: type : {self.toolTypesList[toolType]}")
+        print(f"{len(tools)} tools loaded :: type : {newToolTypeText}")
+
         self.list_ctrl.DeleteAllItems()
         for tool in tools:
             add_line(self, tool)
     else:
-        print(f"no tools loaded :: type : {self.toolTypesList[toolType]}")
+        print(f"no tools loaded :: type : {newToolTypeText}")
         self.list_ctrl.DeleteAllItems()
     
     self.list_ctrl.Refresh()
+    return tools
 
 def add_line(self, tool):
     index = self.list_ctrl.GetItemCount()
+    print("adding tool line :: ", index, " :: ", tool.Name)
 
-    self.fullToolsList[index] = tool
+    self.toolData.fullToolsList.append(tool)
 
-    #print("adding tool line :: ", index, " :: ", tool.Name)
 
     index = self.list_ctrl.InsertItem(index, str(index + 1))
     self.list_ctrl.SetItem(index, 1, str(tool.Name))
@@ -89,3 +82,118 @@ def add_line(self, tool):
 
     return index
 
+
+def tooltypesButtons(self):
+    self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
+    #add buttons with tool types icons to the container
+    #add first empty button
+    self.bt = wx.BitmapButton(self, id=-1, bitmap=wx.Bitmap(f'icons/noFilter.png'), name="noFilter",style=wx.BORDER_RAISED)
+    self.bt.SetToolTip(wx.ToolTip("no filter"))
+    self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+    self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
+    
+
+    for i, toolType in enumerate(self.toolData.toolTypesList):
+        #print("toolType :: ", toolType)
+        icon = wx.Bitmap(f'icons/{toolType}.png')
+        #set button size
+        self.iconsBar.SetMinSize((20, 40))
+        #add button to the container
+        self.bt = wx.BitmapButton(self, id=i, bitmap=icon, name=toolType,style=wx.BORDER_RAISED)
+        self.bt.SetToolTip(wx.ToolTip(toolType))
+        self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+        #set tooltip for each button
+        self.Bind(wx.EVT_BUTTON, self.filterToolType, id=i)
+
+    #add the container to the main sizer
+    self.main_sizer.Add(self.iconsBar, 0, wx.ALL, 5)
+    self.SetSizer(self.main_sizer)
+    self.SetAutoLayout(1)
+    self.main_sizer.Fit(self)
+
+
+def create_menu(self):
+
+    # add file menu
+    file_menu = wx.Menu()
+
+    open_xml = file_menu.Append(
+        wx.ID_ANY, 'Open xml file', 
+        'open a xml file with tool data'
+    )        
+    self.Bind(
+        event=wx.EVT_MENU, 
+        handler=self.on_open_xml,
+        source=open_xml,
+    )
+
+    ISO13999 = file_menu.Append(
+        wx.ID_ANY, 'Paste tool ISO13999', 
+        'paste tool data ISO13999'
+    )        
+    self.Bind(
+        event=wx.EVT_MENU, 
+        handler=self.on_paste_iso13999,
+        source=ISO13999,
+    )
+
+    open_zip = file_menu.Append(
+        wx.ID_ANY, 'Open zip file', 
+        'open a zip file with tool data'
+    )        
+    self.Bind(
+        event=wx.EVT_MENU, 
+        handler=self.on_open_zip,
+        source=open_zip,
+    )
+
+    exp_xml = file_menu.Append(
+        wx.ID_ANY, 'Export XML file', 
+        'export tool data into XML file'
+    )
+    self.Bind(
+        event=wx.EVT_MENU, 
+        handler=self.on_export_xml,
+        source=exp_xml,
+    )
+
+    exit = file_menu.Append(
+        wx.ID_ANY, "exit", "close app"
+    )
+    self.Bind(
+        event=wx.EVT_MENU,
+        handler=self.close_app,
+        source=exit
+    )
+
+    # add file menu to menu bar
+    
+    menu_bar = wx.MenuBar()
+    menu_bar.Append(file_menu, '&File')
+
+    # add tools config menu
+    config = wx.Menu()
+    toolSetup = config.Append(
+        wx.ID_ANY, 'Tool Setup', 
+        'setup tool data'
+    )
+    self.Bind(
+        event=wx.EVT_MENU,
+        handler=self.toolSetupPanel,
+        source=toolSetup
+    )
+    menu_bar.Append(config, '&Config')
+
+    # add holders config menu
+    holdersConfig = config.Append(
+        wx.ID_ANY, 'Holders', 
+        'setup holder data'
+    )        
+    self.Bind(
+        event=wx.EVT_MENU,
+        handler=self.HoldersSetupPanel,
+        source=holdersConfig
+    )
+
+
+    self.SetMenuBar(menu_bar)

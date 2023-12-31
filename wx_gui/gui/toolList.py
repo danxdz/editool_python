@@ -1,11 +1,10 @@
 
 import wx
 from gui.editDialog import EditDialog
+from importTools.validateImportDialogue import validateToolDialog
 
 from gui.guiTools import add_columns
 from gui.guiTools import refreshToolList
-from gui.guiTools import add_line
-
 from databaseTools import delete_selected_item
 
 import ts
@@ -13,23 +12,20 @@ import ts
 class ToolList(wx.Panel):    
     def __init__(self, parent, toolData):
         super().__init__(parent)
+
+        self.parent = parent
         
-        main_sizer = wx.BoxSizer(wx.VERTICAL)
-
         #initialize the tool list
-        self.fullToolsList = {}
-
+       
         self.toolData = toolData
-
-        self.toolTypesList = toolData.toolTypes
-
-        self.tsModelsList = toolData.tsModels
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
-            self, size=(-1, 300), 
-            style=wx.LC_REPORT | wx.BORDER_SUNKEN
+            self, size=(-1, -1), 
+            style=wx.LC_REPORT | wx.BORDER_SIMPLE
         )   
+
+
    
         #this is needed to allow the lines oflist control to be selected
         self.list_ctrl.Enable(True)
@@ -44,10 +40,7 @@ class ToolList(wx.Panel):
         add_columns(self)
 
         self.list_ctrl.Fit()
-        
-        main_sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)    
 
-        self.SetSizer(main_sizer)   
 
         #create popup menu
         self.popup_menu = wx.Menu()
@@ -62,24 +55,29 @@ class ToolList(wx.Panel):
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
 
-        #load tools from database to list control   
-        refreshToolList(self,-1)
-
+    
 
     def toolSelected(self, event):
-        tool = self.list_ctrl.GetFirstSelected()
+        tool = self.toolData.fullToolsList[self.list_ctrl.GetFirstSelected()]  
+        toolTypeName = self.toolData.toolTypesList[tool.toolType]           
+        self.parent.statusBar.SetStatusText(f"tool selected: [{self.list_ctrl.GetFirstSelected()} :: {tool.Name} :: {toolTypeName}")
+
         try :
-            print ("tool selected: ", tool.Name )
+            print ("tool selected: ", tool.Name , " :: ", toolTypeName )
         except AttributeError:
-            print("tool selected:: ", tool)
+            print("error :: tool selected:: ", tool)
 
        
     def db_click(self, event):
-        #print("edit tool: ", self.getSelectedTool().Name)
+        print("edit tool: ",  self.list_ctrl.GetFirstSelected())
+        i = self.list_ctrl.GetFirstSelected()
 
-        tool =  self.fullToolsList[self.list_ctrl.GetFirstSelected()]         
+        tool = self.toolData.fullToolsList[i]
 
-        EditDialog(self,tool, self.toolTypesList,self.tsModelsList).ShowModal()
+        #EditDialog(self,tool, self.toolData.toolTypesList).ShowModal()
+        validateToolDialog(self, tool).ShowModal()
+      
+
 
     def right_click(self, event):
         count = self.list_ctrl.GetSelectedItemCount()
@@ -94,36 +92,15 @@ class ToolList(wx.Panel):
 
         self.show_popup(event)
 
-    def fill_dropboxs(self, tool, dropbox):
-        #add the D1 value to the dropbox if it is not already there
-        items = dropbox.GetItems()
-        d1 = str(tool)
-        if str(d1) not in items:
-            #print(d1, " :: " , items)
-            dropbox.Append(d1)
-
-        #order the dropbox items remeber they are strings, so make sure to convert to real numbers
-        items = dropbox.GetItems()
-        #print("items :: ", items)
-        #first item must be blank we dont want to sort that
-        if items[0] == " ":
-            items.pop(0)
-        #print("items :: ", items)
-        items.sort(key=float)
-        #append the blank item back to the list to make it the first item
-        items.insert(0, " ")
-        
-        dropbox.SetItems(items)
-        #print("items :: ", items)
 
 
     def create_tool(self, index, holder): #holder = true or false
-        print("create tool :: ", self.fullToolsList[index].Name)
-        tool = self.fullToolsList[index]
+        print("create tool :: ", self.toolData.fullToolsList[index].Name)
+        tool = self.toolData.fullToolsList[index]
 
         #check if tool is created
         if tool.TSid == "" or tool.TSid == None:
-            ts.copy_tool(tool, holder, self.tsModelsList)
+            ts.copy_tool(tool, holder, self.toolData.tsModels)
             print("tool :: ", tool.Name, " created")
         else:
             if holder:
@@ -158,11 +135,11 @@ class ToolList(wx.Panel):
                 #create tool :: true = holder
                 self.create_tool(i+ind, True)
             elif id == 2:
-                print("floatMenu :: Edit :: ", self.fullToolsList[i+ind].Name )
-                EditDialog(self, self.fullToolsList[i+ind], self.toolTypesList,self.tsModelsList ).ShowModal()
+                print("floatMenu :: Edit :: ", self.toolData.fullToolsList[i+ind].Name )
+                validateToolDialog(self, self.toolData.fullToolsList[i+ind]).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
-                toolType = self.fullToolsList[i+ind].toolType
+                toolType = self.toolData.fullToolsList[i+ind].toolType
                 delete_selected_item(self.GetParent(),i+ind, toolType) 
                 self.list_ctrl.DeleteAllItems()
                 refreshToolList(self, toolType)

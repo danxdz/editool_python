@@ -144,7 +144,7 @@ def parse_new_xml_data(xml_file_path):
     except ValueError:
         rayon_bout = 0
     
-    chanfrein = get_property_value(tool, "D6")
+    chanfrein = float(get_property_value(tool, "D6")/1000) or 0
     
     manuf_ref_sec = get_property_value(tool, "H5")
     code_bar = get_property_value(tool, "J21")

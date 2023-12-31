@@ -60,7 +60,7 @@ def interpret_tool_data(input_data):
     # Process the lines and extract the value fields
     for i in range(2, len(lines), 3):
         value = lines[i].strip()
-        print("value ", value)
+        print("value :: ", value)
 
         # Check if the value field contains " mm" and remove it
         if value.endswith(" mm"):

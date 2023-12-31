@@ -2,23 +2,22 @@ import wx
 import ts as ts
 
 from databaseTools import saveTool
+from gui.guiTools import getToolTypesNumber
+from ts import copy_tool
+
+
 
 class validateToolDialog(wx.Dialog):
-    def __init__(self,parent,tools):
+    def __init__(self,parent,tool):
         title = 'Validate tool data'
         super().__init__(parent=None, title=title)
       
         self.parent = parent
-        self.tools = tools
+        self.tool = tool
 
-        self.newTools = []
+        self.toolData = parent.toolData
 
-        self.toolTypes = parent.toolTypesList
-        self.toolTypesNumber = parent.toolData.toolTypesNumbers
-
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-
-        
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)        
 
         #add sizer with 5 rows
         #and add 5 square buttons for each material group P, M, M, K, S, N
@@ -65,7 +64,7 @@ class validateToolDialog(wx.Dialog):
         btn_sizer.Add(self.save_btn, 5, wx.ALL, 15)
         self.save_btn.Disable()
 
-        self.create_btn = wx.Button(self, label='Create')
+        self.create_btn = wx.Button(self, label='Save & Create')
         self.create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(self.create_btn, 5, wx.ALL, 15)
         self.create_btn.Disable()
@@ -76,75 +75,95 @@ class validateToolDialog(wx.Dialog):
         self.SetSizer(self.main_sizer)
 
 
-        self.on_load(tools)
+        self.on_load(tool)
         #resize the dialog to fit the content
         self.Fit()
+
         
     def on_mat_btn(self, color, bt):
         #print("on_mat_btn :: ", event.GetEventObject().GetLabel())
-        print("on_mat_btn :: ", color)
         #set button color
         bt.SetBackgroundColour(color)
         #set button border
-        bt.SetForegroundColour('white')
+        bt.SetForegroundColour('black')
 
 
 
     def add_widgets(self, label, widget):
-        
+
+        #add binding to widget and send label_text to on_change
+        widget.Bind(wx.EVT_TEXT, lambda event: self.on_change(event, label))
+
         label_text = wx.StaticText(self, label=label)
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(widget, 0, wx.ALL, 2)
         self.textboxSizer.Add(sizer, 0, wx.ALL, 5)
 
-    def on_load(self, tools):
+        
+
+    def on_load(self, tool):
       
-        #get all Tool attributes
-        for tool in tools:
-            self.toolAttributes = tool.getAttributes()        
-            #print("toolAttributes :: ", self.toolAttributes)
+        self.toolAttributes = tool.getAttributes()        
+        #print("toolAttributes :: ", self.toolAttributes)
 
-            #clear all widgets
-            self.textboxSizer.Clear(True)
-            self.main_sizer.Layout()
-            self.main_sizer.Fit(self)
+        #clear all widgets
+        self.textboxSizer.Clear(True)
+        self.main_sizer.Layout()
+        self.main_sizer.Fit(self)
 
-            for key, value in self.toolAttributes.items():
-                #print(key, value)
-                #TODO: add combobox for toolType, Manuf, GroupeMat...
-                if key == 'toolType':
-                    
-                    self.add_widgets(key, wx.ComboBox(self, value=str(self.toolTypes[value]),choices=self.toolTypes))
-                elif key == 'Manuf':
-                    self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-                elif key == 'GroupeMat':
-                    self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-                elif key == "Name":
-                    self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
-                    print(f"value {value}")
-                    if value != "":
-                        self.save_btn.Enable()
-                        self.create_btn.Enable()
-                        self.newTools.append(tool)
-
-                else:
-                    self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
+        for key, value in self.toolAttributes.items():
+            #print(key, value)
+            #TODO: add combobox for toolType, Manuf, GroupeMat...
+            if key == 'toolType':                
+                self.add_widgets(key, wx.ComboBox(self, value=str(self.toolData.toolTypesList[value]),choices=self.toolData.toolTypesList))
+            elif key == 'Manuf':
+                self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == 'GroupeMat':
+                groupMat = ['P', 'M', 'K', 'N', 'S', 'H', 'O']
+                #self.add_widgets(key, wx.ComboBox(self, value=str(value)))
+            elif key == "Name":
+                self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
+                print(f"value {value}")
+                if value != "":
+                    self.save_btn.Enable()
+                    self.create_btn.Enable()
+            else:
+                self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
 
 
-            self.Fit()
+        self.Fit()
 
 
     def on_save(self, event):
 
-        print("on_save", self.newTools)
-        for tool in self.newTools:
-            print("tool :: ", tool)
-            saveTool(tool,self.toolTypes) 
+        print("saving ", self.tool.Name, self.tool.toolType , " in database")
+        saveTool(self.tool,self.toolData.toolTypesList) 
+        self.Destroy()  # Close the dialog after saving tool
         
-        #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):
-        print("on_create")
+        print("create " , self.tool.Name, self.tool.toolType)
+
+        saveTool(self.tool,self.toolData.toolTypesList)
+        
+        copy_tool(self.tool, False, self.toolData.tsModels)
 
         self.Destroy()  # Close the dialog after create tool    
+
+    def on_change(self, event, label_text ):
+        #get the value of the widget and the textbox name changed
+
+        #print("change",label_text, event.GetString())
+        print("on_change :: ", self)
+        tool = self.tool
+       
+        changedValue = event.GetString()
+
+        if label_text == 'toolType':
+            changedValue = getToolTypesNumber(self.toolData.toolTypesList , changedValue)
+            print("changedValue :: ", changedValue)
+
+        #set object attribute with the value of the widget
+        setattr(tool, label_text, changedValue)   
+        self.tool = tool

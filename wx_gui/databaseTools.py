@@ -64,9 +64,9 @@ def delete_selected_item(self, index, toolType):
     #print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].Name, " toolType :: ", toolType)
 
     #delete tool from database
-    deleteTool(self.panel.fullToolsList[index])
+    deleteTool(self.toolData.fullToolsList[index])
     #delete tool from list
-    del self.panel.fullToolsList[index]
+    del self.toolData.fullToolsList[index]
 
 
 def saveTool(tool, toolTypes):
@@ -94,13 +94,13 @@ def saveTool(tool, toolTypes):
             ArrCentre   TEXT,
             threadTolerance TEXT,
             threadPitch REAL,
+            CuttingMaterial TEXT,
             Manuf       TEXT,
             ManufRef    TEXT,
             ManufRefSec TEXT,
             Code        TEXT,
             CodeBar     TEXT,
             Comment     TEXT,
-            CuttingMaterial TEXT,
             TSid        TEXT
         )
     ''')
@@ -109,14 +109,19 @@ def saveTool(tool, toolTypes):
     # Add tool into table 'tools'
     cursor.execute('''
         INSERT INTO tools (Name, toolType, GroupeMat, D1, L1, D2, L2, L3, D3, NoTT, RayonBout, Chanfrein,AngleDeg, CoupeCentre,
-            ArrCentre, threadTolerance, threadPitch, Manuf, ManufRef, ManufRefSec, Code, CodeBar,Comment, CuttingMaterial, TSid)
+            ArrCentre, threadTolerance, threadPitch,CuttingMaterial, Manuf, ManufRef, ManufRefSec, Code, CodeBar,Comment,  TSid)
         VALUES (:Name, :toolType, :GroupeMat, :D1, :L1, :D2, :L2, :L3, :D3, :NoTT, :RayonBout, :Chanfrein,:AngleDeg, :CoupeCentre,
-            :ArrCentre, :threadTolerance, :threadPitch, :Manuf, :ManufRef, :ManufRefSec, :Code, :CodeBar, :Comment, :CuttingMaterial, :TSid)
+            :ArrCentre, :threadTolerance, :threadPitch, :CuttingMaterial, :Manuf, :ManufRef, :ManufRefSec, :Code, :CodeBar, :Comment, :TSid)
     ''', tool.__dict__)
 
     conn.commit()
 
     print('Tool added to database.', tool.Name , toolTypes[int(tool.toolType)], "changed: " ,  conn.total_changes)
+
+    #get the last added tool id
+    cursor.execute("SELECT id FROM tools ORDER BY id DESC LIMIT 1")
+    tool.id = cursor.fetchone()[0]
+    print("last added tool id :: ", tool.id)
  
     conn.close()
 

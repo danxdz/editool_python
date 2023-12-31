@@ -1,12 +1,47 @@
 #hardcoded values for tool types
 class ToolsDefaultsData:
-    toolTypes = ["endMill", "radiusMill", "ballMill", "drill", "tap", "t-slot", "threadMill"]
-    tsModels = ["Side Mill D20 L35 SD20", "Radiused Mill D16 L40 r3 SD16", "Ball Nose Mill D8 L30 SD8", "Twisted Drill D10 L35 SD10", "Tap M10*1,5 L35 SD10", "T Slot Mill D20 L5 SD10", "Internal Thread Mill ISO P1,5 L30 SD10"]
+    
+    coolantsTypes = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
+    '''["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]'''
+    
+    toolTypes = ["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]
+    '''["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]'''
+    
+    tsModels = ["Side Mill D20 L35 SD20", 
+                "Radiused Mill D16 L40 r3 SD16", 
+                "Ball Nose Mill D8 L30 SD8", 
+                "Chamfer Mill D0 A30 SD10",
+                "T Slot Mill D20 L5 SD10",
+                "Spotting Drill D10 SD10",
+                "Center Drill d3 D8 L5",
+                "Twisted Drill D10 L35 SD10",
+                "Tap M10*1,5 L35 SD10",
+                "Internal Thread Mill ISO P1,5 L30 SD10",
+                "Constant Reamer D10 L20 SD9"
+                ]
+    '''["Side Mill D20 L35 SD20","Radiused Mill D16 L40 r3 SD16","Ball Nose Mill D8 L30 SD8","Chamfer Mill D0 A30 SD10","T Slot Mill D20 L5 SD10","Spotting Drill D10 SD10","Center Drill d3 D8 L5","Twisted Drill D10 L35 SD10","Tap M10*1,5 L35 SD10","Internal Thread Mill ISO P1,5 L30 SD10","Constant Reamer D10 L20 SD9"]'''
+
 
 class ToolsCustomData:
     tsModels = []
-    toolTypes = []
     toolTypesNumbers = []
+    toolTypesList = []
+    fullToolsList = []
+
+    @classmethod
+    def getCustomTsModels(toolData):
+        #get all tool types and ts models from getToolTypes txt file    
+        
+        with open("./tooltypes.txt", "r") as f:
+            for line in f:
+                #print(line, toolData.toolTypes)
+                toolData.toolTypesList.append(line.split(";")[1])
+                #need to strip /n from end of line
+                toolData.tsModels.append(line.split(";")[2].strip())
+                toolData.toolTypesNumbers.append(line.split(";")[0])
+        #print("toolData :: ", toolData.toolTypes)    
+        return toolData
+    
 
 class Tool:
     """
@@ -23,13 +58,17 @@ class Tool:
         self.Name = Name
         self.toolType = toolType 
         """
-            1-endMill
-            2-radiusMill
-            3-ballMill
-            4-drill
-            5-tap
-            6-t-slot
-            7-threadMill
+            0-endMill
+            1-radiusMill
+            2-ballMill
+            3-chamferMill
+            4-tslotMill
+            5-spotDrill
+            6-centerDrill
+            7-drill
+            8-tap
+            9-threadMill
+            10-reamer
         """
         self.GroupeMat = GroupeMat
         self.D1 = D1

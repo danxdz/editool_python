@@ -492,12 +492,17 @@
    'G:\\works\\2023\\git '
    'clone\\editool_python\\wx_gui\\importTools\\import_past.py',
    'PYMODULE'),
+  ('importTools.import_xml_wx',
+   'G:\\works\\2023\\git '
+   'clone\\editool_python\\wx_gui\\importTools\\import_xml_wx.py',
+   'PYMODULE'),
   ('importTools.pasteDialog',
    'G:\\works\\2023\\git '
    'clone\\editool_python\\wx_gui\\importTools\\pasteDialog.py',
    'PYMODULE'),
-  ('import_xml_wx',
-   'G:\\works\\2023\\git clone\\editool_python\\wx_gui\\import_xml_wx.py',
+  ('importTools.validateImportDialogue',
+   'G:\\works\\2023\\git '
+   'clone\\editool_python\\wx_gui\\importTools\\validateImportDialogue.py',
    'PYMODULE'),
   ('importlib',
    'C:\\Program Files\\Python311\\Lib\\importlib\\__init__.py',

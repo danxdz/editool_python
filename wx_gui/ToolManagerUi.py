@@ -5,165 +5,89 @@ import sys
 from gui.toolList import ToolList
 from gui.toolSetup import toolSetupPanel
 from gui.guiTools import refreshToolList
-from gui.guiTools import getToolTypes
-
-
-import databaseTools as db
+from gui.guiTools import tooltypesButtons
+from gui.guiTools import create_menu
 
 from importTools.pasteDialog import pasteDialog
 from importHolders.holdersPanel import HoldersSetupPanel
 
 from importTools.validateImportDialogue import validateToolDialog
 
-import import_xml_wx as iXml
+import importTools.import_xml_wx as iXml
+
 from export_xml_wx import create_xml_data
 
+from tool import ToolsCustomData
 
 
 class ToolManagerUI(wx.Frame):
-    def __init__(self):
-        super().__init__(parent=None, title="ediTool - tools manager")
+    def __init__(self, parent, id, title):
+        wx.Frame.__init__(self, parent, title=title)
+        
+        self.SetBackgroundColour(wx.Colour(240, 240, 250))  # Change this to the color you want     
         
         #create dictionary with tool types and ts models
-        self.toolData = getToolTypes()        
+        self.toolData = ToolsCustomData()
+        self.toolData = self.toolData.getCustomTsModels()
+        print("toolData :: tooltypes : ", self.toolData.toolTypesList)
+        print("toolData :: tsModels ", self.toolData.tsModels)
+        print("toolData :: toolTypesNumbers ", self.toolData.toolTypesNumbers)
 
+        create_menu(self)
+
+        #create a container to hold the buttons
+        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
+     
+        tooltypesButtons(self)
+        
         #create the panel with the tool list
         self.panel = ToolList(self, self.toolData)
+        #load tools from database to list control   
+         
+        self.toolData.fullToolsList = refreshToolList(self.panel,-1) or []
+        self.toolTypeName = "all"
+        
 
-        self.create_menu()
+        self.main_sizer.Add(self.panel, 0, wx.ALL, 15)
+        self.panel.Center()
+
+
+        self.statusBar = self.CreateStatusBar()
+       
+        out = self.getLoadedTools()
+
+        self.statusBar.SetStatusText(out)
+
         self.SetSize(800, 800)
         self.Centre()
         self.Show()
         
 
-    def create_menu(self):
-        menu_bar = wx.MenuBar()
 
-        # add file menu
-        file_menu = wx.Menu()
-
-        open_xml = file_menu.Append(
-            wx.ID_ANY, 'Open xml file', 
-            'open a xml file with tool data'
-        )        
-        self.Bind(
-            event=wx.EVT_MENU, 
-            handler=self.on_open_xml,
-            source=open_xml,
-        )
-
-        ISO13999 = file_menu.Append(
-            wx.ID_ANY, 'Paste tool ISO13999', 
-            'paste tool data ISO13999'
-        )        
-        self.Bind(
-            event=wx.EVT_MENU, 
-            handler=self.on_paste_iso13999,
-            source=ISO13999,
-        )
-
-        open_zip = file_menu.Append(
-            wx.ID_ANY, 'Open zip file', 
-            'open a zip file with tool data'
-        )        
-        self.Bind(
-            event=wx.EVT_MENU, 
-            handler=self.on_open_zip,
-            source=open_zip,
-        )
-
-        exp_xml = file_menu.Append(
-            wx.ID_ANY, 'Export XML file', 
-            'export tool data into XML file'
-        )
-        self.Bind(
-            event=wx.EVT_MENU, 
-            handler=self.on_export_xml,
-            source=exp_xml,
-        )
-
-        exit = file_menu.Append(
-            wx.ID_ANY, "exit", "close app"
-        )
-        self.Bind(
-            event=wx.EVT_MENU,
-            handler=self.close_app,
-            source=exit
-        )
-
-        # add file menu to menu bar
-        menu_bar.Append(file_menu, '&File')
-
-        # add tools config menu
-        config = wx.Menu()
-        toolSetup = config.Append(
-            wx.ID_ANY, 'Tool Setup', 
-            'setup tool data'
-        )
-        self.Bind(
-            event=wx.EVT_MENU,
-            handler=self.toolSetupPanel,
-            source=toolSetup
-        )
-        menu_bar.Append(config, '&Config')
-
-        # add holders config menu
-        holdersConfig = config.Append(
-            wx.ID_ANY, 'Holders', 
-            'setup holder data'
-        )        
-        self.Bind(
-            event=wx.EVT_MENU,
-            handler=self.HoldersSetupPanel,
-            source=holdersConfig
-        )
-        self.SetMenuBar(menu_bar)
-
-        #add icons to toolbar
-        self.toolbar = self.CreateToolBar()
-
-        #TODO read app prefs to get toolbar icon size
-        #self.toolbar.SetToolBitmapSize((20,40))
-      
-        #add tool types icons to toolbar 
-        icon = "icons/nofilter.png"
-        icon = self.toolbar.AddTool(-1, "0" , wx.Bitmap(icon))
-        icon.SetShortHelp("no filter")
-        self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
-
-        #add separator
-        self.toolbar.AddSeparator()
-
-        #add tool types icons to toolbar
-        for i, toolType in enumerate(self.toolData.toolTypes):
-            #print(f"i :: {i} :: toolType :: {toolType}")
-            icon = "icons/" + toolType + ".png"
-            #print("icon :: ", icon)
-            icon = self.toolbar.AddTool(i, toolType , wx.Bitmap(icon))
-            icon.SetShortHelp(toolType)
-            self.toolbar.Bind(wx.EVT_TOOL, self.filterToolType)
-
-        #add separator
-        self.toolbar.AddSeparator()
-        
-        self.Centre()
-        self.toolbar.Realize()     
-
-            
+    def getLoadedTools(self):
+        out = f"no tools loaded type : {self.toolTypeName}"
+        if self.toolData.fullToolsList:
+            numTools = len(self.toolData.fullToolsList) or 0
+            if numTools > 0:
+                out = f":: {numTools} tools loaded :: type : {self.toolTypeName}"
+                
+        return out
+                
     def filterToolType(self, event):
         i = event.GetId()
-
+        #print("filterToolType :: ", i)
         if i >= 0:
             #get the tool type name
-            self.toolTypeName = self.toolData.toolTypes[i]
-            #get the index
+            self.toolTypeName = self.toolData.toolTypesList[i]
             self.toolType = i
             #print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )   
         else:
             #print("no filter")
             self.toolType = -1
         
-        refreshToolList(self.panel, self.toolType)
+        self.toolData.fullToolsList = refreshToolList(self.panel, self.toolType)
+        
+        self.statusBar.SetStatusText(self.getLoadedTools())
 
 
 
@@ -173,13 +97,18 @@ class ToolManagerUI(wx.Frame):
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tools = iXml.open_file(self, title, wcard)
+        print("tools :: ", tools, len(tools))
 
-        saveTools = validateToolDialog(self.panel, tools).ShowModal()
 
-        for tool in saveTools:
-            db.saveTool(tool, self.toolData.toolTypes)
+        for tool in tools:
+            valid = validateToolDialog(self.panel, tool).ShowModal()
+            print("tool :::::::::::: ", valid)
+            #db.saveTool(tool, self.toolData.toolTypes)
             print("tool added: ", tool.Name)
-            refreshToolList(self.panel, tool.toolType)
+        
+
+        refreshToolList(self.panel, tool.toolType)
+
 
     def on_paste_iso13999(self, event):
         title = "Paste ISO13999 data"        

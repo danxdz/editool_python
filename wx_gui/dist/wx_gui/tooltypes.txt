@@ -1,0 +1,11 @@
+0;endMill;
+1;radiusMill;
+2;ballMill;
+3;chamferMill;
+4;tslotMill;
+5;spotDrill;
+6;centerDrill;
+7;drill;
+8;tap;
+9;threadMill;threadMill_editool
+10;reamer;
