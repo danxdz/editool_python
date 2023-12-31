@@ -2,10 +2,30 @@
 class ToolsDefaultsData:
     
     coolantsTypes = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
-    '''["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]'''
+    '''
+    Coolant types:
+      - 0: Unkown
+      - 1: external
+      - 2: internal
+      - 3: externalAir
+      - 4: externalAir
+      - 5: mql
+    '''
     
     toolTypes = ["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]
-    '''["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]'''
+    '''
+    -   0 - endMill
+    -   1 - radiusMill
+    -   2 - ballMill
+    -   3 - chamferMill
+    -   4 - tslotMill
+    -   5 - spotDrill
+    -   6 - centerDrill
+    -   7 - drill
+    -   8 - tap
+    -   9 - threadMill
+    -   10 - reamer
+    '''
     
     tsModels = ["Side Mill D20 L35 SD20", 
                 "Radiused Mill D16 L40 r3 SD16", 
@@ -19,7 +39,22 @@ class ToolsDefaultsData:
                 "Internal Thread Mill ISO P1,5 L30 SD10",
                 "Constant Reamer D10 L20 SD9"
                 ]
-    '''["Side Mill D20 L35 SD20","Radiused Mill D16 L40 r3 SD16","Ball Nose Mill D8 L30 SD8","Chamfer Mill D0 A30 SD10","T Slot Mill D20 L5 SD10","Spotting Drill D10 SD10","Center Drill d3 D8 L5","Twisted Drill D10 L35 SD10","Tap M10*1,5 L35 SD10","Internal Thread Mill ISO P1,5 L30 SD10","Constant Reamer D10 L20 SD9"]'''
+    '''
+    tsModels:
+    -   Side Mill D20 L35 SD20
+    -   Radiused Mill D16 L40 r3 SD16
+    -   Ball Nose Mill D8 L30 SD8
+    -   Chamfer Mill D0 A30 SD10
+    -   T Slot Mill D20 L5 SD10
+    -   Spotting Drill D10 SD10
+    -   Center Drill d3 D8 L5
+    -   Twisted Drill D10 L35 SD10
+    -   Tap M10*1,5 L35 SD10
+    -   Internal Thread Mill ISO P1,5 L30 SD10
+    -   Constant Reamer D10 L20 SD9
+
+
+    '''
 
 
 class ToolsCustomData:
@@ -51,76 +86,95 @@ class Tool:
     #make comments so i have more info about tool class
 
 
-    def __init__(self,id=0, Name="", toolType=0, GroupeMat="", D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, NoTT=0, RayonBout=0.0, Chanfrein=0.0, AngleDeg=0, CoupeCentre=0.0,
-                  ArrCentre=0, threadTolerance=0, threadPitch=0.0, Manuf="", ManufRef="", ManufRefSec="", Code="", CodeBar="", Comment="", CuttingMaterial="", TSid=""):
+    def __init__(self,id=0, name="", toolType=0, cuttingMaterial="",
+                  D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, 
+                  z=0, cornerRadius=0.0, chamfer=0.0, 
+                  neckAngle=0.0, centerCut=0.0, coolantType=0, 
+                  threadTolerance=0, threadPitch=0.0, mfr="", mfrRef="", mfrSecRef="", code="", codeBar="", comment="", TSid=""):
    
         self.id = id
-        self.Name = Name
+        #id from database
+        self.name = name
+        #name of tool
         self.toolType = toolType 
         """
-            0-endMill
-            1-radiusMill
-            2-ballMill
-            3-chamferMill
-            4-tslotMill
-            5-spotDrill
-            6-centerDrill
-            7-drill
-            8-tap
-            9-threadMill
-            10-reamer
+        Tool types:
+        -   0-endMill
+        -   1-radiusMill
+        -   2-ballMill
+        -   3-chamferMill
+        -   4-tslotMill
+        -   5-spotDrill
+        -   6-centerDrill
+        -   7-drill
+        -   8-tap
+        -   9-threadMill
+        -   10-reamer
         """
-        self.GroupeMat = GroupeMat
+        self.cuttingMaterial = cuttingMaterial
+        #tool material
         self.D1 = D1
+        #cutting diameter
         self.D2 = D2
+        #neck diameter
         self.D3 = D3
+        #shank diameter
         self.L1 = L1
+        #cutting length
         self.L2 = L2
+        #neck length
         self.L3 = L3
-        self.NoTT = NoTT
-        self.RayonBout = RayonBout
-        self.Chanfrein = Chanfrein
-        self.AngleDeg = AngleDeg
-        self.CoupeCentre = CoupeCentre
-        self.ArrCentre = ArrCentre
+        #total length
+        self.z = z
+        #number of teeth
+        self.cornerRadius = cornerRadius
+        self.chamfer = chamfer
+        self.neckAngle = neckAngle
+        #angle of neck in degrees - for FRAISA tools
+        self.centerCut = centerCut
+        self.coolantType = coolantType
         self.threadTolerance = threadTolerance
         self.threadPitch = threadPitch
-        self.Manuf = Manuf
-        self.ManufRef = ManufRef
-        self.ManufRefSec = ManufRefSec
-        self.Code = Code
-        self.CodeBar = CodeBar
-        self.Comment = Comment
-        self.CuttingMaterial = CuttingMaterial
+        self.code = code
+        #tool ts code
+        self.mfr = mfr
+        #manufacturer
+        self.mfrRef = mfrRef
+        #manufacturer reference
+        self.mfrSecRef = mfrSecRef
+        #manufacturer secondary reference
+        self.codeBar = codeBar
+        #tool barcode
+        self.comment = comment
         self.TSid = TSid
+        #ts model id - after creating tool in ts
 
     def getAttributes(self):
         return {
             'id': self.id,
-            'Name': self.Name,
+            'name': self.name,
             'toolType': self.toolType,
-            'GroupeMat': self.GroupeMat,
+            'cuttingMaterial': self.cuttingMaterial,
             'D1': self.D1,
             'D2': self.D2,
             'D3': self.D3,
             'L1': self.L1,
             'L2': self.L2,
             'L3': self.L3,
-            'NoTT': self.NoTT,
-            'RayonBout': self.RayonBout,
-            'Chanfrein': self.Chanfrein,
-            'AngleDeg': self.AngleDeg,
-            'CoupeCentre': self.CoupeCentre,
-            'ArrCentre': self.ArrCentre,
+            'z': self.z,
+            'cornerRadius': self.cornerRadius,
+            'chamfer': self.chamfer,
+            'neckAngle': self.neckAngle,
+            'centerCut': self.centerCut,
+            'coolantType': self.coolantType,
             'threadTolerance': self.threadTolerance,
             'threadPitch': self.threadPitch,
-            'Manuf': self.Manuf,
-            'ManufRef': self.ManufRef,
-            'ManufRefSec': self.ManufRefSec,
-            'Code': self.Code,
-            'CodeBar': self.CodeBar,
-            'Comment': self.Comment,
-            'CuttingMaterial': self.CuttingMaterial,
+            'mfr': self.mfr,
+            'mfrRef': self.mfrRef,
+            'mfrSecRef': self.mfrSecRef,
+            'code': self.code,
+            'codeBar': self.codeBar,
+            'comment': self.comment,
             'TSid' : self.TSid,
         }
         

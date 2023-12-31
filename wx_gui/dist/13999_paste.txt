@@ -10,7 +10,7 @@
 10;DC;@D1;Cutting diameter
 11;DMM;@D3;Shank diameter
 12;DN;@D2;Neck diameter
-13;FCEDC;@NoTT;Face cutting edge count
+13;FCEDC;@z;Face cutting edge count
 14;FHA;Flute Helix Angle
 15;ICC;@ArrCentre;Internal coolant channel
 16;ItemNumber;@ManufRefSec;Item Number
@@ -18,7 +18,7 @@
 18;LN;@L2;Neck length
 19;NA;Neck angle
 20;OAL;@L3;Overall length
-21;PCEDC;@NoTT;Pheripheral cutting edge count
+21;PCEDC;@z;Pheripheral cutting edge count
 22;PSIR;Tool lead angle
 23;Shanktype;Shanktype
 24;TCDMM;Shank diameter tolerance class

@@ -34,26 +34,26 @@ def process_input_13999(input_text, toolTypesList):
                 setattr(tool, attr_name, parts[2].replace(' mm', ''))
 
     if tool.toolType == "":
-        detectedToolType = detect_tool_type(float(tool.D1), float(tool.RayonBout))
+        detectedToolType = detect_tool_type(float(tool.D1), float(tool.cornerRadius))
         print("detectedToolType: ", detectedToolType)
         tool.toolType = getToolTypesNumber(toolTypesList, detectedToolType)
 
 
-    if tool.Name == "":
+    if tool.name == "":
         # Extract the manufacturer code (ManufRef) from the first line (Name = ManufRef)
         first_line = lines[0].strip().split(' ')
         print("first_line: ", first_line)
-        tool.ManufRef = first_line[0]
-        print("tool.ManufRef: ", tool.ManufRef)
-        tool.Name = tool.ManufRef
-        print("tool.Name: ", tool.Name)
-    if tool.Manuf == "":
-        tool.Manuf, tool.ManufRefSec = detect_tool_manuf(tool.Name)
+        tool.mfrRef = first_line[0]
+        print("tool.ManufRef: ", tool.mfrRef)
+        tool.name = tool.mfrRef
+        print("tool.Name: ", tool.name)
+    if tool.mfr == "":
+        tool.mfr, tool.mfrSecRef = detect_tool_manuf(tool.name)
 
-    if tool.ArrCentre == "Yes":
-        tool.ArrCentre = "1"
+    if tool.coolantType == "Yes":
+        tool.coolantType = "1"
     else:
-        tool.ArrCentre = "0"
+        tool.coolantType = "0"
 
 
     return tool

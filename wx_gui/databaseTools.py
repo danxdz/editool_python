@@ -25,7 +25,7 @@ def load_tools_from_database(toolType):
             for tool_data in tools:
                 tool = Tool(*tool_data[0:])
                 tools_list.append(tool)
-                #print("tool added: ", tool.Name)
+                #print("tool added: ", tool.name)
                         
             #tools = reversed(tools) #reverse list to get last added tool first
                 
@@ -56,12 +56,12 @@ def deleteTool(tool):
     conn.commit()
     #close connection
     conn.close()
-    print(f":: deleted from database :: {tool.Name} :: {tool.toolType}")
+    print(f":: deleted from database :: {tool.name} :: {tool.toolType}")
 
 
 def delete_selected_item(self, index, toolType):
     
-    #print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].Name, " toolType :: ", toolType)
+    #print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].name, " toolType :: ", toolType)
 
     #delete tool from database
     deleteTool(self.toolData.fullToolsList[index])
@@ -70,6 +70,11 @@ def delete_selected_item(self, index, toolType):
 
 
 def saveTool(tool, toolTypes):
+    print("saveTool :: ",tool.id, tool.name, tool.toolType)
+    if tool.id != 0:
+        update_tool(tool)
+        return
+    
     # Connect to db or create it, if not exists
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
@@ -77,30 +82,29 @@ def saveTool(tool, toolTypes):
     cursor.execute('''
          CREATE TABLE IF NOT EXISTS tools (
             id          INTEGER PRIMARY KEY AUTOINCREMENT,
-            Name        TEXT,
+            name        TEXT,
             toolType    INT,
-            GroupeMat   INT,
+            cuttingMaterial TEXT,
             D1          REAL,
             D2          REAL,
             D3          REAL,
             L1          REAL,
             L2          REAL,
             L3          REAL,
-            NoTT        INTEGER,
-            RayonBout   REAL,
-            Chanfrein   REAL,
-            AngleDeg    INTEGER,
-            CoupeCentre TEXT,
-            ArrCentre   TEXT,
+            z        INTEGER,
+            cornerRadius   REAL,
+            chamfer   REAL,
+            neckAngle    REAL,
+            centerCut TEXT,
+            coolantType   TEXT,
             threadTolerance TEXT,
             threadPitch REAL,
-            CuttingMaterial TEXT,
-            Manuf       TEXT,
-            ManufRef    TEXT,
-            ManufRefSec TEXT,
-            Code        TEXT,
-            CodeBar     TEXT,
-            Comment     TEXT,
+            mfr       TEXT,
+            mfrRef    TEXT,
+            mfrSecRef TEXT,
+            code        TEXT,
+            codeBar     TEXT,
+            comment     TEXT,
             TSid        TEXT
         )
     ''')
@@ -108,15 +112,15 @@ def saveTool(tool, toolTypes):
 
     # Add tool into table 'tools'
     cursor.execute('''
-        INSERT INTO tools (Name, toolType, GroupeMat, D1, L1, D2, L2, L3, D3, NoTT, RayonBout, Chanfrein,AngleDeg, CoupeCentre,
-            ArrCentre, threadTolerance, threadPitch,CuttingMaterial, Manuf, ManufRef, ManufRefSec, Code, CodeBar,Comment,  TSid)
-        VALUES (:Name, :toolType, :GroupeMat, :D1, :L1, :D2, :L2, :L3, :D3, :NoTT, :RayonBout, :Chanfrein,:AngleDeg, :CoupeCentre,
-            :ArrCentre, :threadTolerance, :threadPitch, :CuttingMaterial, :Manuf, :ManufRef, :ManufRefSec, :Code, :CodeBar, :Comment, :TSid)
+        INSERT INTO tools (name, toolType, cuttingMaterial, D1, L1, D2, L2, L3, D3, z, cornerRadius, chamfer,neckAngle, centerCut,
+            coolantType, threadTolerance, threadPitch, mfr, mfrRef, mfrSecRef, code, codebar, comment, TSid)
+        VALUES (:name, :toolType, :cuttingMaterial, :D1, :L1, :D2, :L2, :L3, :D3, :z, :cornerRadius, :chamfer,:neckAngle, :centerCut,
+            :coolantType, :threadTolerance, :threadPitch, :mfr, :mfrRef, :mfrSecRef, :code, :codeBar, :comment, :TSid)
     ''', tool.__dict__)
 
     conn.commit()
 
-    print('Tool added to database.', tool.Name , toolTypes[int(tool.toolType)], "changed: " ,  conn.total_changes)
+    print('Tool added to database.', tool.name , toolTypes[int(tool.toolType)], "changed: " ,  conn.total_changes)
 
     #get the last added tool id
     cursor.execute("SELECT id FROM tools ORDER BY id DESC LIMIT 1")
@@ -132,11 +136,11 @@ def update_tool(tool):
 
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
-    tmp = "UPDATE tools SET Name='" + str(tool.Name) + "', toolType='" + str(tool.toolType) + "', GroupeMat='" + str(tool.GroupeMat) + "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', NoTT='" + str(tool.NoTT) + "', RayonBout='" + str(tool.RayonBout) + "', Chanfrein='" + str(tool.Chanfrein) + "', AngleDeg='" + str(tool.AngleDeg) +  "', CoupeCentre='" + str(tool.CoupeCentre) + "', ArrCentre='" + str(tool.ArrCentre) + "', threadTolerance='" + str(tool.threadTolerance) + "', threadPitch='" + str(tool.threadPitch) + "', Manuf='" + str(tool.Manuf) + "', ManufRef='" + str(tool.ManufRef) + "', ManufRefSec='" + str(tool.ManufRefSec) + "', Code='" + str(tool.Code) + "', CodeBar='" + str(tool.CodeBar) + "', Comment='" + str(tool.Comment) + "', CuttingMaterial='" + str(tool.CuttingMaterial) + "', TSid='" + str(tool.TSid) + "' WHERE id='" + str(tool.id) + "'"
+    tmp = "UPDATE tools SET name='" + str(tool.name) + "', toolType='" + str(tool.toolType) + "', cuttingMaterial='" + str(tool.cuttingMaterial) +   "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', z='" + str(tool.z) + "', cornerRadius='" + str(tool.cornerRadius) + "', chamfer='" + str(tool.chamfer) + "', neckAngle='" + str(tool.neckAngle) +  "', centerCut='" + str(tool.centerCut) + "', coolantType='" + str(tool.coolantType) + "', threadTolerance='" + str(tool.threadTolerance) + "', threadPitch='" + str(tool.threadPitch) + "', mfr='" + str(tool.mfr) + "', mfrRef='" + str(tool.mfrRef) + "', mfrSecRef='" + str(tool.mfrSecRef) + "', Code='" + str(tool.code) + "', codeBar='" + str(tool.codeBar) + "', comment='" + str(tool.comment) + "', TSid='" + str(tool.TSid) + "' WHERE id='" + str(tool.id) + "'"
     #print(tmp)
     cursor.execute(tmp)
     conn.commit()
 
-    print('Tool updated in database.', tool.Name , "tool changed: ", conn.total_changes)
+    print('Tool updated in database.', tool.name , "tool changed: ", conn.total_changes)
     conn.close()
 

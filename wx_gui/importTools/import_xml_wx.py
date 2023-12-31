@@ -21,8 +21,8 @@ def parse_hyper_xml_data(root, toolTypes):
 
     #print(tool.attrib['name'])
     
-    arrCentre = coolants_value
-    #print("ArrCentre: ", arrCentre)
+    coolantType = coolants_value
+    #print("coolant: ", coolantType)
     
     toolType = tool.attrib['type']
 
@@ -39,7 +39,7 @@ def parse_hyper_xml_data(root, toolTypes):
            
         
     name = tool.attrib['name']
-    #print("Name: ", name)
+    #print("name: ", name)
     cutMat = tool.find('param[@name="cuttingMaterial"]').attrib['value']
     #print("GroupMat: ", groupMat)
     d1 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])
@@ -58,26 +58,26 @@ def parse_hyper_xml_data(root, toolTypes):
     l3 = float(tool.find('param[@name="toolTotalLength"]').attrib['value'])
     #print("L3: ", l3)
 
-    noTT = tool.find('param[@name="cuttingEdges"]').attrib['value']
-    if noTT:
-        noTT = int(noTT)
-        #print("NoTT: ", noTT)
+    z = tool.find('param[@name="cuttingEdges"]').attrib['value']
+    if z:
+        z = int(z)
+        #print("z: ", z)
 
         
-    rayonBout = tool.find('param[@name="cornerRadius"]').attrib['value']
-    if rayonBout:
-        rayonBout = float(rayonBout)
-        #print("RayonBout: ", rayonBout)
+    cornerRadius = tool.find('param[@name="cornerRadius"]').attrib['value']
+    if cornerRadius:
+        cornerRadius = float(cornerRadius)
+        #print("cornerRadius: ", cornerRadius)
         
     
-    chanfrein = tool.find('param[@name="toolShaftChamferAbsPos"]').attrib['value']
-    if chanfrein:
-        chanfrein = chanfrein
-        #print("Chanfrein: ", chanfrein)
+    chamfer = tool.find('param[@name="toolShaftChamferAbsPos"]').attrib['value']
+    if chamfer:
+        chamfer = chamfer
+        #print("chamfer: ", chamfer)
 
 
-    manuf = tool.find('param[@name="manufacturer"]').attrib['value']
-    print("Manuf: ", manuf)
+    mfr = tool.find('param[@name="manufacturer"]').attrib['value']
+    print("mfr: ", mfr)
 
     codeBar = tool.find('param[@name="orderingCode"]').attrib['value']
     #print("CodeBar: ", codeBar)
@@ -88,7 +88,7 @@ def parse_hyper_xml_data(root, toolTypes):
         
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
-        'Name': name,
+        'name': name,
         'toolType': toolType,
         'D1': d1,
         'D2': d2,
@@ -96,20 +96,20 @@ def parse_hyper_xml_data(root, toolTypes):
         'L1': l1,
         'L2': l2,
         'L3': l3,
-        'NoTT': noTT,
-        'RayonBout': rayonBout,
-        'Chanfrein': chanfrein,
-        'CoupeCentre': "no",
-        'ArrCentre': arrCentre,
+        'z': z,
+        'cornerRadius': cornerRadius,
+        'chamfer': chamfer,
+        'centerCut': "no",
+        'coolantType': coolantType,
         'threadPitch': 0,
         'threadTolerance': "",
-        'CuttingMaterial': cutMat,
-        'Manuf': manuf,
-        'ManufRef': tool.find('param[@name="orderingCode"]').attrib['value'],
-        'ManufRefSec': "",
-        'Code': " ",
-        'CodeBar': codeBar,
-        'Comment': comment,
+        'cuttingMaterial': cutMat,
+        'mfr': mfr,
+        'mfrRef': tool.find('param[@name="orderingCode"]').attrib['value'],
+        'mfrSecRef': "",
+        'code': " ",
+        'codeBar': codeBar,
+        'comment': comment,
     }
 
 
@@ -225,70 +225,70 @@ def parse_new_xml_data(tool, toolTypes):
 
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
 
-    newTool.NoTT = get_property_value(tool, "F21") or get_property_value(tool, "D1")
+    newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
 
-    newTool.RayonBout = get_float_property(tool, "G1")
+    newTool.cornerRadius = get_float_property(tool, "G1")
 
-    #newTool.Chanfrein = get_property_value(tool, "D6")
+    #newTool.chamfer = get_property_value(tool, "D6")
 
-    print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "NoTT: ", newTool.NoTT, "RayonBout: ", newTool.RayonBout, "Chanfrein: ", newTool.Chanfrein)
+    print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)
         
-    newTool.ArrCentre = get_property_value(tool, "H21")
+    newTool.coolantType = get_property_value(tool, "H21")
     
-    if newTool.ArrCentre:
-        newTool.ArrCentre = int(float(newTool.ArrCentre))
-        if newTool.ArrCentre == "0.0"  or not newTool.ArrCentre or newTool.ArrCentre == "No":
-            newTool.ArrCentre = 0
-        elif newTool.ArrCentre == "1.0":
-            newTool.ArrCentre = 1
+    if newTool.coolantType:
+        newTool.coolantType = int(float(newTool.coolantType))
+        if newTool.coolantType == "0.0"  or not newTool.coolantType or newTool.coolantType == "No":
+            newTool.coolantType = 0
+        elif newTool.coolantType == "1.0":
+            newTool.coolantType = 1
     else:
-        newTool.ArrCentre = 0
+        newTool.coolantType = 0
 
 
-    newTool.CuttingMaterial = get_property_value(tool, "J3")   
-    newTool.ManufRefSec = get_property_value(tool, "H5")
-    newTool.CodeBar = get_property_value(tool, "J21")
-    newTool.Comment = get_property_value(tool, "J8")
-    newTool.AngleDeg = get_property_value(tool, "E1")
+    newTool.cuttingMaterial = get_property_value(tool, "J3")   
+    newTool.mfrSecRef = get_property_value(tool, "H5")
+    newTool.codeBar = get_property_value(tool, "J21")
+    newTool.comment = get_property_value(tool, "J8")
+    newTool.neckAngle = get_property_value(tool, "E1")
     newTool.toolType = get_property_value(tool, "D11")
 
     if newTool.toolType == "T":
         #print("toolType is ThreadMill")
         newTool.toolType = getToolTypesNumber(toolTypes, "threadMill")
 
-    if newTool.AngleDeg:
-        if int(newTool.AngleDeg) > 91 or int(newTool.AngleDeg) < 181 and not newTool.toolType:
-            newTool.toolType = 8#drill
+    if newTool.neckAngle:
+        if int(newTool.neckAngle) > 91 or int(newTool.neckAngle) < 181 and not newTool.toolType:
+            newTool.toolType = 7#drill
         
 
     try:
-        newTool.Manuf = tool.find('.//Main-Data/Manufacturer').text.strip()
-        print("manuf: ", newTool.Manuf)
-        newTool.Name = tool.find('.//Main-Data/PrimaryId').text.strip()
+        newTool.mfr = tool.find('.//Main-Data/Manufacturer').text.strip()
+        print("mfr: ", newTool.mfr)
+        newTool.name = tool.find('.//Main-Data/PrimaryId').text.strip()
     except  Exception as e:
         print("*****name error: ", e)
 
-    if not newTool.Name:
-        newTool.Name = tool.find('.//Main-Data/ID21002').text.strip()
+    if not newTool.name:
+        newTool.name = tool.find('.//Main-Data/ID21002').text.strip()
     
-    #print("name: ", newTool.Name)
+    #print("name: ", newTool.name)
     
-    if not newTool.Manuf:
-        newTool.Manuf = get_property_value(tool, "J3")
+    if not newTool.mfr:
+        newTool.mfr = get_property_value(tool, "J3")
 
 
     #TODO MAKE EXTERNAL EDITABLE LIST
-    if newTool.Manuf == "FSA": 
-        newTool.Manuf = "FRAISA"
-        newTool.toolType = check_fraisa_types(toolTypes, newTool.Name)  
+    if newTool.mfr == "FSA": 
+        newTool.mfr = "FRAISA"
+        newTool.toolType = check_fraisa_types(toolTypes, newTool.name)  
         print("found FRAISA tool_type :: ", newTool.toolType)
 
-    if newTool.Manuf == "CE":
-        newTool.Manuf = "CERATIZIT"    
-    if newTool.Manuf == "HOG":
-        newTool.Manuf = "HOFFMAN"
-    if newTool.Manuf == "JO":
-        newTool.Manuf = "JONGEN" 
+    if newTool.mfr == "CE":
+        newTool.mfr = "CERATIZIT"    
+    if newTool.mfr == "HOG":
+        newTool.mfr = "HOFFMAN"
+    if newTool.mfr == "JO":
+        newTool.mfr = "JONGEN" 
     
     #if not newTool.toolType
      #   newTool.toolType = get_property_value(tool, "J22")
@@ -313,7 +313,7 @@ def parse_new_xml_data(tool, toolTypes):
     if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
         newTool.toolType = getToolTypesNumber(toolTypes, "tslotMill")
     
-    print("tool_data: ",newTool.Manuf, newTool.Name, newTool.toolType, newTool.GroupeMat, newTool.AngleDeg, newTool.CoupeCentre, newTool.ArrCentre, newTool.threadTolerance, newTool.threadPitch, newTool.Manuf, newTool.ManufRef, newTool.ManufRefSec, newTool.Code, newTool.CodeBar, newTool.Comment, newTool.CuttingMaterial)
+    print("tool_data: ",newTool.mfr, newTool.name, newTool.toolType, newTool.cuttingMaterial, newTool.neckAngle, newTool.centerCut, newTool.coolantType, newTool.threadTolerance, newTool.threadPitch, newTool.mfr, newTool.mfrRef, newTool.mfrSecRef, newTool.code, newTool.codeBar, newTool.comment)
 
     return newTool
 
@@ -364,7 +364,7 @@ def open_file(self,title,wCard):
                     tool = parse_hyper_xml_data(root, toolData.toolTypes)
 
                 print("Import xml", path ,"finished")
-                print("tool: ", tool.Name, tool.toolType, tool.GroupeMat, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.NoTT, tool.RayonBout, tool.Chanfrein, tool.CoupeCentre, tool.ArrCentre, tool.threadPitch, tool.Manuf, tool.ManufRef, tool.ManufRefSec, tool.Code, tool.CodeBar, tool.Comment, tool.CuttingMaterial)
+                print("tool: ", tool.name, tool.toolType, tool.cuttingMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
                 toolsList.append(tool)
 
             except Exception as e:

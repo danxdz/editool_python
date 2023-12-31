@@ -123,7 +123,7 @@ def create_xml_data(Tool):
                         },
                         {
                             '@name': 'cuttingEdges',
-                            '@value': Tool.NoTT
+                            '@value': Tool.z
                         },
                         {
                             '@name': 'cuttingLength',

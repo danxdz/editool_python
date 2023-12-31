@@ -62,7 +62,7 @@ class pasteDialog(wx.Dialog):
         print(len_data , " :: " ,  data)
 
         if len(data) > 100:
-            self.tool = import_past.process_input_13999(self.text_area.GetValue(), self.parent.toolTypesList)
+            self.tool = import_past.process_input_13999(self.text_area.GetValue(), self.parent.toolData.toolTypesList)
             #print("tool :: ", self.tool)
         else:
             #lets process data without headers
@@ -72,7 +72,7 @@ class pasteDialog(wx.Dialog):
                 print(element)
 
             #strip M from tool diameter
-            self.tool.Name = tool_data[0]
+            self.tool.name = tool_data[0]
             self.tool.D1 = tool_data[1]
             if self.tool.D1[0] == 'M':
                 #check if it is a threadMill , if its number is a threadMill, if is '6HX' one number and letters its a tap
@@ -91,7 +91,7 @@ class pasteDialog(wx.Dialog):
                     self.tool.L1 = tool_data[5]
                     self.tool.L2 = tool_data[6]
                     self.tool.D3 = tool_data[7]
-                    self.tool.NoTT = tool_data[8]
+                    self.tool.z = tool_data[8]
                 else:
                     # 176692	M8	8.00	6H 	1.250 	90.0 	20.0 	6.00 	4.9 	2 	6.80
                     print("tap")
@@ -102,7 +102,7 @@ class pasteDialog(wx.Dialog):
                     self.tool.L3 = tool_data[5]
                     self.tool.L1 = tool_data[6]
                     self.tool.D3 = tool_data[7]
-                    self.tool.NoTT = tool_data[9]
+                    self.tool.z = tool_data[9]
 
         #get all Tool attributes
         self.toolAttributes = self.tool.getAttributes()        
@@ -125,7 +125,7 @@ class pasteDialog(wx.Dialog):
             else:
                 self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
 
-        if self.tool.Name != "":
+        if self.tool.name != "":
             self.save_btn.Enable()
 
         self.Fit()
@@ -151,7 +151,7 @@ class pasteDialog(wx.Dialog):
         #self.Destroy()  # Close the dialog after saving
 
     def on_create(self, event):
-        self.tool.Name = self.main_sizer.GetItemCount()
+        self.tool.name = self.main_sizer.GetItemCount()
         
         ts.copy_tool(self.tool)
         #print("tool :: ", self.tool)

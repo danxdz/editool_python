@@ -497,7 +497,7 @@ def copy_tool(tool, holder):
         l2 = 0
         l3 = 0
         r = 0
-        NoTT = 0
+        z = 0
         threadPitch = 0.0
         threadTolerance = ""
         print("tool type: ", tool.toolType)
@@ -518,10 +518,10 @@ def copy_tool(tool, holder):
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
             print("threadPitch: ", threadPitch)
        
-        if tool.NoTT:
-            NoTT = tool.NoTT
-            ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(NoTT))
-            print("NoTT: ", NoTT)
+        if tool.z:
+            z = tool.z
+            ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "z"), int(z))
+            print("z: ", z)
 
         if tool.D1:
             if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"

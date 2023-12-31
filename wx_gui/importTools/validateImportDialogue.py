@@ -1,9 +1,12 @@
 import wx
 import ts as ts
 
-from databaseTools import saveTool
 from gui.guiTools import getToolTypesNumber
+
 from ts import copy_tool
+
+from databaseTools import saveTool
+from databaseTools import update_tool
 
 
 
@@ -23,7 +26,7 @@ class validateToolDialog(wx.Dialog):
         #and add 5 square buttons for each material group P, M, M, K, S, N
         groupMat = ['P', 'M', 'K', 'N', 'S', 'H', 'O']
         groupMatName = ['Steel ', 'Stainless steel', 'Cast iron', 'Non-ferrous metal', 'Super alloy', 'Hardened Steel', 'Non ISO']
-        groupMatColor = ['blue', 'orange', 'red', 'green', 'brown', 'grey', 'white']
+        groupMatColor = [wx.Colour(0, 100, 255), wx.Colour(226,135,67), 'red', 'green', 'brown', 'grey', 'white']
 
         self.matSizer = wx.GridSizer(rows = 0, cols = 9, hgap = 1, vgap = 15)
 
@@ -63,8 +66,17 @@ class validateToolDialog(wx.Dialog):
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         btn_sizer.Add(self.save_btn, 5, wx.ALL, 15)
         self.save_btn.Disable()
+        
+        self.open = wx.Button(self, label='Open in TS')
+        self.open.Bind(wx.EVT_BUTTON, self.on_save)
+        btn_sizer.Add(self.open, 5, wx.ALL, 15)
 
-        self.create_btn = wx.Button(self, label='Save & Create')
+        if self.tool.TSid != "":
+            self.open.Enable()
+        else:
+            self.open.Disable()
+
+        self.create_btn = wx.Button(self, label='Create')
         self.create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(self.create_btn, 5, wx.ALL, 15)
         self.create_btn.Disable()
@@ -117,12 +129,12 @@ class validateToolDialog(wx.Dialog):
             #TODO: add combobox for toolType, Manuf, GroupeMat...
             if key == 'toolType':                
                 self.add_widgets(key, wx.ComboBox(self, value=str(self.toolData.toolTypesList[value]),choices=self.toolData.toolTypesList))
-            elif key == 'Manuf':
+            elif key == 'mfr':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-            elif key == 'GroupeMat':
+            elif key == 'cuttingMaterial':
                 groupMat = ['P', 'M', 'K', 'N', 'S', 'H', 'O']
                 #self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-            elif key == "Name":
+            elif key == "name":
                 self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
                 print(f"value {value}")
                 if value != "":
@@ -136,14 +148,17 @@ class validateToolDialog(wx.Dialog):
 
 
     def on_save(self, event):
-
-        print("saving ", self.tool.Name, self.tool.toolType , " in database")
-        saveTool(self.tool,self.toolData.toolTypesList) 
+        if self.tool.id != 0:
+            print("updating tool ", self.tool.name, " in database")
+            update_tool(self.tool)
+        else:
+            print("saving ", self.tool.name, self.tool.toolType , " in database")
+            saveTool(self.tool,self.toolData.toolTypesList) 
         self.Destroy()  # Close the dialog after saving tool
         
 
     def on_create(self, event):
-        print("create " , self.tool.Name, self.tool.toolType)
+        print("create " , self.tool.name, self.tool.toolType)
 
         saveTool(self.tool,self.toolData.toolTypesList)
         
@@ -155,14 +170,14 @@ class validateToolDialog(wx.Dialog):
         #get the value of the widget and the textbox name changed
 
         #print("change",label_text, event.GetString())
-        print("on_change :: ", self)
+        #print("on_change :: ", self)
         tool = self.tool
        
         changedValue = event.GetString()
 
         if label_text == 'toolType':
             changedValue = getToolTypesNumber(self.toolData.toolTypesList , changedValue)
-            print("changedValue :: ", changedValue)
+            #print("changedValue :: ", changedValue)
 
         #set object attribute with the value of the widget
         setattr(tool, label_text, changedValue)   

@@ -1,6 +1,6 @@
 
 import wx
-from gui.editDialog import EditDialog
+
 from importTools.validateImportDialogue import validateToolDialog
 
 from gui.guiTools import add_columns
@@ -60,10 +60,10 @@ class ToolList(wx.Panel):
     def toolSelected(self, event):
         tool = self.toolData.fullToolsList[self.list_ctrl.GetFirstSelected()]  
         toolTypeName = self.toolData.toolTypesList[tool.toolType]           
-        self.parent.statusBar.SetStatusText(f"tool selected: [{self.list_ctrl.GetFirstSelected()} :: {tool.Name} :: {toolTypeName}")
+        self.parent.statusBar.SetStatusText(f"tool selected: {self.list_ctrl.GetFirstSelected()} :: {tool.name} :: {toolTypeName}")
 
         try :
-            print ("tool selected: ", tool.Name , " :: ", toolTypeName )
+            print ("tool selected: ", tool.name , " :: ", toolTypeName )
         except AttributeError:
             print("error :: tool selected:: ", tool)
 
@@ -95,16 +95,16 @@ class ToolList(wx.Panel):
 
 
     def create_tool(self, index, holder): #holder = true or false
-        print("create tool :: ", self.toolData.fullToolsList[index].Name)
+        print("create tool :: ", self.toolData.fullToolsList[index].name)
         tool = self.toolData.fullToolsList[index]
 
         #check if tool is created
         if tool.TSid == "" or tool.TSid == None:
             ts.copy_tool(tool, holder, self.toolData.tsModels)
-            print("tool :: ", tool.Name, " created")
+            print("tool :: ", tool.name, " created")
         else:
             if holder:
-                print("tool  ", tool.Name, " already created ", tool.TSid)
+                print("tool  ", tool.name, " already created ", tool.TSid)
                 id = ts.get_tool_TSid(tool)
                 ts.copy_holder(None, id)
             else:
@@ -135,14 +135,14 @@ class ToolList(wx.Panel):
                 #create tool :: true = holder
                 self.create_tool(i+ind, True)
             elif id == 2:
-                print("floatMenu :: Edit :: ", self.toolData.fullToolsList[i+ind].Name )
+                print("floatMenu :: Edit :: ", self.toolData.fullToolsList[i+ind].name )
                 validateToolDialog(self, self.toolData.fullToolsList[i+ind]).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
                 toolType = self.toolData.fullToolsList[i+ind].toolType
                 delete_selected_item(self.GetParent(),i+ind, toolType) 
                 self.list_ctrl.DeleteAllItems()
-                refreshToolList(self, toolType)
+                self.toolData.fullToolsList = refreshToolList(self, toolType)
 
 
     #show popup menu

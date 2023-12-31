@@ -44,7 +44,13 @@ class ToolManagerUI(wx.Frame):
         self.panel = ToolList(self, self.toolData)
         #load tools from database to list control   
          
-        self.toolData.fullToolsList = refreshToolList(self.panel,-1) or []
+        self.toolData.fullToolsList = []
+        tools = refreshToolList(self.panel,-1)
+        if tools:
+            if len(tools) > 0:
+                self.toolData.fullToolsList = tools
+            
+
         self.toolTypeName = "all"
         
 
@@ -65,11 +71,11 @@ class ToolManagerUI(wx.Frame):
 
 
     def getLoadedTools(self):
-        out = f"no tools loaded type : {self.toolTypeName}"
+        out = f"no tools :: type : {self.toolTypeName}"
         if self.toolData.fullToolsList:
             numTools = len(self.toolData.fullToolsList) or 0
             if numTools > 0:
-                out = f":: {numTools} tools loaded :: type : {self.toolTypeName}"
+                out = f" {numTools} tools :: type : {self.toolTypeName}"
                 
         return out
                 
@@ -101,13 +107,14 @@ class ToolManagerUI(wx.Frame):
 
 
         for tool in tools:
-            valid = validateToolDialog(self.panel, tool).ShowModal()
-            print("tool :::::::::::: ", valid)
-            #db.saveTool(tool, self.toolData.toolTypes)
-            print("tool added: ", tool.Name)
-        
+            validateToolDialog(self.panel, tool).ShowModal()
 
-        refreshToolList(self.panel, tool.toolType)
+        if len(tools) > 0:
+            self.toolData.fullToolsList = refreshToolList(self.panel, tools[len(tools)-1].toolType)
+            self.statusBar.SetStatusText(self.getLoadedTools())
+        else:
+            print("no tools loaded")
+            self.statusBar.SetStatusText("no tools loaded")
 
 
     def on_paste_iso13999(self, event):
