@@ -4,14 +4,37 @@ import os
 import clr
 import wx
 
-from databaseTools import update_tool
+
 from tool import ToolsDefaultsData
+from tool import ToolsCustomData
 
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
 
-#global ts_ext
+def setRealParameter(ts_ext, doc, paramName, value):
+    #setRealParameter(savedToolModif,"A_T", chamfer)
+
+    from TopSolid.Kernel.Automating import SmartReal
+    from TopSolid.Kernel.Automating import UnitType
+
+    SmartRealNewParam = SmartReal(UnitType(2),value) # 2 :: UnitType - Angle - 2 - Plane angle.                            
+
+    getOps = ts_ext.Operations.GetOperations (doc)
+    for op in getOps:
+        children = ts_ext.Operations.GetChildren(op)
+        for child in children:
+            childName = ts_ext.Elements.GetName(child)
+            if childName == paramName:
+                print("childName: ", childName, child.GetType())                
+                #smartRealParam = ts_ext.Parameters.GetSmartRealParameterCreation(op) 
+                setParam = ts_ext.Parameters.SetSmartRealParameterCreation(op, SmartRealNewParam)
+                print(f"set {paramName} : {SmartRealNewParam} : {value} : {setParam}")
+
+
+
+
+#*************** TS functions *****************
 
 def get_tool_TSid(tool):
 
@@ -25,7 +48,6 @@ def get_tool_TSid(tool):
 
 def tsConn(): 
 
-    print ("ts conn")
     try:
         sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
         sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
@@ -52,6 +74,7 @@ def tsConn():
         top_solid_kernel_type = top_solid_kernel.TopSolidHostInstance
         ts_ext = clr.System.Activator.CreateInstance(top_solid_kernel_type)
 
+        clr.setPreload(True)
 
 
         # Connect to TopSolid
@@ -90,6 +113,10 @@ def get_top_solid_path():
     except Exception as ex:
         # Handle exception
         return ex
+
+
+
+
 
 
 def get_ts_design_ext():
@@ -151,13 +178,13 @@ def get_default_lib(ts_ext):
     PdmObjectIdType = ts_ext.Pdm.SearchProjectByName("TopSolid Machining User Tools")
     for i in PdmObjectIdType:
         name = ts_ext.Pdm.GetName(i)
-        print("name: ", name)
+        #print("name: ", name)
         if name == "Outils d'usinage utilisateur TopSolid":
             PdmObjectIdType.Clear()
             PdmObjectIdType.Add(i)
             break
 
-    PdmLen =  len(PdmObjectIdType)
+    #PdmLen =  len(PdmObjectIdType)
     #print("PdmObjectIdType: ", PdmLen)
     return PdmObjectIdType
 
@@ -179,48 +206,57 @@ def EndModif (ts_ext, op, ot):
 
 
 
+def copy_tool(tool, holder): #holder = true or false
 
-def copy_tool(tool, holder, tsModels): #holder = true or false
+    #load default data
+    toolDefaultData = ToolsDefaultsData()
 
-    toolDefaultModel = ToolsDefaultsData()
-    tsDefaultModel = toolDefaultModel.tsModels[tool.toolType]
-
-
-    toolModel = tsModels[tool.toolType]
+    toolData = ToolsCustomData()
+    toolData = toolData.getCustomTsModels()
     
-    print(":: copy tool :: tooltype :: ", tool.toolType, " :: ", toolModel, tsDefaultModel)
-
-
-    # Open project
     ts_ext = tsConn()
-
  
-    #to prevent get TS blocked, output an error "No modification to end."
+    #uncomment to prevent get TS blocked, may output an error "No modification to end."
     #EndModif(ts_ext, True, False)
 
     try:
         
-        # use current project to create tool
-        output_lib = ts_ext.Pdm.GetCurrentProject()
-
-        if toolModel:
-            print("custom model: ", toolModel)
-            modelLib = output_lib
-            print("TS model lib ID: ", modelLib.Id)
-            toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib, toolModel)
+        #search for editool project for custom tools models and tool assembly templates
+        output_lib = ts_ext.Pdm.SearchProjectByName("editool")
+        output_lib = output_lib[0]
+        if output_lib:
+            
+            # open it to create tool
+            ts_ext.Pdm.OpenProject(output_lib)
+                            
+            # get custom tool model name
+            customToolModel = toolData.tsModels[tool.toolType]
+            # if custom model exist
+            if customToolModel:
+                print("custom model: ", customToolModel)
+                modelLib = output_lib
+                toolToCopy_ModelId = ts_ext.Pdm.SearchDocumentByName(modelLib, customToolModel)
+            else:
+                # or get ts default model 
+                modelLib = get_default_lib(ts_ext) # TODO make it connect only one time if we create multiple tools
+                modelLib = modelLib[0]
+                tsDefaultModel = toolDefaultData.tsModels[tool.toolType]
+                toolToCopy_ModelId = ts_ext.Pdm.SearchDocumentByName(modelLib, tsDefaultModel)
         else:
-            modelLib = get_default_lib(ts_ext) #TODO make it connect only one time if we create multiple tools
-            print("TS model lib IDs: ", modelLib[0].Id, toolModel)
-            toolModelId = ts_ext.Pdm.SearchDocumentByName(modelLib[0], tsDefaultModel)
-        
-        print("toolModelId: ", toolModelId[0].Id, len(toolModelId))
-        for i in toolModelId:
-            print("toolModelId: ", i.Id)
+            # if not editool project :: use current project to create tools
+            output_lib = ts_ext.Pdm.GetCurrentProject()
+            print("GetCurrentProject :: ", output_lib.Id)
 
-        # need a list of PdmObjectId to CopySeveral
-        firstTool = toolModelId[0]
-        toolModelId.Clear()
-        toolModelId.Add(firstTool)
+        print(f"*** copy tool ***  {toolDefaultData.toolTypes[tool.toolType]} :: from: {ts_ext.Pdm.GetName(modelLib)} :: model : {ts_ext.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {ts_ext.Pdm.GetName(output_lib)}")
+        
+        
+        #for i in toolModelId:
+        #    print("toolModelId: ", i.Id)
+
+        # need a list of PdmObjectId to CopySeveral, with only one tool model
+        firstTool = toolToCopy_ModelId[0]
+        toolToCopy_ModelId.Clear()
+        toolToCopy_ModelId.Add(firstTool)
 
 
         #print("GetCurrentProject :: ", output_lib.Id)
@@ -229,22 +265,20 @@ def copy_tool(tool, holder, tsModels): #holder = true or false
         #print("toolModelId: ", len(toolModelId))
 
 
-        savedTool = ts_ext.Pdm.CopySeveral(toolModelId, output_lib)
+        savedTool = ts_ext.Pdm.CopySeveral(toolToCopy_ModelId, output_lib)
 
         if savedTool:
-            print(f"Tool copied successfully! ", savedTool[0].Id)
+            #print(f"Tool copied successfully!  {ts_ext.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
+            print(f"tool model copied successfully!  {ts_ext.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
 
         savedToolDocId = ts_ext.Documents.GetDocument(savedTool[0])
 
         modif = ts_ext.Application.StartModification("saveTool", True)
-        print("Start modif: ", modif)
-        
-        
-        #print("Doc Id: ", savedToolDocId.PdmDocumentId)
+        #print("Start modif: ", modif, savedToolDocId.PdmDocumentId)
 
         savedToolModif = ts_ext.Documents.EnsureIsDirty(savedToolDocId)
 
-        #print("savedToolModif: ", savedToolModif.PdmDocumentId)
+        #print("dirt savedToolModif: ", savedToolModif.PdmDocumentId)
 
         
         #Debug -> get elements param list
@@ -285,8 +319,7 @@ def copy_tool(tool, holder, tsModels): #holder = true or false
 
 
         if tool.toolType == 8:#tap
-            threadTolerance = tool.threadTolerance            
-            print("thread Tolerance: ", threadTolerance)
+
             if tool.threadTolerance and tool.threadTolerance != "None" and tool.threadTolerance != "":
                 ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif,"Type"), threadTolerance)
             else:
@@ -337,40 +370,30 @@ def copy_tool(tool, holder, tsModels): #holder = true or false
         
         print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
 
+
+
+        #set tool parameters
+
+
         if tool.toolType == 6:#center drill
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D1"), d1)    
             
             #need to convert angle from deg to rad
             print("AngleDeg: ", tool.neckAngle, "chamfer: ", tool.chamfer)
-            angle = tool.neckAngle * 1
-            chamfer = tool.chamfer * 1
+            angle = float(tool.neckAngle) * 1
+            chamfer = float(tool.chamfer) * 1
 
             chamfer = float(chamfer * pi / 180).__round__(5)
             angle = float(angle * pi / 180).__round__(5)
 
-            from TopSolid.Kernel.Automating import RealProperty
-            from TopSolid.Kernel.Automating import SmartReal
-            from TopSolid.Kernel.Automating import UnitType
-            from TopSolid.Kernel.Automating import Real
-
-            top_solid_kernel = get_ts_dll()
-
-            top_solid_kernel_element_type = top_solid_kernel.Real
-            element_type = clr.System.Activator.CreateInstance(top_solid_kernel_element_type)
-
-            print("element_type: ", element_type)
-
-
-            realProp = RealProperty(element_type)
-            print("realProp: ", realProp)
-
- 
-
-            #ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), angle)      
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), chamfer)      
-
+            setRealParameter(ts_ext, savedToolModif,"A_T", chamfer)
+                                                                
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), angle)      
+       
         else:
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)                
+
+
 
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)                
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)                
@@ -386,10 +409,58 @@ def copy_tool(tool, holder, tsModels): #holder = true or false
             tmpAngleRad = int(tool.neckAngle) * pi / 180
             print("tmpAngleRad: ", tmpAngleRad)
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
-        elif tool.toolType == 9:#thread mill
+        
+        #thread mill
+        elif tool.toolType == 9:
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"LH"), l2)
-            #if spot drill
+
+           
+
+            getSketchs = ts_ext.Sketches2D.GetSketches(savedToolModif)
+            print("getSketch: ", getSketchs, len(getSketchs))
+            for sketch in getSketchs:
+                sketchName = ts_ext.Elements.GetName(sketch)
+                if sketchName == "ShankSketch":
+                        print("childName: ", sketchName, sketch.GetType())
+                        consts = ts_ext.Elements.GetConstituents(sketch)
+                        print("consts: ", consts,len(consts))
+                        props = ts_ext.Elements.GetProperties(sketch)   
+                        print("props: ", props,len(props))
+          
+                        for p in props:
+                            print("prop: ",p)
+
+                        for i in consts:
+                            constName = ts_ext.Elements.GetName(i)
+                            if constName == "Dimension 3" or constName == "Dimension 4":
+                                print("consts: ", constName, i.GetType())
+                                value = ts_ext.Elements.GetTypeFullName(i)
+                                modif = ts_ext.Elements.IsModifiable(i)
+                                delet = ts_ext.Elements.IsDeletable(i)
+
+
+                                print("value: ", value, modif, delet )
+                               
+                                #propType = ts_ext.Elements.Delete(i)
+                                #print("propType: ", propType)
+                                
+                                    
+
+
+                              
+
+                        
+
+                                    
+
+
+
+
+
+
+        
+        #if spot drill
         elif tool.toolType == 5:#spot drill
                 ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)
         
@@ -415,8 +486,10 @@ def copy_tool(tool, holder, tsModels): #holder = true or false
 
         print("Created tool with id: ", savedToolModif.PdmDocumentId)
         tool.TSid = savedToolModif.PdmDocumentId
+        
         #update tool in database
-        update_tool(tool)
+
+        ###############update_tool(tool)
 
         if holder:
             copy_holder(ts_ext, savedToolModif)
@@ -455,7 +528,7 @@ def copy_holder(ts_ext, tool):
         openDocs = ts_ext.Documents.GetOpenDocuments()
         print("openDocs: ", len(openDocs))
 
-        holdersFound = []
+        holdersFound = False
 
         #check if any holder is open in TS
         for holder in openDocs:
@@ -471,13 +544,14 @@ def copy_holder(ts_ext, tool):
                             for  i in holderFunctions:
                                 print("holderFunctions", ts_ext.Elements.GetName(i))
                                 function = ts_ext.Elements.GetFriendlyName(i)
-                                if function == "Système de fixation porte-outil <ToolingHolder_1>": #TODO: check if exist a better way to identify holder
+                                print("function: ", function)
+                                if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>": #TODO: check if exist a better way to identify holder
                                     print(f"found : {function}")
-                                    holdersFound = holder
+                                    holdersFound = True
                                     break
                     
-                    if holdersFound:
-                        print("holderFound: ", holdersFound.PdmDocumentId)
+                    if holdersFound == True:
+                        print("holderFound: ", holdersFound)
                         
                         elemModelId = []
                         elemModelId.append(holder)
@@ -551,10 +625,11 @@ def copy_holder(ts_ext, tool):
 
                         EndModif(ts_ext, True, False)
                         ts_ext.Documents.Save(newToolDocId)
+
                         
                     
                     
-        if len(holdersFound) == 0:
+        if holdersFound == False:
             print("holder not found")
             noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
     

@@ -273,7 +273,8 @@ def list_properties_methods():
     for t in ts_dll.GetTypes():
         print(t.FullName)
 
-#list_properties_methods()
+list_properties_methods()
+exit()
 
 opcao_selecionada = get_user_input()
 

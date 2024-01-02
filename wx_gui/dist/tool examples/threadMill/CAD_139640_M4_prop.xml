@@ -1,0 +1,140 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Tool-Data SYSTEM "https://doi.org/10.31030/20201023001dtd">
+<Tool-Data>
+	<TimeStamp>2023-7-21T0:40:54+01:00</TimeStamp>
+	<Tool>
+		<Main-Data>
+			<NormVersion>2021-05</NormVersion>
+			<Manufacturer>HOG</Manufacturer>
+			<PrimaryId>139640 M4</PrimaryId>
+			<Supplier>HOG</Supplier>
+			<CustomerMaterialId>139640 M4</CustomerMaterialId>
+		</Main-Data>
+		<Category>
+			<Category-Data>
+				<Source>DIN</Source>
+				<Level>1</Level>
+				<PropertyName source="din_mk">NSM</PropertyName>
+				<Value>DIN4000-82</Value>
+			</Category-Data>
+			<Category-Data>
+				<Source>DIN</Source>
+				<Level>2</Level>
+				<PropertyName source="din_mk">BLD</PropertyName>
+				<Value>10</Value>
+			</Category-Data>
+		</Category>
+		<Properties>
+			<Property-Data>
+				<PropertyName source="din_mk">B2</PropertyName>
+				<Value>8,05</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">B3</PropertyName>
+				<Value>22</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">B5</PropertyName>
+				<Value>58</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">B71</PropertyName>
+				<Value>58</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C3</PropertyName>
+				<Value>6</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C4</PropertyName>
+				<Value>36</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">D31</PropertyName>
+				<Value>M</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">D32</PropertyName>
+				<Value>0,7</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">E2</PropertyName>
+				<Value>0</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">E3</PropertyName>
+				<Value>4</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">F1</PropertyName>
+				<Value>R</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">F21</PropertyName>
+				<Value>4</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">F3</PropertyName>
+				<Value>R</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">F4</PropertyName>
+				<Value>15</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">H21</PropertyName>
+				<Value>1</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">H22</PropertyName>
+				<Value>1</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">H3</PropertyName>
+				<Value>VHM</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">H5</PropertyName>
+				<Value>TiAlN</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">J21</PropertyName>
+				<Value>139640 M4</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">J22</PropertyName>
+				<Value>GARANT Master TM Schaft-Gewindefräser</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">J3</PropertyName>
+				<Value>HOG</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">J61</PropertyName>
+				<Value>ZYL00600100</Value>
+			</Property-Data>
+		</Properties>
+		<Block name="Trennstellenkodierung maschinenseitig" index="1">
+			<Property-Data>
+				<PropertyName source="din_mk">C11</PropertyName>
+				<Value>ZYL</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C12</PropertyName>
+				<Value>01</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C14</PropertyName>
+				<Value>0</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C15</PropertyName>
+				<Value>0</Value>
+			</Property-Data>
+			<Property-Data>
+				<PropertyName source="din_mk">C2</PropertyName>
+				<Value>0060</Value>
+			</Property-Data>
+		</Block>
+	</Tool>
+</Tool-Data>

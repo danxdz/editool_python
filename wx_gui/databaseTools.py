@@ -59,10 +59,8 @@ def deleteTool(tool):
     print(f":: deleted from database :: {tool.name} :: {tool.toolType}")
 
 
-def delete_selected_item(self, index, toolType):
+def delete_selected_item(self, index):
     
-    #print("deleting tool :: ", index, " :: ", self.panel.fullToolsList[index].name, " toolType :: ", toolType)
-
     #delete tool from database
     deleteTool(self.toolData.fullToolsList[index])
     #delete tool from list

@@ -1,0 +1,51 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<omtdx xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" version="25">
+  <formulas />
+  <materials />
+  <tools>
+    <tools folder="Vollbohrer">
+      <tool name="WSP-Vollbohrer 2D Ø13 - Ø29 - Q0140028WWR00 - IL" type="drilTool">
+        <param name="lengthOfUnit" value="mm" />
+        <param name="breakThroughLength" value="0.5" />
+        <param name="coneAngle" value="140" />
+        <param name="cuttingEdges" value="2" />
+        <param name="cuttingLength" value="28" />
+        <param name="spindleRotation" value="clockwise" />
+        <param name="toolDiameter" value="14" />
+        <param name="toolShaftChamferAbsPos" value="46" />
+        <param name="toolShaftChamferDefMode" value="abs" />
+        <param name="toolShaftDiameter" value="20" />
+        <param name="toolShaftType" value="none" />
+        <param name="toolTotalLength" value="96" />
+        <tecsets>
+          <tecset type="milling">
+            <param name="lengthOfUnit" value="mm" />
+            <param name="coolants" value="2" />
+            <param name="cuttingDirection" value="upAndDown" />
+            <param name="cuttingLength" value="0" />
+            <param name="cuttingMaterial" />
+            <param name="cuttingSpeed" value="0" />
+            <param name="cuttingWidth" value="0" />
+            <param name="drillingFeedrate" />
+            <param name="feedratePerEdge" />
+            <param name="fullcutFeedrate" value="0" />
+            <param name="material" />
+            <param name="maxRedFeedrateAngle" value="90" />
+            <param name="planeFeedrate" value="0" />
+            <param name="plungeAngle" value="0" />
+            <param name="purpose" />
+            <param name="reducedFeedrate" value="0" />
+            <param name="spindleSpeedUnit" value="rpm" />
+            <param name="zFeedrate" />
+          </tecset>
+        </tecsets>
+        <customData />
+      </tool>
+    </tools>
+  </tools>
+  <holders />
+  <extensions />
+  <inserts />
+  <toolHolders />
+  <ncTools />
+</omtdx>

@@ -8,12 +8,13 @@ from gui.guiTools import refreshToolList
 from gui.guiTools import tooltypesButtons
 from gui.guiTools import create_menu
 
-from importTools.pasteDialog import pasteDialog
+
 from importHolders.holdersPanel import HoldersSetupPanel
 
 from importTools.validateImportDialogue import validateToolDialog
 
-import importTools.import_xml_wx as iXml
+from importTools import import_past
+from importTools import import_xml_wx
 
 from export_xml_wx import create_xml_data
 
@@ -102,7 +103,7 @@ class ToolManagerUI(wx.Frame):
         print("import from xml file")
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
-        tools = iXml.open_file(self, title, wcard)
+        tools = import_xml_wx.open_file(self, title, wcard)
         print("tools :: ", tools, len(tools))
 
 
@@ -118,13 +119,15 @@ class ToolManagerUI(wx.Frame):
 
 
     def on_paste_iso13999(self, event):
-        title = "Paste ISO13999 data"        
-        pasteDialog(self.panel, title).ShowModal()
+        title = "Paste ISO13999 data" 
+        import_past.open_file(self, title)         
+
+        #pasteDialog(self.panel, title).ShowModal()
 
     def on_open_zip(self, event):
         title = "Choose a Zip file:"
         wcard ="Zip files (*.zip)|*.zip"
-        iXml.open_file(self, title, wcard)   #TODO: add zip file import  - get p21 data from zip file 
+        import_xml_wx.open_file(self, title, wcard)   #TODO: add zip file import  - get p21 data from zip file 
     
     def on_export_xml(self, event):
         print("export_xml")

@@ -1,8 +1,18 @@
 from tool import Tool
+from tool import ToolsCustomData
 from gui.guiTools import getToolTypesNumber
+from importTools.validateImportDialogue import validateToolDialog
+
+def open_file(self, title):      
+    tool = Tool()  
+    validateToolDialog(self.panel, tool).ShowModal()
 
 
 def process_input_13999(input_text, toolTypesList):
+
+    toolData = ToolsCustomData()
+
+
     # Parse the config file to create the mapping
     with open("13999_paste.txt") as config_file:
         config_text = config_file.read()
@@ -36,7 +46,7 @@ def process_input_13999(input_text, toolTypesList):
     if tool.toolType == "":
         detectedToolType = detect_tool_type(float(tool.D1), float(tool.cornerRadius))
         print("detectedToolType: ", detectedToolType)
-        tool.toolType = getToolTypesNumber(toolTypesList, detectedToolType)
+        tool.toolType = detectedToolType
 
 
     if tool.name == "":
@@ -59,15 +69,15 @@ def process_input_13999(input_text, toolTypesList):
     return tool
 
 
-def detect_tool_type(diameter, tip_radius):
+def detect_tool_type(diameter, cornerRadius):
     # verify if it is a ballMill based on the tip radius
-    print("detect_tool_type: D: " + str(diameter) + " r: " + str(tip_radius))
-    if tip_radius == diameter / 2:
-        return "ballMill"
+    print("detect_tool_type: D: " + str(diameter) + " r: " + str(cornerRadius))
+    if cornerRadius == diameter / 2:
+        return 2#"ballMill"
     
     # verify if it is a radiusMill based on the tip radius
-    if tip_radius > 0.15:  # 0.1 is the minimum tip radius to be considered a radiusMill
-        return "radiusMill"
+    if cornerRadius > 0.15:  # 0.1 is the minimum tip radius to be considered a radiusMill
+        return 1#"radiusMill"
     
     #else assume it is a endMill
     return 0

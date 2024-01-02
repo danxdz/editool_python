@@ -78,12 +78,12 @@ class pasteDialog(wx.Dialog):
                 #check if it is a threadMill , if its number is a threadMill, if is '6HX' one number and letters its a tap
                 for letter in tool_data[3]:
                     if letter.isalpha():
-                        self.tool.toolType = 5
+                        self.tool.toolType = 8
                         break
-                if self.tool.toolType == 7:
+                if self.tool.toolType == 9:
                     # 167081	M1.4	1.06	0.300	39.0	0.6	6	3.00	3	1.10
                     print("threadMill")
-                    self.tool.toolType = 7
+                    #self.tool.toolType = 9
                     self.tool.D1 = self.tool.D1[2:]
                     self.tool.D2 = tool_data[2]
                     self.tool.threadPitch = tool_data[3]
@@ -118,9 +118,9 @@ class pasteDialog(wx.Dialog):
             #TODO: add combobox for toolType, Manuf, GroupeMat...
             if key == 'toolType':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-            elif key == 'Manuf':
+            elif key == 'mfr':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
-            elif key == 'GroupeMat':
+            elif key == 'cuttingMaterial':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             else:
                 self.add_widgets(key, wx.TextCtrl(self, value=str(value)))

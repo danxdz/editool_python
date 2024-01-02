@@ -1,0 +1,77 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<omtdx version="23" srcType="standard" match-formulas-by-expression="true" match-material-by-provider="fraisa" tecset-values-outdated="true">
+    <technologyPurposes>
+        <technologyPurpose name="Finishing, partial cut" />
+    </technologyPurposes>
+    <formulas>
+        <formula name="fZ" type="feedrate">
+            <param name="formula" value="fz*z*n" />
+        </formula>
+        <formula name="feedrateAxial" type="feedrate">
+            <param name="formula" value="fz*z*n/3" />
+        </formula>
+        <formula name="feedrateReduced" type="feedrate">
+            <param name="formula" value="fz*z*n*0.7" />
+        </formula>
+        <formula name="fN" type="speed">
+            <param name="formula" value="(Vc*1000)/(d*pi)" />
+        </formula>
+    </formulas>
+    <materials>
+        <material name="1.2316 high alloyed tempered  1300-1700 N/mm²" />
+    </materials>
+    <cuttingMaterials>
+        <cuttingMaterial name="Solid carbide">
+            <params name="predefinedObjGuid" value="{3755D6C7-90E4-4134-AD07-72FE5EB19F63}" />
+        </cuttingMaterial>
+    </cuttingMaterials>
+    <couplings />
+    <coolants>
+        <coolant number="3">
+            <param name="comment" value="External air" />
+            <param name="type" value="externalAir" />
+        </coolant>
+    </coolants>
+    <tools>
+        <tool type="radiusMill" name="H8607178">
+            <param name="comment" value="Corner radius end mills HX Normal with neck" />
+            <param name="orderingCode" value="H8607178" />
+            <param name="manufacturer" value="FRAISA" />
+            <param name="cuttingMaterial" value="Solid carbide" />
+            <param name="lengthOfUnit" value="mm" />
+            <param name="toolTotalLength" value="57" />
+            <param name="cuttingEdges" value="4" />
+            <param name="cuttingLength" value="8" />
+            <param name="toolShaftType" value="parametric" />
+            <param name="toolShaftDiameter" value="6" />
+            <param name="toolShaftChamferDefMode" value="abs" />
+            <param name="toolShaftChamferAbsPos" value="20.37" />
+            <param name="toolDiameter" value="3" />
+            <param name="taperHeight" value="14" />
+            <param name="collar" value="1" />
+            <param name="tipDiameter" value="2.8" />
+            <param name="cornerRadius" value="0.2" />
+            <param name="coreDiameter" value="0" />
+            <param name="coreHeight" value="0" />
+            <param name="discHeight" value="0" />
+            <tecsets>
+                <tecset type="milling">
+                    <param name="material" value="1.2316 high alloyed tempered  1300-1700 N/mm²" />
+                    <param name="purpose" value="Finishing, partial cut" />
+                    <param name="lengthOfUnit" value="mm" />
+                    <param name="spindleSpeedFormula" value="fN" />
+                    <param name="cuttingSpeed" value="85" />
+                    <param name="coolants" value="3" />
+                    <param name="cuttingDirection" value="upAndDown" />
+                    <param name="feedratePerEdge" value="0.022" />
+                    <param name="cuttingWidth" value="0.03" />
+                    <param name="cuttingLength" value="8" />
+                    <param name="plungeAngle" value="0" />
+                    <param name="planeFeedrateFormula" value="fZ" />
+                    <param name="zFeedrateFormula" value="feedrateAxial" />
+                    <param name="reducedFeedrateFormula" value="feedrateReduced" />
+                </tecset>
+            </tecsets>
+        </tool>
+    </tools>
+</omtdx>

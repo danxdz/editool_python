@@ -550,8 +550,9 @@ imports:
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
  &#8226;   <a href="#importHolders.holdersPanel">importHolders.holdersPanel</a>
+ &#8226;   <a href="#importTools">importTools</a>
+ &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#tool">tool</a>
@@ -4540,10 +4541,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#gui.editDialog">gui.editDialog</a>
- &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
+    <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#ts">ts</a>
 
@@ -9021,30 +9020,9 @@ imported by:
   <a target="code" href="-" type="text/plain"><tt>gui</tt></a>
 <span class="moduletype">NamespacePackage</span>  <div class="import">
 imported by:
-    <a href="#gui.editDialog">gui.editDialog</a>
- &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
+    <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
-
-  </div>
-
-</div>
-
-<div class="node">
-  <a name="gui.editDialog"></a>
-  <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/gui/editDialog.py" type="text/plain"><tt>gui.editDialog</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#databaseTools">databaseTools</a>
- &#8226;   <a href="#gui">gui</a>
- &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
- &#8226;   <a href="#ts">ts</a>
- &#8226;   <a href="#wx">wx</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#gui.toolList">gui.toolList</a>
 
   </div>
 
@@ -9063,7 +9041,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
- &#8226;   <a href="#gui.editDialog">gui.editDialog</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
@@ -9080,8 +9057,8 @@ imported by:
 imports:
     <a href="#databaseTools">databaseTools</a>
  &#8226;   <a href="#gui">gui</a>
- &#8226;   <a href="#gui.editDialog">gui.editDialog</a>
  &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
+ &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#ts">ts</a>
  &#8226;   <a href="#wx">wx</a>
 
@@ -9421,10 +9398,16 @@ imported by:
   <a name="importTools"></a>
   <a target="code" href="-" type="text/plain"><tt>importTools</tt></a>
 <span class="moduletype">NamespacePackage</span>  <div class="import">
-imported by:
+imports:
     <a href="#importTools.import_past">importTools.import_past</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#ToolManagerUi">ToolManagerUi</a>
+ &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
+ &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
 
   </div>
@@ -9438,12 +9421,14 @@ imported by:
 imports:
     <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#importTools">importTools</a>
+ &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#tool">tool</a>
 
   </div>
   <div class="import">
 imported by:
-    <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
+    <a href="#ToolManagerUi">ToolManagerUi</a>
+ &#8226;   <a href="#importTools">importTools</a>
 
   </div>
 
@@ -9464,27 +9449,7 @@ imports:
   <div class="import">
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
-
-  </div>
-
-</div>
-
-<div class="node">
-  <a name="importTools.pasteDialog"></a>
-  <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/importTools/pasteDialog.py" type="text/plain"><tt>importTools.pasteDialog</tt></a>
-<span class="moduletype">SourceModule</span>  <div class="import">
-imports:
-    <a href="#databaseTools">databaseTools</a>
  &#8226;   <a href="#importTools">importTools</a>
- &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
- &#8226;   <a href="#tool">tool</a>
- &#8226;   <a href="#ts">ts</a>
- &#8226;   <a href="#wx">wx</a>
-
-  </div>
-  <div class="import">
-imported by:
-    <a href="#ToolManagerUi">ToolManagerUi</a>
 
   </div>
 
@@ -9505,6 +9470,8 @@ imports:
   <div class="import">
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
+ &#8226;   <a href="#gui.toolList">gui.toolList</a>
+ &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
 
   </div>
 
@@ -9521,7 +9488,6 @@ imports:
  &#8226;   <a href="#importlib">importlib</a>
  &#8226;   <a href="#importlib._bootstrap">importlib._bootstrap</a>
  &#8226;   <a href="#importlib._bootstrap_external">importlib._bootstrap_external</a>
- &#8226;   <a href="#importlib.machinery">importlib.machinery</a>
  &#8226;   <a href="#sys">sys</a>
  &#8226;   <a href="#warnings">warnings</a>
 
@@ -9674,7 +9640,6 @@ imported by:
     <a href="#cffi.verifier">cffi.verifier</a>
  &#8226;   <a href="#ctypes.util">ctypes.util</a>
  &#8226;   <a href="#imp">imp</a>
- &#8226;   <a href="#importlib">importlib</a>
  &#8226;   <a href="#importlib.abc">importlib.abc</a>
  &#8226;   <a href="#inspect">inspect</a>
  &#8226;   <a href="#packaging.tags">packaging.tags</a>
@@ -20185,7 +20150,6 @@ imported by:
  &#8226;   <a href="#databaseTools">databaseTools</a>
  &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
  &#8226;   <a href="#ts">ts</a>
 
   </div>
@@ -20289,10 +20253,8 @@ imports:
   </div>
   <div class="import">
 imported by:
-    <a href="#gui.editDialog">gui.editDialog</a>
- &#8226;   <a href="#gui.toolList">gui.toolList</a>
+    <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#importHolders.holdersPanel">importHolders.holdersPanel</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
 
   </div>
@@ -21312,13 +21274,11 @@ imports:
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
  &#8226;   <a href="#editool.py">editool.py</a>
- &#8226;   <a href="#gui.editDialog">gui.editDialog</a>
  &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
  &#8226;   <a href="#importHolders.holdersPanel">importHolders.holdersPanel</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
- &#8226;   <a href="#importTools.pasteDialog">importTools.pasteDialog</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#ts">ts</a>
  &#8226;   <a href="#wx.__version__">wx.__version__</a>

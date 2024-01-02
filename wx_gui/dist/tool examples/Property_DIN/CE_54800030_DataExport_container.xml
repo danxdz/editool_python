@@ -1,0 +1,35 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<!DOCTYPE Container SYSTEM "http://www.cimsource.com/DIN_26100_Schema.dtd">
+<Container>
+  <Header>
+    <NormVersion>2017-11</NormVersion>
+    <TimeStamp>2022-09-27T23:52:44+02:00</TimeStamp>
+  </Header>
+  <Industry type="Machining">
+    <Element type="Component">
+      <Data>
+        <Manufacturer name="Ceratizit">CE</Manufacturer>
+        <PrimaryId>54800030</PrimaryId>
+        <ManufacturerInfo>
+          <Name>Ceratizit</Name>
+          <NameShort>CE</NameShort>
+          <IdList>
+            <Id type="PrimaryID">54800030</Id>
+            <Id type="OrderCodeISO">54800030</Id>
+          </IdList>
+        </ManufacturerInfo>
+        <SupplierInfo>
+          <Name>Ceratizit</Name>
+          <NameShort>CE</NameShort>
+          <IdList>
+            <Id type="PrimaryID">54800030</Id>
+            <Id type="OrderCodeISO">54800030</Id>
+          </IdList>
+        </SupplierInfo>
+      </Data>
+      <Files>
+        <File type="Property_DIN" repository="container">Property_DIN\CE_54800030_DataExport_DIN4000.xml</File>
+      </Files>
+    </Element>
+  </Industry>
+</Container>

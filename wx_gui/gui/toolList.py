@@ -100,7 +100,7 @@ class ToolList(wx.Panel):
 
         #check if tool is created
         if tool.TSid == "" or tool.TSid == None:
-            ts.copy_tool(tool, holder, self.toolData.tsModels)
+            ts.copy_tool(tool, holder)
             print("tool :: ", tool.name, " created")
         else:
             if holder:
@@ -139,10 +139,9 @@ class ToolList(wx.Panel):
                 validateToolDialog(self, self.toolData.fullToolsList[i+ind]).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
-                toolType = self.toolData.fullToolsList[i+ind].toolType
-                delete_selected_item(self.GetParent(),i+ind, toolType) 
+                delete_selected_item(self.GetParent(),i+ind) 
                 self.list_ctrl.DeleteAllItems()
-                self.toolData.fullToolsList = refreshToolList(self, toolType)
+                self.toolData.fullToolsList = refreshToolList(self, -1)
 
 
     #show popup menu

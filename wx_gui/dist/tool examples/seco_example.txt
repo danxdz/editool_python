@@ -1,0 +1,38 @@
+JHP794080E2R020.3Z4 TAN
+Código GDG	B39 - JABRO HPM
+Número do item	10072340
+
+1
+ 
+
+Quantidade mínima de vendas: 1
+Fres. de rasgoFresamento lateralRampas, retasInterpolação helicoidal, Sólido
+M
+Informação solicitada  Imprimir
+ Especificação Completa
+ Dados De Corte
+ Máquina Lateral  (33)
+Nome	Descrição	Valor
+APMXS	Profundidade de corte máxima em direção lateral ao avanço	19.0 mm
+Codigo de barras	Código de barras do produto	72340100000102
+CCC	capacidade de corte central	1
+CGT	Tipo da geometria de corte	JHP794
+Cmax	Diâmetro máximo da interpolação helicoidal	15.6 mm
+Cmin	Diâmetro mínimo da interpolação helicoidal	10.4 mm
+COBERTURA	Item de corte - Cobertura	TAN
+DC	Diâmetro de corte	8.000 mm
+DMM	diâmetro da haste	8.00 mm
+DN	diâmetro do pescoço	7.50 mm
+FCEDC	Contagem da face da aresta de corte	4
+FHA	Ângulo de hélice da faca	40.0 deg
+Classe	Classe	TAN
+ICC	Canal de refrigeração interna	No
+ItemNo.	Item No.	10072340
+LN	Compr. do pescoço	24.5 mm
+NA	Âng. do pescoço	0.0 deg
+OAL	Peso total	63.0 mm
+PCEDC	Perímetro da arresta de corte considerada	4
+PSIR	âng de ataque	0.0 deg
+RE	Raio de ponta	0.20 mm
+tipodehaste	tipodehaste	Weldon
+Peso	Peso liquido	0.039 kg

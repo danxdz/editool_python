@@ -452,9 +452,6 @@
   ('gettext', 'C:\\Program Files\\Python311\\Lib\\gettext.py', 'PYMODULE'),
   ('glob', 'C:\\Program Files\\Python311\\Lib\\glob.py', 'PYMODULE'),
   ('gui', '-', 'PYMODULE'),
-  ('gui.editDialog',
-   'G:\\works\\2023\\git clone\\editool_python\\wx_gui\\gui\\editDialog.py',
-   'PYMODULE'),
   ('gui.guiTools',
    'G:\\works\\2023\\git clone\\editool_python\\wx_gui\\gui\\guiTools.py',
    'PYMODULE'),
@@ -495,10 +492,6 @@
   ('importTools.import_xml_wx',
    'G:\\works\\2023\\git '
    'clone\\editool_python\\wx_gui\\importTools\\import_xml_wx.py',
-   'PYMODULE'),
-  ('importTools.pasteDialog',
-   'G:\\works\\2023\\git '
-   'clone\\editool_python\\wx_gui\\importTools\\pasteDialog.py',
    'PYMODULE'),
   ('importTools.validateImportDialogue',
    'G:\\works\\2023\\git '
