@@ -21,7 +21,7 @@ class ToolList(wx.Panel):
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
-            self, size=(-1, -1), 
+            self, size=(-1, 400),
             style=wx.LC_REPORT | wx.BORDER_SIMPLE
         )   
 

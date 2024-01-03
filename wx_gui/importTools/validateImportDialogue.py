@@ -22,13 +22,21 @@ class validateToolDialog(wx.Dialog):
 
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)        
 
+        
+        self.toolPropsTextboxSizer = wx.GridSizer(rows = 0, cols = 5, hgap = 5, vgap = 5)
+        self.main_sizer.Add(self.toolPropsTextboxSizer, 0, wx.ALL, 15)
+
+
         #add sizer with 5 rows
         #and add 5 square buttons for each material group P, M, M, K, S, N
         groupMat = ['P', 'M', 'K', 'N', 'S', 'H', 'O']
         groupMatName = ['Steel ', 'Stainless steel', 'Cast iron', 'Non-ferrous metal', 'Super alloy', 'Hardened Steel', 'Non ISO']
         groupMatColor = [wx.Colour(0, 100, 255), wx.Colour(226,135,67), 'red', 'green', 'brown', 'grey', 'white']
 
-        self.matSizer = wx.GridSizer(rows = 0, cols = 9, hgap = 1, vgap = 15)
+        #add space between buttons and border
+
+
+        self.matSizer = wx.GridSizer(rows = 0, cols = 9, hgap = 8, vgap = 15)
 
         #add empty button
         self.allMatBtn = wx.ToggleButton(self, label="all", size=(40, 40))
@@ -53,11 +61,10 @@ class validateToolDialog(wx.Dialog):
         self.clearMatBtn.SetToolTip('clear selection')
         self.matSizer.Add(self.clearMatBtn, 0, wx.CENTER)
 
+        #add sizer to main sizer add some space
 
-        self.main_sizer.Add(self.matSizer, 0, wx.CENTER)
+        self.main_sizer.Add(self.matSizer, 0, wx.ALL, 15  )
 
-        self.textboxSizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
-        self.main_sizer.Add(self.textboxSizer, 0, wx.Center)
                     
         # Add buttons box       
         btn_sizer = wx.BoxSizer()
@@ -84,10 +91,12 @@ class validateToolDialog(wx.Dialog):
         btn_sizer.Add(wx.Button(self, id=wx.ID_CANCEL), 5, wx.ALL, 15)
 
         self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
+
         self.SetSizer(self.main_sizer)
 
-
+        
         self.on_load(tool)
+
         #resize the dialog to fit the content
         self.Fit()
 
@@ -110,7 +119,7 @@ class validateToolDialog(wx.Dialog):
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(widget, 0, wx.ALL, 2)
-        self.textboxSizer.Add(sizer, 0, wx.ALL, 5)
+        self.toolPropsTextboxSizer.Add(sizer, 0, wx.ALL, 5)
 
         
 
@@ -120,7 +129,7 @@ class validateToolDialog(wx.Dialog):
         #print("toolAttributes :: ", self.toolAttributes)
 
         #clear all widgets
-        self.textboxSizer.Clear(True)
+        self.toolPropsTextboxSizer.Clear(True)
         self.main_sizer.Layout()
         self.main_sizer.Fit(self)
 
@@ -140,6 +149,8 @@ class validateToolDialog(wx.Dialog):
                 if value != "":
                     self.save_btn.Enable()
                     self.create_btn.Enable()
+            elif key == "id":
+                pass
             else:
                 self.add_widgets(key, wx.TextCtrl(self, value=str(value)))
 

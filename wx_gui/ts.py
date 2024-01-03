@@ -376,7 +376,8 @@ def copy_tool(tool, holder): #holder = true or false
 
 
         if tool.toolType == 6:#center drill
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D1"), d1)    
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D1"), d3)    
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D2"), d1)    
             
             #need to convert angle from deg to rad
             print("AngleDeg: ", tool.neckAngle, "chamfer: ", tool.chamfer)

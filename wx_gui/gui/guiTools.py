@@ -2,6 +2,7 @@ from databaseTools import load_tools_from_database
 
 import wx
 
+from tool import ToolsCustomData
 
 
 #TODO: add columns to config
@@ -20,7 +21,22 @@ def add_columns(self):
     self.list_ctrl.InsertColumn(10, 'Manuf', width=100)
     self.list_ctrl.InsertColumn(11, 'eval', width=100)
 
-
+def add_line(self, tool):
+    index = self.list_ctrl.GetItemCount()
+    #print("adding tool line :: ", index, " :: ", tool.name)
+    self.toolData.fullToolsList.append(tool)
+    index = self.list_ctrl.InsertItem(index, str(index + 1))
+    self.list_ctrl.SetItem(index, 1, str(tool.name))
+    self.list_ctrl.SetItem(index, 2, str(tool.D1))
+    self.list_ctrl.SetItem(index, 3, str(tool.L1))
+    self.list_ctrl.SetItem(index, 4, str(tool.D2))
+    self.list_ctrl.SetItem(index, 5, str(tool.L2))
+    self.list_ctrl.SetItem(index, 6, str(tool.D3))
+    self.list_ctrl.SetItem(index, 7, str(tool.L3))
+    self.list_ctrl.SetItem(index, 8, str(tool.z))
+    self.list_ctrl.SetItem(index, 9, str(tool.cornerRadius))
+    self.list_ctrl.SetItem(index, 10, str(tool.mfr))
+    return index
 
 def getToolTypesIcons(tooltypes, path):
     icons = []
@@ -36,22 +52,16 @@ def getToolTypesNumber(toolTypes, value):
         if toolType == value:
             value = i
             #print("getToolTypesNumber :: ", toolType, " :: ", value, i)
-
             return i
         
 def refreshToolList(self, toolType):
     #print("refreshToolList :: tooltype :: ", toolType)
-
     tools = load_tools_from_database(toolType)
-
     newToolTypeText = "all"
-
     if toolType != -1:
-        newToolTypeText = self.toolData.toolTypesList[toolType]
-       
+        newToolTypeText = self.toolData.toolTypesList[toolType]       
     if tools:
         print(f"{len(tools)} tools loaded :: type : {newToolTypeText}")
-
         self.list_ctrl.DeleteAllItems()
         for tool in tools:
             add_line(self, tool)
@@ -62,28 +72,6 @@ def refreshToolList(self, toolType):
     self.list_ctrl.Refresh()
     return tools
 
-def add_line(self, tool):
-    index = self.list_ctrl.GetItemCount()
-    #print("adding tool line :: ", index, " :: ", tool.name)
-
-    self.toolData.fullToolsList.append(tool)
-
-
-    index = self.list_ctrl.InsertItem(index, str(index + 1))
-    self.list_ctrl.SetItem(index, 1, str(tool.name))
-    self.list_ctrl.SetItem(index, 2, str(tool.D1))
-    self.list_ctrl.SetItem(index, 3, str(tool.L1))
-    self.list_ctrl.SetItem(index, 4, str(tool.D2))
-    self.list_ctrl.SetItem(index, 5, str(tool.L2))
-    self.list_ctrl.SetItem(index, 6, str(tool.D3))
-    self.list_ctrl.SetItem(index, 7, str(tool.L3))
-    self.list_ctrl.SetItem(index, 8, str(tool.z))
-    self.list_ctrl.SetItem(index, 9, str(tool.cornerRadius))
-    self.list_ctrl.SetItem(index, 10, str(tool.mfr))
-
-    return index
-
-
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
     #add buttons with tool types icons to the container
@@ -93,6 +81,7 @@ def tooltypesButtons(self):
     self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
     self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
     
+
 
     for i, toolType in enumerate(self.toolData.toolTypesList):
         #print("toolType :: ", toolType)

@@ -230,6 +230,13 @@ def parse_new_xml_data(tool, toolTypes):
             case "7":
                 #print(f"{readType} - toolType is centerDrill")
                 newTool.toolType = 6
+                newTool.D1 = get_property_value(tool, "A11")
+                newTool.D2 = get_property_value(tool, "A11_2")
+                newTool.D3 = get_property_value(tool, "C3")
+                newTool.chamfer = get_property_value(tool, "E4_2")
+
+
+
 
 
     if readDin == "DIN4000-82": #DIN4000-82 - End mills with non-indexable cutting edges
@@ -275,15 +282,15 @@ def parse_new_xml_data(tool, toolTypes):
 
 
     # Extract the properties using a function to handle missing properties
-
-    newTool.D1 = get_property_value(tool, "A1") or get_property_value(tool, "A11")
+    if readDin == "DIN4000-82":
+        newTool.D1 = get_property_value(tool, "A1") or get_property_value(tool, "A11")
     
-    if newTool.D1 == "M":
-        print("d1 is M")
-        #newTool.toolType = getToolTypesNumber(toolTypes, "tap")
-        newTool.D1 = get_property_value(tool, "A21")  
-        newTool.threadPitch = get_property_value(tool, "A3")
-        newTool.threadTolerance = get_property_value(tool, "A5")
+        if newTool.D1 == "M":
+            print("d1 is M")
+            #newTool.toolType = getToolTypesNumber(toolTypes, "tap")
+            newTool.D1 = get_property_value(tool, "A21")  
+            newTool.threadPitch = get_property_value(tool, "A3")
+            newTool.threadTolerance = get_property_value(tool, "A5")
 
     if not newTool.D1:
         print("no d1")
@@ -294,21 +301,16 @@ def parse_new_xml_data(tool, toolTypes):
             newTool.L2 = get_property_value(tool, "B6")
 
        
-    newTool.D2 = get_float_property(tool, "A5")
+        newTool.D2 = get_float_property(tool, "A5")
+        newTool.D3 = get_float_property(tool, "C3")
 
-    newTool.D3 = get_float_property(tool, "C3")
+
+
 
     newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3")
-
-
-
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
-
     newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
-
     newTool.cornerRadius = get_float_property(tool, "G1")
-
-    newTool.chamfer = get_property_value(tool, "D6")
 
     print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)
         

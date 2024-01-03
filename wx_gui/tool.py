@@ -86,7 +86,7 @@ class Tool:
     #make comments so i have more info about tool class
 
 
-    def __init__(self,id=0, name="", toolType=0, cuttingMaterial="",
+    def __init__(self,id=0, name="", toolType=0, cuttingMaterial="", toolMaterial="",
                   D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, 
                   z=0, cornerRadius=0.0, chamfer=0.0, 
                   neckAngle=0.0, centerCut=0.0, coolantType=0, 
@@ -112,7 +112,8 @@ class Tool:
         -   10-reamer
         """
         self.cuttingMaterial = cuttingMaterial
-        #tool material
+        #material to cut
+        self.toolMaterial = toolMaterial
         self.D1 = D1
         #cutting diameter
         self.D2 = D2
@@ -155,6 +156,7 @@ class Tool:
             'name': self.name,
             'toolType': self.toolType,
             'cuttingMaterial': self.cuttingMaterial,
+            'toolMaterial': self.toolMaterial,
             'D1': self.D1,
             'D2': self.D2,
             'D3': self.D3,

@@ -83,6 +83,7 @@ def saveTool(tool, toolTypes):
             name        TEXT,
             toolType    INT,
             cuttingMaterial TEXT,
+            toolMaterial TEXT,
             D1          REAL,
             D2          REAL,
             D3          REAL,
@@ -110,9 +111,9 @@ def saveTool(tool, toolTypes):
 
     # Add tool into table 'tools'
     cursor.execute('''
-        INSERT INTO tools (name, toolType, cuttingMaterial, D1, L1, D2, L2, L3, D3, z, cornerRadius, chamfer,neckAngle, centerCut,
+        INSERT INTO tools (name, toolType, cuttingMaterial, toolMaterial, D1, L1, D2, L2, L3, D3, z, cornerRadius, chamfer,neckAngle, centerCut,
             coolantType, threadTolerance, threadPitch, mfr, mfrRef, mfrSecRef, code, codebar, comment, TSid)
-        VALUES (:name, :toolType, :cuttingMaterial, :D1, :L1, :D2, :L2, :L3, :D3, :z, :cornerRadius, :chamfer,:neckAngle, :centerCut,
+        VALUES (:name, :toolType, :cuttingMaterial, :toolMaterial, :D1, :L1, :D2, :L2, :L3, :D3, :z, :cornerRadius, :chamfer,:neckAngle, :centerCut,
             :coolantType, :threadTolerance, :threadPitch, :mfr, :mfrRef, :mfrSecRef, :code, :codeBar, :comment, :TSid)
     ''', tool.__dict__)
 
@@ -134,7 +135,7 @@ def update_tool(tool):
 
     conn = sqlite3.connect('tool_manager.db')
     cursor = conn.cursor()
-    tmp = "UPDATE tools SET name='" + str(tool.name) + "', toolType='" + str(tool.toolType) + "', cuttingMaterial='" + str(tool.cuttingMaterial) +   "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', z='" + str(tool.z) + "', cornerRadius='" + str(tool.cornerRadius) + "', chamfer='" + str(tool.chamfer) + "', neckAngle='" + str(tool.neckAngle) +  "', centerCut='" + str(tool.centerCut) + "', coolantType='" + str(tool.coolantType) + "', threadTolerance='" + str(tool.threadTolerance) + "', threadPitch='" + str(tool.threadPitch) + "', mfr='" + str(tool.mfr) + "', mfrRef='" + str(tool.mfrRef) + "', mfrSecRef='" + str(tool.mfrSecRef) + "', Code='" + str(tool.code) + "', codeBar='" + str(tool.codeBar) + "', comment='" + str(tool.comment) + "', TSid='" + str(tool.TSid) + "' WHERE id='" + str(tool.id) + "'"
+    tmp = "UPDATE tools SET name='" + str(tool.name) + "', toolType='" + str(tool.toolType) + "', cuttingMaterial='" + str(tool.cuttingMaterial) + "', toolMaterial='" + str(tool.toolMaterial) + "', D1='" + str(tool.D1) + "', D2='" + str(tool.D2) +  "', L1='" + str(tool.L1) + "', L2='" + str(tool.L2) + "', L3='" + str(tool.L3) + "', D3='" + str(tool.D3) + "', z='" + str(tool.z) + "', cornerRadius='" + str(tool.cornerRadius) + "', chamfer='" + str(tool.chamfer) + "', neckAngle='" + str(tool.neckAngle) +  "', centerCut='" + str(tool.centerCut) + "', coolantType='" + str(tool.coolantType) + "', threadTolerance='" + str(tool.threadTolerance) + "', threadPitch='" + str(tool.threadPitch) + "', mfr='" + str(tool.mfr) + "', mfrRef='" + str(tool.mfrRef) + "', mfrSecRef='" + str(tool.mfrSecRef) + "', Code='" + str(tool.code) + "', codeBar='" + str(tool.codeBar) + "', comment='" + str(tool.comment) + "', TSid='" + str(tool.TSid) + "' WHERE id='" + str(tool.id) + "'"
     #print(tmp)
     cursor.execute(tmp)
     conn.commit()

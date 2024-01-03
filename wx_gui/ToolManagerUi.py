@@ -1,5 +1,6 @@
 import wx
-import sys
+import sys, os
+import wxgl
 
 
 from gui.toolList import ToolList
@@ -23,9 +24,11 @@ from tool import ToolsCustomData
 
 class ToolManagerUI(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, title=title)
+        wx.Frame.__init__(self, parent, title=title, size=(1200, 800), style=wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE)
+        self.Center()
+
         
-        self.SetBackgroundColour(wx.Colour(240, 240, 250))  # Change this to the color you want     
+        self.SetBackgroundColour(wx.Colour(240, 240, 240)) #set background color  
         
         #create dictionary with tool types and ts models
         self.toolData = ToolsCustomData()
@@ -44,6 +47,10 @@ class ToolManagerUI(wx.Frame):
         #create the panel with the tool list
         self.panel = ToolList(self, self.toolData)
         #load tools from database to list control   
+
+        self.scene = wxgl.wxscene.WxScene(self, self.draw())
+        self.visible = True
+
          
         self.toolData.fullToolsList = []
         tools = refreshToolList(self.panel,-1)
@@ -64,21 +71,70 @@ class ToolManagerUI(wx.Frame):
         out = self.getLoadedTools()
 
         self.statusBar.SetStatusText(out)
+        
+        self.main_sizer.Add(self.scene, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.BOTTOM, 5)
+
 
         self.SetSize(800, 800)
         self.Centre()
         self.Show()
         
+    def draw(self):
+
+        tf = ((0,0,1, 90),(5,-5,0) )
+        sch = wxgl.Scheme(bg=(0,0,0))
+
+        sch._reset()
+
+        light = wxgl.SunLight(direction=(0.5,-0.5,-1), diffuse=0.7, specular=0.98, shiny=100, pellucid=0.9)
+
+        sch.sphere((0,0,0), .5, color="orange", name="cudgel")
+        sch.cylinder((0,0,0), (2,0,0), .5, color="orange",  name="cudgel")
+        sch.cylinder((2,0,0), (3,0,0), .48, color="gray", name="cudgel")
+        sch.cylinder((3,0,0), (5,0,0), .5, color="gray",  name="cudgel")
+        
+        sch.circle((5,0,0), .5, color="#656176",  name="cudgel", light=light, inside=True,transform=tf)
+
+
+
+        #sch.axes()
+
+        return sch
+    
+    def on_home(self, evt):
+        self.scene.home()
+    def on_animate(self, evt):
+        self.scene.pause()
+    def on_visible(self, evt):
+        self.visible = not self.visible
+        self.scene.set_visible('cudgel',self.visible)
+    def on_save(self, evt):
+        im = self.scene.get_buffer()
+
+        wildcard = "PNG (*.png)|*.png||JPEG (*.jpg)|*.jpg||BMP (*.bmp)|*.bmp||TIFF (*.tif)|*.tif||GIF (*.gif)|*.gif"
+        dlg = wx.FileDialog(self, "Save image as...", wildcard=wildcard, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg.SetFilterIndex(0)
+        if dlg.ShowModal() == wx.ID_OK:
+            fn = dlg.GetPath()
+            name, ext = os.path.splitext(fn)
+
+            if ext == '.jpg':
+                ext = ['.jpg', '.jpeg'][dlg.GetFilterIndex()]
+            else:
+                im.save('%s%s' % (name, ext))
+        dlg.Destroy()
 
 
     def getLoadedTools(self):
         out = f"no tools :: type : {self.toolTypeName}"
         if self.toolData.fullToolsList:
             numTools = len(self.toolData.fullToolsList) or 0
-            if numTools > 0:
+            if numTools == 1:
+                out = f" {numTools} tool :: type : {self.toolTypeName}"
+            if numTools > 1:
                 out = f" {numTools} tools :: type : {self.toolTypeName}"
-                
         return out
+    
                 
     def filterToolType(self, event):
         i = event.GetId()
@@ -95,7 +151,6 @@ class ToolManagerUI(wx.Frame):
         self.toolData.fullToolsList = refreshToolList(self.panel, self.toolType)
         
         self.statusBar.SetStatusText(self.getLoadedTools())
-
 
 
     #menu bar functions
