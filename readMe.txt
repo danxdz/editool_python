@@ -1,4 +1,4 @@
-![gUI](editool_20230106.png)
+[gUI](/editool_20230106.png)
 
 
 
