@@ -1,5 +1,7 @@
 
-[![editool gui][(screenshots/editool_20230106.png)]
+[![Jason's avatar][1]][1]
+[1]: https://i.stack.imgur.com/X14m7.png
+"Tooltip for Jason's avatar"
 
 
 
