@@ -1,7 +1,8 @@
 import wx
 import ts as ts
 
-from gui.guiTools import getToolTypesNumber
+#from gui.guiTools import getToolTypesNumber
+from gui.guiTools import refreshToolList
 
 from ts import copy_tool
 
@@ -23,7 +24,7 @@ class validateToolDialog(wx.Dialog):
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)        
 
         
-        self.toolPropsTextboxSizer = wx.GridSizer(rows = 0, cols = 5, hgap = 5, vgap = 5)
+        self.toolPropsTextboxSizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.main_sizer.Add(self.toolPropsTextboxSizer, 0, wx.ALL, 15)
 
 
@@ -137,7 +138,7 @@ class validateToolDialog(wx.Dialog):
             #print(key, value)
             #TODO: add combobox for toolType, Manuf, GroupeMat...
             if key == 'toolType':                
-                self.add_widgets(key, wx.ComboBox(self, value=str(self.toolData.toolTypesList[value]),choices=self.toolData.toolTypesList))
+                self.add_widgets(key, wx.ComboBox(self, value=str(self.toolData.tool_types_list[value]),choices=self.toolData.tool_types_list))
             elif key == 'mfr':
                 self.add_widgets(key, wx.ComboBox(self, value=str(value)))
             elif key == 'cuttingMaterial':
@@ -164,16 +165,17 @@ class validateToolDialog(wx.Dialog):
             update_tool(self.tool)
         else:
             print("saving ", self.tool.name, self.tool.toolType , " in database")
-            saveTool(self.tool,self.toolData.toolTypesList) 
+            saveTool(self.tool,self.toolData.tool_types_list) 
+        refreshToolList(self.parent, self.toolData.full_tools_list, self.tool.toolType)
         self.Destroy()  # Close the dialog after saving tool
         
 
     def on_create(self, event):
         print("create " , self.tool.name, self.tool.toolType)
 
-        saveTool(self.tool,self.toolData.toolTypesList)
+        saveTool(self.tool,self.toolData.tool_types_list)
         
-        copy_tool(self.tool, False, self.toolData.tsModels)
+        copy_tool(self.tool, False)
 
         self.Destroy()  # Close the dialog after create tool    
 
@@ -187,7 +189,8 @@ class validateToolDialog(wx.Dialog):
         changedValue = event.GetString()
 
         if label_text == 'toolType':
-            changedValue = getToolTypesNumber(self.toolData.toolTypesList , changedValue)
+            #get the index of the tool type
+            changedValue = self.toolData.tool_types_list.index(changedValue)
             #print("changedValue :: ", changedValue)
 
         #set object attribute with the value of the widget

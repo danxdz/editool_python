@@ -1,6 +1,5 @@
 import wx
-import sys, os
-import wxgl
+import sys
 
 
 from gui.toolList import ToolList
@@ -9,6 +8,7 @@ from gui.guiTools import refreshToolList
 from gui.guiTools import tooltypesButtons
 from gui.guiTools import create_menu
 
+from databaseTools import load_tools_from_database
 
 from importHolders.holdersPanel import HoldersSetupPanel
 
@@ -24,19 +24,23 @@ from tool import ToolsCustomData
 
 class ToolManagerUI(wx.Frame):
     def __init__(self, parent, id, title):
-        wx.Frame.__init__(self, parent, title=title, size=(1200, 800), style=wx.DEFAULT_FRAME_STYLE | wx.MAXIMIZE)
+        no_resize = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
+        wx.Frame.__init__(self, parent, title=title, style= no_resize)
         self.Center()
 
-        
         self.SetBackgroundColour(wx.Colour(240, 240, 240)) #set background color  
-        
+
         #create dictionary with tool types and ts models
         self.toolData = ToolsCustomData()
-        self.toolData = self.toolData.getCustomTsModels()
-        print("toolData :: tooltypes : ", self.toolData.toolTypesList)
-        print("toolData :: tsModels ", self.toolData.tsModels)
-        print("toolData :: toolTypesNumbers ", self.toolData.toolTypesNumbers)
+        self.toolData.get_custom_ts_models()
+        print("toolData :: tooltypes : ", self.toolData.tool_types_list)
+        print("toolData :: tsModels ", self.toolData.ts_models)
+        print("toolData :: toolTypesNumbers ", self.toolData.tool_type_numbers)
+        #load all tools from database
+        self.toolData.full_tools_list = load_tools_from_database(-1)
+        print("toolData :: full_tools_list ", len(self.toolData.full_tools_list))
 
+        #create menu bar
         create_menu(self)
 
         #create a container to hold the buttons
@@ -46,25 +50,13 @@ class ToolManagerUI(wx.Frame):
         
         #create the panel with the tool list
         self.panel = ToolList(self, self.toolData)
-        #load tools from database to list control   
+        
+        self.main_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND, 15)  # Add wx.EXPAND flag
 
-        self.scene = wxgl.wxscene.WxScene(self, self.draw())
-        self.visible = True
-
-         
-        self.toolData.fullToolsList = []
-        tools = refreshToolList(self.panel,-1)
-        if tools:
-            if len(tools) > 0:
-                self.toolData.fullToolsList = tools
-            
 
         self.toolTypeName = "all"
         
-
-        self.main_sizer.Add(self.panel, 0, wx.ALL, 15)
-        self.panel.Center()
-
+        
 
         self.statusBar = self.CreateStatusBar()
        
@@ -72,63 +64,18 @@ class ToolManagerUI(wx.Frame):
 
         self.statusBar.SetStatusText(out)
         
-        self.main_sizer.Add(self.scene, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.BOTTOM, 5)
+        self.SetSizer(self.main_sizer)  # Set the sizer to the frame
 
-
-        self.SetSize(800, 800)
+        self.SetSize(600, 1000)
         self.Centre()
         self.Show()
         
-    def draw(self):
-
-        tf = ((0,0,1, 90),(5,-5,0) )
-        sch = wxgl.Scheme(bg=(0,0,0))
-
-        sch._reset()
-
-        light = wxgl.SunLight(direction=(0.5,-0.5,-1), diffuse=0.7, specular=0.98, shiny=100, pellucid=0.9)
-
-        sch.sphere((0,0,0), .5, color="orange", name="cudgel")
-        sch.cylinder((0,0,0), (2,0,0), .5, color="orange",  name="cudgel")
-        sch.cylinder((2,0,0), (3,0,0), .48, color="gray", name="cudgel")
-        sch.cylinder((3,0,0), (5,0,0), .5, color="gray",  name="cudgel")
-        
-        sch.circle((5,0,0), .5, color="#656176",  name="cudgel", light=light, inside=True,transform=tf)
-
-
-
-        #sch.axes()
-
-        return sch
-    
-    def on_home(self, evt):
-        self.scene.home()
-    def on_animate(self, evt):
-        self.scene.pause()
-    def on_visible(self, evt):
-        self.visible = not self.visible
-        self.scene.set_visible('cudgel',self.visible)
-    def on_save(self, evt):
-        im = self.scene.get_buffer()
-
-        wildcard = "PNG (*.png)|*.png||JPEG (*.jpg)|*.jpg||BMP (*.bmp)|*.bmp||TIFF (*.tif)|*.tif||GIF (*.gif)|*.gif"
-        dlg = wx.FileDialog(self, "Save image as...", wildcard=wildcard, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
-        dlg.SetFilterIndex(0)
-        if dlg.ShowModal() == wx.ID_OK:
-            fn = dlg.GetPath()
-            name, ext = os.path.splitext(fn)
-
-            if ext == '.jpg':
-                ext = ['.jpg', '.jpeg'][dlg.GetFilterIndex()]
-            else:
-                im.save('%s%s' % (name, ext))
-        dlg.Destroy()
 
 
     def getLoadedTools(self):
         out = f"no tools :: type : {self.toolTypeName}"
-        if self.toolData.fullToolsList:
-            numTools = len(self.toolData.fullToolsList) or 0
+        if self.toolData.full_tools_list:
+            numTools = len(self.toolData.full_tools_list) or 0
             if numTools == 1:
                 out = f" {numTools} tool :: type : {self.toolTypeName}"
             if numTools > 1:
@@ -138,17 +85,17 @@ class ToolManagerUI(wx.Frame):
                 
     def filterToolType(self, event):
         i = event.GetId()
-        #print("filterToolType :: ", i)
+        print("filterToolType :: ", i)
         if i >= 0:
             #get the tool type name
-            self.toolTypeName = self.toolData.toolTypesList[i]
+            self.toolTypeName = self.toolData.tool_types_list[i]
             self.toolType = i
             #print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )   
         else:
             #print("no filter")
             self.toolType = -1
-        
-        self.toolData.fullToolsList = refreshToolList(self.panel, self.toolType)
+        self.toolData.full_tools_list = load_tools_from_database(self.toolType)
+        refreshToolList(self.panel, self.toolData.full_tools_list, self.toolType)
         
         self.statusBar.SetStatusText(self.getLoadedTools())
 
@@ -166,7 +113,7 @@ class ToolManagerUI(wx.Frame):
             validateToolDialog(self.panel, tool).ShowModal()
 
         if len(tools) > 0:
-            self.toolData.fullToolsList = refreshToolList(self.panel, tools[len(tools)-1].toolType)
+            #self.toolData.full_tools_list = refreshToolList(self.panel, tools[len(tools)-1].toolType)
             self.statusBar.SetStatusText(self.getLoadedTools())
         else:
             print("no tools loaded")

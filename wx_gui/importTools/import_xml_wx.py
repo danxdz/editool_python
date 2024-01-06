@@ -1,12 +1,13 @@
 import wx
 import xml.etree.ElementTree as ET
 
-from gui.guiTools import getToolTypesNumber
+#from gui.guiTools import getToolTypesNumber
 
 from tool import Tool, ToolsDefaultsData
 
+tools_defaults = ToolsDefaultsData()
 
-def parse_hyper_xml_data(root, toolTypes):
+def parse_hyper_xml_data(root):
     print(":: import from XML hp fraisa type")
     
     # Obtém os dados da ferramenta
@@ -31,11 +32,14 @@ def parse_hyper_xml_data(root, toolTypes):
     #print(toolType)
 
 
-    #check if toolType if valid
+    #check if toolType is valid
     if not toolType:
         toolType == 0
     else:
-        toolType = getToolTypesNumber(toolTypes, toolType)
+        print("teset: ", toolType)
+        #tooltype where is a string, like "endmill", need to enumerate from tools_defaults.tool_types
+        if toolType in tools_defaults.tool_types:
+            toolType = tools_defaults.tool_types.index(toolType)
            
         
     name = tool.attrib['name']
@@ -154,7 +158,7 @@ def get_property_value(tool, prop_name, default_value=''):
     return default_value
 
 
-def check_fraisa_types(toolTypes, tool_id):
+def check_fraisa_types(tool_id):
     # Sources from FRAISA.com
     frTooltypes = []
 
@@ -166,7 +170,7 @@ def check_fraisa_types(toolTypes, tool_id):
     tslotMill = [910, 915, 905]
     conical_barrel_tool = [8530, 8535, 8540, 8545, 8550]
     chamferMill = [7930, 7940, 7942]
-    
+
     frTooltypes.append(endMill)
     frTooltypes.append(radiusMill)
     frTooltypes.append(ballMill)
@@ -184,15 +188,11 @@ def check_fraisa_types(toolTypes, tool_id):
         if tool_id[0] == "0":
             tool_id = tool_id.replace("0", "", 1)
               
-    x=0
-    #print("tool_id: ", tool_id)
     #check all tool types
     for i, toolType in enumerate(frTooltypes):
         if tool_id.startswith(tuple(str(text_id) for text_id in toolType)):
-            #print("toolType: ", toolType, i)
-            #print("toolType: ", toolTypes)
-            x = getToolTypesNumber(toolTypes, toolTypes[i])            
-            return x
+            #print("toolType fsa: ", i)
+            return i
     return -1
 
 
@@ -203,7 +203,7 @@ def get_float_property(tool, property_name, default_value="0.0"):
     except ValueError:
         return 0.0
 
-def parse_new_xml_data(tool, toolTypes):
+def parse_new_xml_data(tool):
 
     print(":: import from XML")
     
@@ -234,9 +234,6 @@ def parse_new_xml_data(tool, toolTypes):
                 newTool.D2 = get_property_value(tool, "A11_2")
                 newTool.D3 = get_property_value(tool, "C3")
                 newTool.chamfer = get_property_value(tool, "E4_2")
-
-
-
 
 
     if readDin == "DIN4000-82": #DIN4000-82 - End mills with non-indexable cutting edges
@@ -277,7 +274,7 @@ def parse_new_xml_data(tool, toolTypes):
                 #print(f"{readType} - toolType is ThreadMill")
                 newTool.toolType = 9
 
-        print(f"toolType detected: {readDin}-{readType} :: {ToolsDefaultsData.toolTypes[newTool.toolType]}")
+        print(f"toolType detected: {readDin}-{readType} :: {tools_defaults.tool_types[newTool.toolType]}")
 
 
 
@@ -287,18 +284,15 @@ def parse_new_xml_data(tool, toolTypes):
     
         if newTool.D1 == "M":
             print("d1 is M")
-            #newTool.toolType = getToolTypesNumber(toolTypes, "tap")
+            newTool.toolType = 8
             newTool.D1 = get_property_value(tool, "A21")  
             newTool.threadPitch = get_property_value(tool, "A3")
             newTool.threadTolerance = get_property_value(tool, "A5")
 
     if not newTool.D1:
         print("no d1")
-        if not newTool.toolType:
-            print("no toolType")
-            newTool.toolType = getToolTypesNumber(toolTypes, "drill")
-            newTool.D1 = get_property_value(tool, "A2")      
-            newTool.L2 = get_property_value(tool, "B6")
+        newTool.D1 = get_property_value(tool, "A2")  or  get_property_value(tool, "A11")      
+        newTool.L2 = get_property_value(tool, "B6")
 
        
         newTool.D2 = get_float_property(tool, "A5")
@@ -363,6 +357,7 @@ def parse_new_xml_data(tool, toolTypes):
     except  Exception as e:
         print("*****name error: ", e)
 
+
     if not newTool.name:
         newTool.name = tool.find('.//Main-Data/ID21002').text.strip()
     
@@ -371,12 +366,12 @@ def parse_new_xml_data(tool, toolTypes):
     if not newTool.mfr:
         newTool.mfr = get_property_value(tool, "J3")
 
-
     #TODO MAKE EXTERNAL EDITABLE LIST
     if newTool.mfr == "FSA": 
         newTool.mfr = "FRAISA"
-        newTool.toolType = check_fraisa_types(toolTypes, newTool.name)  
+        newTool.toolType = check_fraisa_types(newTool.name)  
         print("found FRAISA tool_type :: ", newTool.toolType)
+    print("test")
 
     if newTool.mfr == "CE":
         newTool.mfr = "CERATIZIT"    
@@ -393,20 +388,20 @@ def parse_new_xml_data(tool, toolTypes):
         newTool.toolType = 0 #TODO: find way to get tool type from xml   
 
     if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
-        newTool.toolType = getToolTypesNumber(toolTypes, "endMill")
+        newTool.toolType = 0
 
     if newTool.toolType == "Eckradiusfräser" or newTool.toolType == "VHM-Torusfräser":
-        newTool.toolType = getToolTypesNumber(toolTypes, "radiusMill")
+        newTool.toolType = 1
 
     if newTool.toolType == "NC-Anbohrer":
-        newTool.toolType = getToolTypesNumber(toolTypes, "spotDrill")
+        newTool.toolType = 5
 
     if newTool.toolType == "drilTool":
-        newTool.toolType = getToolTypesNumber(toolTypes, "drill")
+        newTool.toolType = 7
     
     #change tslootcutter to tslotMill
     if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
-        newTool.toolType = getToolTypesNumber(toolTypes, "tslotMill")
+        newTool.toolType = 4
 
     if newTool.toolType == "Trennstellenkodierung maschinenseitig":
         newTool.toolType = 9
@@ -461,9 +456,9 @@ def open_file(self,title,wCard):
                 tool = root.find('.//Tool')
                 #dbout("TOOL",tool)
                 if tool:
-                    tool = parse_new_xml_data(tool, toolData.toolTypes)
+                    tool = parse_new_xml_data(tool)
                 else:
-                    tool = parse_hyper_xml_data(root, toolData.toolTypes)
+                    tool = parse_hyper_xml_data(root)
 
                 print("Import xml", path ,"finished")
                 print("tool: ", tool.name, tool.toolType, tool.cuttingMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)

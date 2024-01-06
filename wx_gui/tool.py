@@ -1,7 +1,7 @@
 #hardcoded values for tool types
 class ToolsDefaultsData:
     
-    coolantsTypes = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
+    coolants_types = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
     '''
     Coolant types:
       - 0: Unkown
@@ -12,7 +12,7 @@ class ToolsDefaultsData:
       - 5: mql
     '''
     
-    toolTypes = ["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]
+    tool_types = ["endMill", "radiusMill", "ballMill", "chamferMill", "tslotMill", "spotDrill", "centerDrill", "drill", "tap", "threadMill", "reamer"]
     '''
     -   0 - endMill
     -   1 - radiusMill
@@ -27,7 +27,7 @@ class ToolsDefaultsData:
     -   10 - reamer
     '''
     
-    tsModels = ["Side Mill D20 L35 SD20", 
+    ts_models = ["Side Mill D20 L35 SD20", 
                 "Radiused Mill D16 L40 r3 SD16", 
                 "Ball Nose Mill D8 L30 SD8", 
                 "Chamfer Mill D0 A30 SD10",
@@ -58,25 +58,24 @@ class ToolsDefaultsData:
 
 
 class ToolsCustomData:
-    tsModels = []
-    toolTypesNumbers = []
-    toolTypesList = []
-    fullToolsList = []
+    def __init__(self):
+        self.ts_models = []
+        self.tool_type_numbers = []
+        self.tool_types_list = []
+        self.full_tools_list = []
+        self.selected_tool = None
 
-    @classmethod
-    def getCustomTsModels(toolData):
-        #get all tool types and ts models from getToolTypes txt file    
-        
+    def get_custom_ts_models(self):
         with open("./tooltypes.txt", "r") as f:
             for line in f:
-                #print(line, toolData.toolTypes)
-                toolData.toolTypesList.append(line.split(";")[1])
-                #need to strip /n from end of line
-                toolData.tsModels.append(line.split(";")[2].strip())
-                toolData.toolTypesNumbers.append(line.split(";")[0])
-        #print("toolData :: ", toolData.toolTypes)    
-        return toolData
-    
+                parts = line.split(";")
+                if len(parts) < 3:
+                    print(f"Skipping line {line.strip()} because it does not have enough parts")
+                    continue
+                self.tool_types_list.append(parts[1])
+                self.ts_models.append(parts[2].strip())
+                self.tool_type_numbers.append(parts[0])
+        return self
 
 class Tool:
     """

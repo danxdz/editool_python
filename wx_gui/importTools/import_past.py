@@ -1,6 +1,6 @@
 from tool import Tool
 from tool import ToolsCustomData
-from gui.guiTools import getToolTypesNumber
+#from gui.guiTools import getToolTypesNumber
 from importTools.validateImportDialogue import validateToolDialog
 
 def open_file(self, title):      

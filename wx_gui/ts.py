@@ -8,6 +8,9 @@ import wx
 from tool import ToolsDefaultsData
 from tool import ToolsCustomData
 
+from databaseTools import update_tool
+from gui.guiTools import refreshToolList
+
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
@@ -208,11 +211,29 @@ def EndModif (ts_ext, op, ot):
 
 def copy_tool(tool, holder): #holder = true or false
 
+
     #load default data
     toolDefaultData = ToolsDefaultsData()
 
     toolData = ToolsCustomData()
-    toolData = toolData.getCustomTsModels()
+    toolData = toolData.get_custom_ts_models()
+
+    #check if tool is created
+    print("tool :: ", tool.name, " :: ", tool.TSid)
+    if tool.TSid == "" or tool.TSid == None :
+        print("tool :: ", tool.name, " not created in ts")
+    else:        
+        resp = wx.MessageBox('tool already created, update TSid?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)  #TODO: add a dialog to select if recreate or not
+        #get the response
+        if resp == wx.YES:
+            print("yes")
+        else:
+            print("no")
+            if holder:
+                copy_holder(None, tool)
+            return
+        
+
     
     ts_ext = tsConn()
  
@@ -230,7 +251,7 @@ def copy_tool(tool, holder): #holder = true or false
             ts_ext.Pdm.OpenProject(output_lib)
                             
             # get custom tool model name
-            customToolModel = toolData.tsModels[tool.toolType]
+            customToolModel = toolData.ts_models[tool.toolType]
             # if custom model exist
             if customToolModel:
                 print("custom model: ", customToolModel)
@@ -240,14 +261,14 @@ def copy_tool(tool, holder): #holder = true or false
                 # or get ts default model 
                 modelLib = get_default_lib(ts_ext) # TODO make it connect only one time if we create multiple tools
                 modelLib = modelLib[0]
-                tsDefaultModel = toolDefaultData.tsModels[tool.toolType]
+                tsDefaultModel = toolDefaultData.ts_models[tool.toolType]
                 toolToCopy_ModelId = ts_ext.Pdm.SearchDocumentByName(modelLib, tsDefaultModel)
         else:
             # if not editool project :: use current project to create tools
             output_lib = ts_ext.Pdm.GetCurrentProject()
             print("GetCurrentProject :: ", output_lib.Id)
 
-        print(f"*** copy tool ***  {toolDefaultData.toolTypes[tool.toolType]} :: from: {ts_ext.Pdm.GetName(modelLib)} :: model : {ts_ext.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {ts_ext.Pdm.GetName(output_lib)}")
+        print(f"*** copy tool ***  {toolDefaultData.tool_types[tool.toolType]} :: from: {ts_ext.Pdm.GetName(modelLib)} :: model : {ts_ext.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {ts_ext.Pdm.GetName(output_lib)}")
         
         
         #for i in toolModelId:
@@ -490,7 +511,7 @@ def copy_tool(tool, holder): #holder = true or false
         
         #update tool in database
 
-        ###############update_tool(tool)
+        update_tool(tool)
 
         if holder:
             copy_holder(ts_ext, savedToolModif)

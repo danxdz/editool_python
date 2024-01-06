@@ -13,11 +13,11 @@ class EditDialog(wx.Dialog):
         title = f'Editing "{tool.Name}" :: {toolTypesList[tool.toolType]}'
         super().__init__(parent=None, title=title)
         self.tool = tool
-        self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
         self.parent = parent
         self.toolTypesList = toolTypesList
-
         print("parent.toolTypes", tool.toolType)
+
+        self.main_sizer = wx.GridSizer(rows = 0, cols = 3, hgap = 5, vgap = 5)
          
         #Attributes from Tool class
         #get all Tool attributes

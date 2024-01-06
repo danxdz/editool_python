@@ -11,6 +11,9 @@ def sqlConn():
 
 
 def load_tools_from_database(toolType):
+        
+        #TODO return tools list by toolType
+        
         cursor = sqlConn()
         try:
             #print("load_tools_from_database :: toolType :: ", toolType)
@@ -62,9 +65,10 @@ def deleteTool(tool):
 def delete_selected_item(self, index):
     
     #delete tool from database
-    deleteTool(self.toolData.fullToolsList[index])
+    deleteTool(self.toolData.full_tools_list[index])
     #delete tool from list
-    del self.toolData.fullToolsList[index]
+    del self.toolData.full_tools_list[index]
+
 
 
 def saveTool(tool, toolTypes):
