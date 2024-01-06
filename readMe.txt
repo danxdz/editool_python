@@ -1,4 +1,4 @@
-![alt text](https://github.com/danxdz/editool_python/blob/main/editool_20230106.png)
+![gUI](https://github.com/danxdz/editool_python/blob/14001ad9698d40ffa0c2d0e8734cbf4b580a75a3/editool_20230106.png)
 
 
 
