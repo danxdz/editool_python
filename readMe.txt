@@ -1,4 +1,4 @@
-![editool_20230106](/screenshots/editool_20230106.png)
+![editool_20230106](screenshots/editool_20230106.png)
 
 
 - Import from xml tool Data ( DIN4000 data )
