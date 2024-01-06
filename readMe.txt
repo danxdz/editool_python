@@ -1,4 +1,4 @@
-![gUI](https://raw.github.com/danxdz/editool_python/main/editool_20230106.png)
+![gUI](editool_20230106.png)
 
 
 
