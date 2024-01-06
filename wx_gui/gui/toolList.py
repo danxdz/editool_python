@@ -16,10 +16,11 @@ class ToolList(wx.Panel):
     def __init__(self, parent, toolData):
         super().__init__(parent=parent)
 
-        self.font = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
-        self.font_name = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
+        self.font_10 = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
+        self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
+        self.font_tool_params_12 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Courier 10 Pitch')
             
-
+     
 
         self.parent = parent
         
@@ -36,7 +37,7 @@ class ToolList(wx.Panel):
 
         #this is the list control that will hold the tools list
         self.list_ctrl = wx.ListCtrl(
-            self, size=(550, 400),
+            self, size=(550, -1),
             style=wx.LC_REPORT | wx.BORDER_SIMPLE | wx.LC_VRULES 
         )   
         #add the list control to the sizer

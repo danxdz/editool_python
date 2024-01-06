@@ -23,51 +23,56 @@ from tool import ToolsCustomData
 
 
 class ToolManagerUI(wx.Frame):
+    BACKGROUND_COLOUR = wx.Colour(240, 240, 240)
+    TOOL_TYPE_ALL = "all"
+    PANEL_POSITION = (0, 0)
+
     def __init__(self, parent, id, title):
         no_resize = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
-        wx.Frame.__init__(self, parent, title=title, style= no_resize)
+        wx.Frame.__init__(self, parent, title=title, style=no_resize)
         self.Center()
 
-        self.SetBackgroundColour(wx.Colour(240, 240, 240)) #set background color  
+        self.setupUI()
 
-        #create dictionary with tool types and ts models
-        self.toolData = ToolsCustomData()
-        self.toolData.get_custom_ts_models()
-        print("toolData :: tooltypes : ", self.toolData.tool_types_list)
-        print("toolData :: tsModels ", self.toolData.ts_models)
-        print("toolData :: toolTypesNumbers ", self.toolData.tool_type_numbers)
-        #load all tools from database
-        self.toolData.full_tools_list = load_tools_from_database(-1)
-        print("toolData :: full_tools_list ", len(self.toolData.full_tools_list))
-
-        #create menu bar
+    def setupUI(self):
+        self.SetBackgroundColour(self.BACKGROUND_COLOUR)
+        self.toolData = self.loadToolData()
         create_menu(self)
+        self.main_sizer = self.createMainSizer()
+        self.statusBar = self.createStatusBar()
+        self.setFrameSizeAndPosition()
 
-        #create a container to hold the buttons
-        self.main_sizer = wx.BoxSizer(wx.VERTICAL)
-     
-        tooltypesButtons(self)
-        
-        #create the panel with the tool list
-        self.panel = ToolList(self, self.toolData)
-        
-        self.main_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND, 15)  # Add wx.EXPAND flag
-
-
+    def loadToolDefData(self):
+        toolDefData = ToolsCustomData()
+        toolDefData.selected_tool = None
+        return toolDefData
+    
+    def loadToolData(self):
+        toolData = ToolsCustomData()
+        toolData.get_custom_ts_models()
+        toolData.full_tools_list = load_tools_from_database(-1)
         self.toolTypeName = "all"
-        
-        
+        return toolData
 
-        self.statusBar = self.CreateStatusBar()
-       
+    def createMainSizer(self):
+        main_sizer = wx.BoxSizer(wx.VERTICAL)
+        main_sizer.Add(tooltypesButtons(self),  0, wx.ALL, 5)
+
+        self.panel = ToolList(self, self.toolData)
+        main_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND, 15)
+        self.SetSizer(main_sizer)
+        return main_sizer
+
+    def createStatusBar(self):
+        statusBar = self.CreateStatusBar()
         out = self.getLoadedTools()
+        statusBar.SetStatusText(out)
+        return statusBar
 
-        self.statusBar.SetStatusText(out)
-        
-        self.SetSizer(self.main_sizer)  # Set the sizer to the frame
-
-        self.SetSize(600, 1000)
-        self.Centre()
+    def setFrameSizeAndPosition(self):
+        screenWidth, screenHeight = wx.GetDisplaySize()
+        self.SetSize(int(screenWidth / 3), int(screenHeight) - 100)
+        self.SetPosition(self.PANEL_POSITION)
         self.Show()
         
 

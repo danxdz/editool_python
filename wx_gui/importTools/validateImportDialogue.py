@@ -170,7 +170,7 @@ class validateToolDialog(wx.Dialog):
         self.parent.Refresh()
         
 
-        self.Destroy()  # Close the dialog after saving tool
+        #self.Destroy()  # Close the dialog after saving tool
         
 
     def on_create(self, event):

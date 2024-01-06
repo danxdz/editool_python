@@ -163,10 +163,7 @@ def tooltypesButtons(self):
         #self.bt.Disable()
 
     #add the container to the main sizer
-    self.main_sizer.Add(self.iconsBar, 0, wx.ALL, 5)
-    self.SetSizer(self.main_sizer)
-    self.SetAutoLayout(1)
-    self.main_sizer.Fit(self)
+    return (self.iconsBar)
 
 
 def create_menu(self):
