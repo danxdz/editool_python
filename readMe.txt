@@ -1,4 +1,4 @@
-![gUI](https://github.com/danxdz/editool_python/main/editool_20230106.png?raw=true "Optional Title"))
+![gUI](https://raw.github.com/danxdz/editool_python/main/editool_20230106.png)
 
 
 
