@@ -1,4 +1,4 @@
-![editool_20230106](https://raw.githubusercontent.com/danxdz/editool_python/a16f3289c7c9ca595cdc4617238fc29565b45803/editool_20230106.png)
+![editool_20230106](/screenshots/editool_20230106.png)
 
 
 - Import from xml tool Data ( DIN4000 data )
