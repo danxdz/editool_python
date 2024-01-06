@@ -1,10 +1,4 @@
 
-[![Jason's avatar][1]][1]
-[1]: https://i.stack.imgur.com/X14m7.png
-"Tooltip for Jason's avatar"
-
-
-
 
 - Import from xml tool Data ( DIN4000 data )
     - FRAISA
