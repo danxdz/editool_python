@@ -410,7 +410,8 @@ def copy_tool(tool, holder): #holder = true or false
 
             setRealParameter(ts_ext, savedToolModif,"A_T", chamfer)
                                                                 
-            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), angle)      
+            ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"A"), angle)
+            print("AngleRad: ", angle, "chamfer: ", chamfer)      
        
         else:
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"D"), d1)                
@@ -420,6 +421,8 @@ def copy_tool(tool, holder): #holder = true or false
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"SD"), d3)                
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l1)                
         ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"OL"), l3)
+
+        print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
 
 
 
@@ -483,7 +486,8 @@ def copy_tool(tool, holder): #holder = true or false
 
         
         #if spot drill
-        elif tool.toolType == 5:#spot drill
+        elif tool.toolType == 6:#spot drill
+                print("spot drill: ", l2)
                 ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"L"), l2)
         
         else:
@@ -496,8 +500,7 @@ def copy_tool(tool, holder): #holder = true or false
         from TopSolid.Kernel.Automating import SmartText
 
         smartTextType = SmartText(ts_ext.Parameters.GetDescriptionParameter(savedToolModif))
-        print("smartTextType: ", smartTextType)
-
+       
         ts_ext.Parameters.PublishText(savedToolModif, "FR", smartTextType)
 
         EndModif(ts_ext, True, False)

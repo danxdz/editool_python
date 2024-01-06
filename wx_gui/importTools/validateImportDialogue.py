@@ -167,6 +167,9 @@ class validateToolDialog(wx.Dialog):
             print("saving ", self.tool.name, self.tool.toolType , " in database")
             saveTool(self.tool,self.toolData.tool_types_list) 
         refreshToolList(self.parent, self.toolData.full_tools_list, self.tool.toolType)
+        self.parent.Refresh()
+        
+
         self.Destroy()  # Close the dialog after saving tool
         
 
@@ -191,6 +194,11 @@ class validateToolDialog(wx.Dialog):
         if label_text == 'toolType':
             #get the index of the tool type
             changedValue = self.toolData.tool_types_list.index(changedValue)
+            #print("changedValue :: ", changedValue)
+
+        #check type of value, if int or float convert it
+        if label_text in ['D1', 'D2', 'D3', 'L1', 'L2', 'L3', 'Z', 'r']:
+            changedValue = float(changedValue)
             #print("changedValue :: ", changedValue)
 
         #set object attribute with the value of the widget

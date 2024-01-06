@@ -102,11 +102,11 @@ class ToolManagerUI(wx.Frame):
 
     #menu bar functions
     def on_open_xml(self, event):
-        print("import from xml file")
+        print(": import from xml file :: menu_bar")
         title = "Choose a XML file:"
         wcard ="XML files (*.xml)|*.xml"
         tools = import_xml_wx.open_file(self, title, wcard)
-        print("tools :: ", tools, len(tools))
+        #print("tools :: ", tools, len(tools))
 
 
         for tool in tools:

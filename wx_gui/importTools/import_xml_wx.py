@@ -218,6 +218,28 @@ def parse_new_xml_data(tool):
     readType = get_category_value(tool,".//Category-Data", "BLD")
     #print("readType: ", readType)
 
+    if readDin == "DIN4000-80": 
+        '''DIN4000-80 - Screwing taps, cold forming taps and screwing dies'''
+        #switch readType
+        match readType:
+            case "1":
+                #print(f"{readType} - toolType is EndMill")
+                '''DIN4000-80-1 - Taps with slim shank'''
+                newTool.toolType = 0
+            case "2":
+                #print(f"{readType} - toolType is Tap")
+                """DIN4000-80-2 - Taps with reinforced shank"""
+                newTool.toolType = 8
+            case "3":
+                #print(f"{readType} - toolType is Tap")
+                """DIN4000-80-3 - Forming taps with slim shank"""
+                newTool.toolType = 8
+            case "4":
+                """DIN4000-80-4 - Forming taps with reinforced shank"""
+                #print(f"{readType} - toolType is Tap")
+                newTool.toolType = 8
+
+
     if readDin == "DIN4000-81": #DIN4000-81 - Drills and countersinking tools with non-indexable cutting edges
         #switch readType
         match readType:
@@ -233,6 +255,9 @@ def parse_new_xml_data(tool):
                 newTool.D1 = get_property_value(tool, "A11")
                 newTool.D2 = get_property_value(tool, "A11_2")
                 newTool.D3 = get_property_value(tool, "C3")
+                newTool.L1 = get_property_value(tool, "B4") or get_property_value(tool, "B2_2")
+                newTool.L2 = get_property_value(tool, "B3")
+                newTool.L3 = get_property_value(tool, "B5")
                 newTool.chamfer = get_property_value(tool, "E4_2")
 
 
@@ -241,9 +266,11 @@ def parse_new_xml_data(tool):
         match readType:
             case "1":
                 #print(f"{readType} - toolType is EndMill")
+                '''DIN4000-82-1 - End milling cutters'''
                 newTool.toolType = 0
             case "2":
                 #print(f"{readType} - toolType is RadiusMill")
+                '''DIN4000-82-2 - Slotting and milling cutters'''
                 if newTool.cornerRadius:
                     if newTool.cornerRadius > 0.2:
                         newTool.toolType = 1
@@ -251,27 +278,39 @@ def parse_new_xml_data(tool):
                         newTool.toolType = 0
             case "3":
                 #print(f"{readType} - toolType is ChamferMill")
+                '''DIN4000-82-3 - Angle milling cutters'''
                 newTool.toolType = 3
             case "4":
                 print(f"{readType} - toolType is InversedChamferMill- not supported")
+                '''DIN4000-82-4 - Angle milling cutters (rev)'''
                 newTool.toolType = -1
             case "5":
                 #print(f"{readType} - toolType is TSlotMill")
+                '''DIN4000-82-5 - Fraise à rainure en T'''
                 newTool.toolType = 4
             case "6":
                 #print(f"{readType} - toolType is BallMill")
+                '''DIN4000-82-6 - Ball nose milling cutters'''
                 newTool.toolType = 2
             case "7":
                 #print(f"{readType} - toolType is BallMill - copy tool")
+                '''DIN4000-82-7 - Die end milling cutters'''
                 newTool.toolType = 2
             case "8":
-                #print(f"{readType} - toolType is Rounded profile end mill - not supported")
+                print(f"{readType} - toolType is Rounded profile end mill - not supported")
+                '''DIN4000-82-8 - Rounded profile end mill, concave'''
                 newTool.toolType = -1
             case "9":
-                #print(f"{readType} - toolType is Drill")
+                #print(f"{readType} - toolType is milling burrs - not supported")
+                '''DIN4000-82-9 - Milling burrs'''
                 newTool.toolType = 7
             case "10":
                 #print(f"{readType} - toolType is ThreadMill")
+                '''DIN4000-82-10 - Thread milling cutters'''
+                newTool.toolType = 9
+            case "12":
+                #print(f"{readType} - toolType is ThreadMill")
+                '''DIN4000-82-12 - Drill thread milling cutters'''
                 newTool.toolType = 9
 
         print(f"toolType detected: {readDin}-{readType} :: {tools_defaults.tool_types[newTool.toolType]}")
@@ -279,17 +318,20 @@ def parse_new_xml_data(tool):
 
 
     # Extract the properties using a function to handle missing properties
-    if readDin == "DIN4000-82":
+    if readDin == "DIN4000-82" or readDin == "DIN4000-80":
         newTool.D1 = get_property_value(tool, "A1") or get_property_value(tool, "A11")
-    
         if newTool.D1 == "M":
-            print("d1 is M")
-            newTool.toolType = 8
+            #print("d1 is M")
             newTool.D1 = get_property_value(tool, "A21")  
+            newTool.D3 = get_property_value(tool, "C3")
+            newTool.L1 = get_property_value(tool, "B1")
+            newTool.L2 = get_property_value(tool, "B2")
             newTool.threadPitch = get_property_value(tool, "A3")
             newTool.threadTolerance = get_property_value(tool, "A5")
+            
 
-    if not newTool.D1:
+
+    if not newTool.D1 and not newTool.toolType:
         print("no d1")
         newTool.D1 = get_property_value(tool, "A2")  or  get_property_value(tool, "A11")      
         newTool.L2 = get_property_value(tool, "B6")
@@ -300,13 +342,14 @@ def parse_new_xml_data(tool):
 
 
 
+    if not newTool.L1 and not newTool.toolType:
+        newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3")
 
-    newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3")
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
     newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
     newTool.cornerRadius = get_float_property(tool, "G1")
 
-    print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)
+    #print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)
         
     newTool.coolantType = get_property_value(tool, "H21")
     
@@ -329,14 +372,14 @@ def parse_new_xml_data(tool):
         newTool.toolType = get_property_value(tool, "D11")
 
     if newTool.toolType == 9:#threadMill
-        print("toolType is ThreadMill")
+        #print("toolType is ThreadMill")
         newTool.D1 = get_float_property(tool, "A5") or get_float_property(tool, "A2")
         newTool.D2 = 0 #no D2 for threadMill
         newTool.threadPitch = get_property_value(tool, "D32") 
         newTool.threadTolerance = get_property_value(tool, "D31")  
 
         findB4 = get_property_value(tool, "B4")
-        print("findB4: ", findB4)
+        #print("findB4: ", findB4)
         if findB4:
             newTool.L1 = get_float_property(tool, "B2")
             newTool.L2 = findB4
@@ -345,14 +388,14 @@ def parse_new_xml_data(tool):
 
     if newTool.neckAngle:
         if not newTool.toolType:
-            print("no toolType")
+            #print("no toolType")
             if int(newTool.neckAngle) > 91 or int(newTool.neckAngle) < 181 and not newTool.toolType:
                 newTool.toolType = 7#drill
         
 
     try:
         newTool.mfr = tool.find('.//Main-Data/Manufacturer').text.strip()
-        print("mfr: ", newTool.mfr)
+        #print("mfr: ", newTool.mfr)
         newTool.name = tool.find('.//Main-Data/PrimaryId').text.strip()
     except  Exception as e:
         print("*****name error: ", e)
@@ -370,8 +413,7 @@ def parse_new_xml_data(tool):
     if newTool.mfr == "FSA": 
         newTool.mfr = "FRAISA"
         newTool.toolType = check_fraisa_types(newTool.name)  
-        print("found FRAISA tool_type :: ", newTool.toolType)
-    print("test")
+        #print("found FRAISA tool_type :: ", newTool.toolType)
 
     if newTool.mfr == "CE":
         newTool.mfr = "CERATIZIT"    
@@ -381,8 +423,8 @@ def parse_new_xml_data(tool):
         newTool.mfr = "JONGEN" 
     
     if newTool.toolType == "":
-       print("new toolType: J22  ", newTool.toolType)
        newTool.toolType = get_property_value(tool, "J22")
+       #print("new toolType: J22  ", newTool.toolType)
     
     if not newTool.toolType:
         newTool.toolType = 0 #TODO: find way to get tool type from xml   
@@ -396,7 +438,7 @@ def parse_new_xml_data(tool):
     if newTool.toolType == "NC-Anbohrer":
         newTool.toolType = 5
 
-    if newTool.toolType == "drilTool":
+    if newTool.toolType == "drillTool":
         newTool.toolType = 7
     
     #change tslootcutter to tslotMill
@@ -406,11 +448,11 @@ def parse_new_xml_data(tool):
     if newTool.toolType == "Trennstellenkodierung maschinenseitig":
         newTool.toolType = 9
     
-    print("tool_data: ",newTool.mfr, newTool.name, newTool.toolType, newTool.cuttingMaterial, newTool.neckAngle, newTool.centerCut, newTool.coolantType, newTool.threadTolerance, newTool.threadPitch, newTool.mfr, newTool.mfrRef, newTool.mfrSecRef, newTool.code, newTool.codeBar, newTool.comment)
+    #print("tool_data: ",newTool.mfr, newTool.name, newTool.toolType, newTool.cuttingMaterial, newTool.neckAngle, newTool.centerCut, newTool.coolantType, newTool.threadTolerance, newTool.threadPitch, newTool.mfr, newTool.mfrRef, newTool.mfrSecRef, newTool.code, newTool.codeBar, newTool.comment)
 
     #alert if toolType is not valid
     if not newTool.D1 or newTool.D1 == 0 or newTool.D1 == "0":
-        print("no D1", newTool.D1)
+        #print("no D1", newTool.D1)
         msgError = wx.MessageBox("Tool cut diameter not detected", "Warning", wx.OK | wx.ICON_WARNING)
 
     return newTool
