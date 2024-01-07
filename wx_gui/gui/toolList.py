@@ -45,7 +45,7 @@ class ToolList(wx.Panel):
         #add the list control to the sizer
         self.sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
-        self.toolView = wx.Panel(self, size=(int(screenWidth/3)-100, int(screenHeight/5)))
+        self.toolView = wx.Panel(self, size=(int(screenWidth/3), int(screenHeight/5)))
         self.sizer.Add(self.toolView, 0, wx.ALL | wx.CENTER, 5)
         #need to bind the paint event to the panel
         self.toolView.Bind(wx.EVT_PAINT, self.OnPaint)
@@ -113,7 +113,7 @@ class ToolList(wx.Panel):
         tool = self.toolData.full_tools_list[i]
 
         #EditDialog(self,tool, self.toolData.tool_types_list).ShowModal()
-        validateToolDialog(self, tool).ShowModal()
+        validateToolDialog(self, tool, False).ShowModal()
       
 
 
@@ -169,7 +169,6 @@ class ToolList(wx.Panel):
             elif id == 3:
                 print("floatMenu :: Delete")
                 delete_selected_item(self.GetParent(),i+ind)
-                self.list_ctrl.DeleteAllItems()
             
         
         refreshToolList(self,self.toolData.full_tools_list, modif_tooltype )

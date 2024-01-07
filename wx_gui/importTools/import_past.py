@@ -5,7 +5,7 @@ from importTools.validateImportDialogue import validateToolDialog
 
 def open_file(self, title):      
     tool = Tool()  
-    validateToolDialog(self.panel, tool).ShowModal()
+    validateToolDialog(self.panel, tool, True).ShowModal()
 
 
 def process_input_13999(input_text, toolTypesList):

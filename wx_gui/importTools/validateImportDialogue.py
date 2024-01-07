@@ -12,12 +12,14 @@ from databaseTools import update_tool
 
 
 class validateToolDialog(wx.Dialog):
-    def __init__(self,parent,tool):
+    def __init__(self,parent,tool, isNew):
         title = 'Validate tool data'
         super().__init__(parent=None, title=title)
       
         self.parent = parent
         self.tool = tool
+
+        self.isNew = isNew
 
         self.toolData = parent.toolData
 
@@ -166,11 +168,15 @@ class validateToolDialog(wx.Dialog):
         else:
             print("saving ", self.tool.name, self.tool.toolType , " in database")
             saveTool(self.tool,self.toolData.tool_types_list) 
-        refreshToolList(self.parent, self.toolData.full_tools_list, self.tool.toolType)
+
+            self.toolData.full_tools_list.append(self.tool)
+
         self.parent.Refresh()
         
+        if self.isNew:
+            self.Destroy()  # Close the dialog after saving tool
 
-        #self.Destroy()  # Close the dialog after saving tool
+        refreshToolList(self.parent, self.toolData.full_tools_list, self.tool.toolType)
         
 
     def on_create(self, event):

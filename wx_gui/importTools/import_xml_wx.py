@@ -245,7 +245,8 @@ def parse_new_xml_data(tool):
         match readType:
             case "1":
                 #print(f"{readType} - toolType is Drill")
-                newTool.toolType = 7
+                newTool.toolType = 7                
+                newTool.D1 = get_property_value(tool, "A11")
             case "6":
                 #print(f"{readType} - toolType is spotDrill")
                 newTool.toolType = 5

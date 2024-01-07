@@ -9,7 +9,7 @@ class ToolsDefaultsData:
         "FR3T Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FOAP Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FOAC Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
-        "FO Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FO Ø[D] L[L] [NoTT]z Lc[L]",
         "TAR M[M]xP[P] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FRFI [Norm]x[Pitch] Ø[D] L[L] [NoTT]z  Lu[LH]",
         "AL Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]"

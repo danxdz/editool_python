@@ -118,7 +118,7 @@ class ToolManagerUI(wx.Frame):
 
 
         for tool in tools:
-            validateToolDialog(self.panel, tool).ShowModal()
+            validateToolDialog(self.panel, tool, True).ShowModal()
 
         if len(tools) > 0:
             #self.toolData.full_tools_list = refreshToolList(self.panel, tools[len(tools)-1].toolType)
