@@ -9,7 +9,7 @@ from tool import ToolsDefaultsData
 from tool import ToolsCustomData
 
 from databaseTools import update_tool
-from gui.guiTools import refreshToolList
+from gui.guiTools import load_masks
 
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
@@ -314,8 +314,19 @@ def copy_tool(tool, holder): #holder = true or false
         
         exit()
         """
+        #get name mask
+        print("tool type: ", tool.toolType, len(toolData.tool_names_mask))
+        for mask in toolData.tool_names_mask:
+            print("mask: ", mask)
+        toolData.tool_names_mask = load_masks()
+        #need to strip last char from mask _n??
+        mask = toolData.tool_names_mask[tool.toolType]
 
-        ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.name)
+        print("mask: ", mask)
+
+        ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), str(mask))
+
+        #ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.name)
         #TODO: add tool parameters config
         ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), str(tool.name))
         ts_ext.Parameters.SetTextValue(ts_ext.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), str(tool.mfr))
@@ -472,18 +483,6 @@ def copy_tool(tool, holder): #holder = true or false
                                 
                                     
 
-
-                              
-
-                        
-
-                                    
-
-
-
-
-
-
         
         #if spot drill
         elif tool.toolType == 6:#spot drill
@@ -492,7 +491,7 @@ def copy_tool(tool, holder): #holder = true or false
         
         else:
                 
-            if l2 > 0:
+            if l2 > 0 and tool.toolType != 8 and tool.toolType != 9 and tool.toolType != 7:
                 ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
                 ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
       

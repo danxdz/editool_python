@@ -1,14 +1,16 @@
 import wx
 
-
-tool_max_width = 520 # tool max width
-tool_max_height = 220  # tool height
 tool_box_margin = 10  # tool margin
 text_spacer_w = 25 # space between text 
 text_spacer_h = 10 # space between text 
 
 def OnPaint(self, dc, tool):
-        
+        #print("OnPaint", tool.name)    
+        screen_width, screen_height = wx.GetDisplaySize()
+
+        tool_max_width = int(screen_width/3)-100 # tool max width
+        tool_max_height = int(screen_height/5)  # tool height
+
         # Draw rectangles - tool sections
         def draw_rectangle(x, y, width, height):
                 dc.DrawRectangle(int(x), int(y), int(width), int(height))
@@ -17,7 +19,7 @@ def OnPaint(self, dc, tool):
         dc.SetBrush(brush)
         dc.SetPen(wx.Pen(wx.Colour((210,210,250)))) 
 
-        dc.DrawRectangle(0, 0, tool_max_width+2*tool_box_margin, tool_max_height)
+        dc.DrawRectangle(0, 0, tool_max_width, tool_max_height)
         dc.SetFont(self.font_name)
 
         dc.SetPen(wx.Pen('#0f0f0f'))
@@ -26,21 +28,23 @@ def OnPaint(self, dc, tool):
         dc.DrawText(f"{tool.name} :: {self.toolData.tool_types_list[tool.toolType]}", int(tool_box_margin), 11)
 
          # Calculate scale factors
-        w = 540
         axis_line = 150
-        scale_width = w / tool.L3
+        scale_width = int((tool_max_width+49) / tool.L3)
 
         
 
         # Scale tool attributes
         scaled_values = {
             'D1': int(tool.D1 * scale_width)/2,
-            'D2': int(tool.D2 * scale_width)/2 if tool.D2 else int(tool.D1 * scale_width)/2,
+            'D2': int(tool.D2 * scale_width)/2 if tool.D2 else int((tool.D1-0.2) * scale_width)/2,
             'D3': int(tool.D3 * scale_width)/2,
             'L1': int(tool.L1 * scale_width),
             'L2': int(tool.L2 * scale_width) if tool.L2 else 0,
             'L3': int(tool.L3 * scale_width),
         }
+
+        rad = int(scaled_values['D1']) #int((scale_width*tool.cornerRadius))
+
 
         #for key, value in scaled_values.items():
         #    print(key, value)
@@ -75,7 +79,6 @@ def OnPaint(self, dc, tool):
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
             draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2'])
         elif tool.toolType == 2:
-            rad = int((scale_width*tool.cornerRadius))
             draw_rectangle(rad, axis_line, scaled_values['L1']-rad, -scaled_values['D1'])
             dc.DrawArc(rad, axis_line-rad,0, axis_line, rad, axis_line)
         elif tool.toolType == 3:

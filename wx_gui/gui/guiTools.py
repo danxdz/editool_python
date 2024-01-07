@@ -1,5 +1,30 @@
-import wx
+import wx, os
 
+from tool import ToolsDefaultsData
+from tool import ToolsCustomData
+
+toolData = ToolsCustomData()
+toolDefData = ToolsDefaultsData()
+
+
+def load_masks():
+    masks = toolDefData.tool_names_mask
+    #check if the file exist
+    check = os.path.isfile('toolsetup.txt')        
+    if check:
+        file = open('toolsetup.txt', 'r', encoding='utf-8')
+        #read the data from the file
+        masks = file.readlines()
+        masks = [x.strip() for x in masks]
+
+    else:
+        file = open('toolsetup.txt', 'w', encoding='utf-8')
+        #if file not exist create it and add some default data
+        print("file not exist :: ", len(masks))
+        for mask in masks:
+            file.write(f"{mask}\n")
+    file.close()        
+    return masks
 
 def toolDetailsPanel(self, tool):
     toolAttributes = tool.getAttributes()
@@ -95,26 +120,12 @@ def add_line(self, tool):
         self.list_ctrl.SetItemBackgroundColour(index, wx.Colour(230, 250, 230))
     return index
 
-def getToolTypesIcons(tooltypes, path):
-    icons = []
-    for tooltype in tooltypes:
-        icon = path + tooltype + ".png"
-        print("icon :: ", icon)
-        icons.append(icon)
-    return icons
 
-'''def getToolTypesNumber(toolTypes, value): 
-    for i, toolType in enumerate(toolTypes):
-        #print("getToolTypesNumber :: ", toolType, " :: ", value)
-        if toolType == value:
-            value = i
-            #print("getToolTypesNumber :: ", toolType, " :: ", value, i)
-            return i'''
-        
 def refreshToolList(self,tools, toolType):
     #print("refreshToolList :: tooltype :: ", toolType)
     #tools = load_tools_from_database(toolType)
-    print("refreshToolList :: ", len(tools), " :: ", toolType)
+    if tools:
+        print("refreshToolList :: ", len(tools), " :: ", toolType)
     self.list_ctrl.DeleteAllItems()
 
     newToolTypeText = "all"
@@ -143,28 +154,29 @@ def tooltypesButtons(self):
     self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
     self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
 
-    
+    for i, toolType in enumerate(toolDefData.tool_types):
 
-
-    for i, toolType in enumerate(self.toolData.tool_types_list):
         #print("toolType :: ", toolType)
         icon = wx.Bitmap(f'icons/{toolType}.png')
         #set button size
         self.iconsBar.SetMinSize((20, 40))
+
         #add button to the container
         self.bt = wx.BitmapButton(self, id=i, bitmap=icon, name=toolType,style=wx.BORDER_RAISED)
         self.bt.SetToolTip(wx.ToolTip(toolType))
         self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.bt.SetWindowStyleFlag(wx.NO_BORDER)
+
         self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
-        #set tooltip for each button
         self.Bind(wx.EVT_BUTTON, self.filterToolType, id=i)
-        #desable button if no tools of this type
-        #self.bt.Disable()
+
 
     #add the container to the main sizer
     return (self.iconsBar)
 
+
+
+    
 
 def create_menu(self):
 

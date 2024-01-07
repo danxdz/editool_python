@@ -7,6 +7,7 @@ from gui.toolSetup import toolSetupPanel
 from gui.guiTools import refreshToolList
 from gui.guiTools import tooltypesButtons
 from gui.guiTools import create_menu
+from gui.guiTools import load_masks
 
 from databaseTools import load_tools_from_database
 
@@ -51,15 +52,17 @@ class ToolManagerUI(wx.Frame):
         toolData = ToolsCustomData()
         toolData.get_custom_ts_models()
         toolData.full_tools_list = load_tools_from_database(-1)
+        toolData.tool_names_mask = load_masks()
+        print("toolData.tool_names_mask :: ", len(toolData.tool_names_mask))
         self.toolTypeName = "all"
         return toolData
 
     def createMainSizer(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(tooltypesButtons(self),  0, wx.ALL, 5)
+        main_sizer.Add(tooltypesButtons(self),  0, wx.ALL | wx.CENTER, 5)
 
         self.panel = ToolList(self, self.toolData)
-        main_sizer.Add(self.panel, 1, wx.ALL | wx.EXPAND, 15)
+        main_sizer.Add(self.panel, 1, wx.ALL | wx.CENTER | wx.EXPAND, 15)
         self.SetSizer(main_sizer)
         return main_sizer
 

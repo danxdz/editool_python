@@ -4543,7 +4543,6 @@ imports:
   <div class="import">
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
- &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#ts">ts</a>
@@ -9024,6 +9023,7 @@ imported by:
 imported by:
     <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
+ &#8226;   <a href="#gui.toolPreview">gui.toolPreview</a>
  &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
 
   </div>
@@ -9035,8 +9035,8 @@ imported by:
   <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/gui/guiTools.py" type="text/plain"><tt>gui.guiTools</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#databaseTools">databaseTools</a>
- &#8226;   <a href="#gui">gui</a>
+    <a href="#gui">gui</a>
+ &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#tool">tool</a>
  &#8226;   <a href="#wx">wx</a>
 
@@ -9045,9 +9045,9 @@ imports:
 imported by:
     <a href="#ToolManagerUi">ToolManagerUi</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
- &#8226;   <a href="#importTools.import_past">importTools.import_past</a>
- &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>
+ &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
+ &#8226;   <a href="#ts">ts</a>
 
   </div>
 
@@ -9061,6 +9061,7 @@ imports:
     <a href="#databaseTools">databaseTools</a>
  &#8226;   <a href="#gui">gui</a>
  &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
+ &#8226;   <a href="#gui.toolPreview">gui.toolPreview</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#ts">ts</a>
  &#8226;   <a href="#wx">wx</a>
@@ -9075,11 +9076,29 @@ imported by:
 </div>
 
 <div class="node">
+  <a name="gui.toolPreview"></a>
+  <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/gui/toolPreview.py" type="text/plain"><tt>gui.toolPreview</tt></a>
+<span class="moduletype">SourceModule</span>  <div class="import">
+imports:
+    <a href="#gui">gui</a>
+ &#8226;   <a href="#wx">wx</a>
+
+  </div>
+  <div class="import">
+imported by:
+    <a href="#gui.toolList">gui.toolList</a>
+
+  </div>
+
+</div>
+
+<div class="node">
   <a name="gui.toolSetup"></a>
   <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/gui/toolSetup.py" type="text/plain"><tt>gui.toolSetup</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
     <a href="#gui">gui</a>
+ &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#wx">wx</a>
 
   </div>
@@ -9422,8 +9441,7 @@ imported by:
   <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/importTools/import_past.py" type="text/plain"><tt>importTools.import_past</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#gui.guiTools">gui.guiTools</a>
- &#8226;   <a href="#importTools">importTools</a>
+    <a href="#importTools">importTools</a>
  &#8226;   <a href="#importTools.validateImportDialogue">importTools.validateImportDialogue</a>
  &#8226;   <a href="#tool">tool</a>
 
@@ -9442,8 +9460,7 @@ imported by:
   <a target="code" href="///G:/works/2023/git%20clone/editool_python/wx_gui/importTools/import_xml_wx.py" type="text/plain"><tt>importTools.import_xml_wx</tt></a>
 <span class="moduletype">SourceModule</span>  <div class="import">
 imports:
-    <a href="#gui.guiTools">gui.guiTools</a>
- &#8226;   <a href="#importTools">importTools</a>
+    <a href="#importTools">importTools</a>
  &#8226;   <a href="#tool">tool</a>
  &#8226;   <a href="#wx">wx</a>
  &#8226;   <a href="#xml.etree.ElementTree">xml.etree.ElementTree</a>
@@ -11901,6 +11918,7 @@ imported by:
  &#8226;   <a href="#getpass">getpass</a>
  &#8226;   <a href="#gettext">gettext</a>
  &#8226;   <a href="#glob">glob</a>
+ &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gzip">gzip</a>
  &#8226;   <a href="#http.cookiejar">http.cookiejar</a>
  &#8226;   <a href="#http.server">http.server</a>
@@ -20250,6 +20268,7 @@ imports:
  &#8226;   <a href="#TopSolid">TopSolid</a>
  &#8226;   <a href="#clr">clr</a>
  &#8226;   <a href="#databaseTools">databaseTools</a>
+ &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#math">math</a>
  &#8226;   <a href="#os">os</a>
  &#8226;   <a href="#tool">tool</a>
@@ -21282,6 +21301,7 @@ imported by:
  &#8226;   <a href="#editool.py">editool.py</a>
  &#8226;   <a href="#gui.guiTools">gui.guiTools</a>
  &#8226;   <a href="#gui.toolList">gui.toolList</a>
+ &#8226;   <a href="#gui.toolPreview">gui.toolPreview</a>
  &#8226;   <a href="#gui.toolSetup">gui.toolSetup</a>
  &#8226;   <a href="#importHolders.holdersPanel">importHolders.holdersPanel</a>
  &#8226;   <a href="#importTools.import_xml_wx">importTools.import_xml_wx</a>

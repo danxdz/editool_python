@@ -308,6 +308,10 @@ def parse_new_xml_data(tool):
                 #print(f"{readType} - toolType is ThreadMill")
                 '''DIN4000-82-10 - Thread milling cutters'''
                 newTool.toolType = 9
+            case "11":
+                print(f"{readType} - toolType is Gouges - not supported")
+                '''DIN4000-82-11 - Gouges'''
+                newTool.toolType = -1
             case "12":
                 #print(f"{readType} - toolType is ThreadMill")
                 '''DIN4000-82-12 - Drill thread milling cutters'''
@@ -334,17 +338,19 @@ def parse_new_xml_data(tool):
     if not newTool.D1 and not newTool.toolType:
         print("no d1")
         newTool.D1 = get_property_value(tool, "A2")  or  get_property_value(tool, "A11")      
-        newTool.L2 = get_property_value(tool, "B6")
-
-       
+        
+    if not newTool.D2:
         newTool.D2 = get_float_property(tool, "A5")
+    
+    if not newTool.L1:
+        newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3") #b2 fraisa
+    if not newTool.L2:
+        newTool.L2 = get_property_value(tool, "B9") #fraisa
+
+
+    if not newTool.D3:
         newTool.D3 = get_float_property(tool, "C3")
-
-
-
-    if not newTool.L1 and not newTool.toolType:
-        newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3")
-
+    
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
     newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
     newTool.cornerRadius = get_float_property(tool, "G1")
@@ -363,7 +369,7 @@ def parse_new_xml_data(tool):
         newTool.coolantType = 0
 
 
-    newTool.cuttingMaterial = get_property_value(tool, "J3")   
+    newTool.toolMaterial = get_property_value(tool, "J3")   
     newTool.mfrSecRef = get_property_value(tool, "H5")
     newTool.codeBar = get_property_value(tool, "J21")
     newTool.comment = get_property_value(tool, "J8")
@@ -503,7 +509,7 @@ def open_file(self,title,wCard):
                     tool = parse_hyper_xml_data(root)
 
                 print("Import xml", path ,"finished")
-                print("tool: ", tool.name, tool.toolType, tool.cuttingMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
+                print("tool: ", tool.name, tool.toolType, tool.toolMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
                 toolsList.append(tool)
 
             except Exception as e:

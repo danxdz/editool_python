@@ -1,5 +1,19 @@
 #hardcoded values for tool types
 class ToolsDefaultsData:
+
+    tool_names_mask = [
+        "FR2T Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FRTO Ø[D] r[r] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FRHE Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FRCH Ø[D] A[A] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FR3T Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FOAP Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FOAC Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FO Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "TAR M[M]xP[P] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FRFI [Norm]x[Pitch] Ø[D] L[L] [NoTT]z  Lu[LH]",
+        "AL Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]"
+    ]
     
     coolants_types = ["0: 'Unkown'","1: 'external'", "2: 'internal'", "3: 'externalAir'", "4: 'externalAir'", "5: 'mql'"]
     '''
@@ -63,6 +77,7 @@ class ToolsCustomData:
         self.tool_type_numbers = []
         self.tool_types_list = []
         self.full_tools_list = []
+        self.tool_names_mask = []
         self.selected_tool = None
 
     def get_custom_ts_models(self):

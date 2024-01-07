@@ -23,28 +23,30 @@ class ToolList(wx.Panel):
      
 
         self.parent = parent
+        self.selected_tool = self.parent.toolData.selected_tool
         
         #initialize the tool list
         self.tool_labels = {}
 
         self.toolData = toolData
-        self.selected_tool = self.toolData.full_tools_list[0]
-
+        if self.toolData.full_tools_list:
+            self.selected_tool = self.toolData.full_tools_list[0]
 
         #create the sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
         #this is the list control that will hold the tools list
+        screenWidth, screenHeight = wx.GetDisplaySize()
         self.list_ctrl = wx.ListCtrl(
-            self, size=(550, -1),
+            self, size=(int(screenWidth/3), int(screenHeight/2)),
             style=wx.LC_REPORT | wx.BORDER_SIMPLE | wx.LC_VRULES 
         )   
         #add the list control to the sizer
-        self.sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND, 5)
+        self.sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
 
-        self.toolView = wx.Panel(self, size=(550, 200))
-        self.sizer.Add(self.toolView, 0, wx.ALL, 5)
+        self.toolView = wx.Panel(self, size=(int(screenWidth/3)-100, int(screenHeight/5)))
+        self.sizer.Add(self.toolView, 0, wx.ALL | wx.CENTER, 5)
         #need to bind the paint event to the panel
         self.toolView.Bind(wx.EVT_PAINT, self.OnPaint)
 
@@ -64,9 +66,9 @@ class ToolList(wx.Panel):
 
         
         refreshToolList(self,self.toolData.full_tools_list, -1)
-
-        if len(toolData.full_tools_list) > 0:
-            tool = toolData.full_tools_list[0]
+        if toolData.full_tools_list:
+            if len(toolData.full_tools_list) > 0:
+                tool = toolData.full_tools_list[0]
    
         
 
@@ -86,7 +88,8 @@ class ToolList(wx.Panel):
         tool = self.selected_tool
         #print("OnPaint", tool.name)
         dc = wx.PaintDC(self.toolView)
-        OnPaint(self, dc, tool)
+        if tool:
+            OnPaint(self, dc, tool)
 
     def toolSelected(self, event):
         tool = self.toolData.full_tools_list[self.list_ctrl.GetFirstSelected()]  
@@ -96,17 +99,10 @@ class ToolList(wx.Panel):
         if tool.name:
             print ("tool selected: ", tool.name , " :: ", toolTypeName )
             self.Refresh()
-            self.selected_tool = tool
-
-
-            
+            self.selected_tool = tool           
 
         else:
-            print("error :: tool selected:: ", tool)
-
-    
-
-
+            print("error :: tool selected:: ", tool)  
 
 
        
