@@ -153,6 +153,6 @@ class pasteDialog(wx.Dialog):
     def on_create(self, event):
         self.tool.name = self.main_sizer.GetItemCount()
         
-        ts.copy_tool(self.tool)
+        ts.copy_tool(self, self.tool, False)
         #print("tool :: ", self.tool)
         self.Destroy()  # Close the dialog after create tool    

@@ -3,8 +3,43 @@ import wx, os
 from tool import ToolsDefaultsData
 from tool import ToolsCustomData
 
+
+
+
+
+class GenericMessageBox(wx.Dialog):
+    def __init__(self, parent, text, title = ''):
+        wx.Dialog.__init__(self, parent, -1, title = title, size = (360,120), style = wx.DEFAULT_DIALOG_STYLE)
+        panel = wx.Panel(self, wx.ID_ANY, size = (360, 50), pos = (0,0))
+        panel.SetBackgroundColour('#FFFFFF')
+        label = wx.StaticText(panel, -1, text, pos = (50,20))        
+        panel2 = wx.Panel(self, wx.ID_ANY, size = (360, 40), pos = (0, 50))
+        #add sizer buttons
+        sz = wx.BoxSizer(wx.HORIZONTAL)
+        btn = wx.Button(panel2, wx.ID_OK, "duplicate", pos = (100, 10))
+        bt2 = wx.Button(panel2, wx.ID_YES, "update", pos = (200, 10))
+        bt_cancel = wx.Button(panel2, wx.ID_CANCEL, "cancel", pos = (300, 10))
+
+
+        btn.SetDefault()
+        sz.Add(btn, 0, wx.ALL, 5)
+        sz.Add(bt2, 0, wx.ALL, 5)
+
+        panel2.SetSizer(sz)
+        self.Center()
+
+
+
+
+
+
+
+
 toolData = ToolsCustomData()
 toolDefData = ToolsDefaultsData()
+
+
+
 
 
 def load_masks():
@@ -121,16 +156,17 @@ def add_line(self, tool):
     return index
 
 
-def refreshToolList(self,tools, toolType):
+def refreshToolList(self,tools):
     #print("refreshToolList :: tooltype :: ", toolType)
     #tools = load_tools_from_database(toolType)
+    tool_type = self.toolData.selected_toolType
     if tools:
-        print("refreshToolList :: ", len(tools), " :: ", toolType)
+        print("refreshToolList :: ", len(tools), " :: ", tool_type)
     self.list_ctrl.DeleteAllItems()
 
     newToolTypeText = "all"
-    if toolType != -1:
-        newToolTypeText = self.toolData.tool_types_list[toolType] 
+    if tool_type != -1:
+        newToolTypeText = self.toolData.tool_types_list[tool_type] 
         print("refreshToolList :: ", newToolTypeText)     
     if tools:
         print(f"{len(tools)} tools loaded :: type : {newToolTypeText}")

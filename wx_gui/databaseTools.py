@@ -78,7 +78,7 @@ def delete_selected_item(self, index):
 
 def saveTool(tool, toolTypes):
     print("saveTool :: ",tool.id, tool.name, tool.toolType)
-    if tool.id != 0:
+    if tool.id != 0: #filter for new tool #TODO: remove this filter
         update_tool(tool)
         return
     

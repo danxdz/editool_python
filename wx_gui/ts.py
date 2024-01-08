@@ -8,8 +8,8 @@ import wx
 from tool import ToolsDefaultsData
 from tool import ToolsCustomData
 
-from databaseTools import update_tool
-from gui.guiTools import load_masks
+from databaseTools import update_tool, saveTool
+from gui.guiTools import load_masks, GenericMessageBox
 
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
@@ -208,8 +208,7 @@ def EndModif (ts_ext, op, ot):
 
 
 
-
-def copy_tool(tool, holder): #holder = true or false
+def copy_tool(self, tool, holder): #holder = true or false
 
 
     #load default data
@@ -223,14 +222,22 @@ def copy_tool(tool, holder): #holder = true or false
     if tool.TSid == "" or tool.TSid == None :
         print("tool :: ", tool.name, " not created in ts")
     else:        
-        resp = wx.MessageBox('tool already created, update TSid?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)  #TODO: add a dialog to select if recreate or not
+        #answer = wx.MessageBox('tool already created, duplicate tool?', 'Warning', wx.YES_NO)
+        #answer = wx.MessageBox('tool already created, update TSid? or clone tool?', 'Warning', wx.YES_NO)  #TODO: add a dialog to select if recreate or not
         #get the response
-        if resp == wx.YES:
-            print("yes")
+        box = GenericMessageBox(self, "tool already created, duplicate tool? or update TSid?", "Tool already created")
+        answer = box.ShowModal()
+        print("answer: ", answer)
+
+        if answer == wx.ID_OK:
+            print("duplicate tool (db and ts): ", tool.TSid)
+            #create duplicate tool in database
+            tool.id = 0 #set id to 0 to create a new tool
+            saveTool(tool, self.toolData.tool_types_list)
+        elif answer == wx.ID_YES:
+            print("update TSid: ", tool.TSid)
         else:
-            print("no")
-            if holder:
-                copy_holder(None, tool)
+            print("canceled")
             return
         
 
@@ -555,8 +562,9 @@ def copy_holder(ts_ext, tool):
 
         if len(openDocs) == 0:
             #msg box theres no open holder in TS
-            aze = wx.MessageBox('no filesopen on TS, try to open an holder and retry', 'Warning', wx.OK | wx.ICON_QUESTION)                      
-    
+            aze = wx.MessageBox('no files open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.CANCEL | wx.ICON_QUESTION)                      
+        
+        holder_found = 0
         #check if any holder is open in TS
         for holder in openDocs:
             print("holder: ", holder.PdmDocumentId)
@@ -573,15 +581,18 @@ def copy_holder(ts_ext, tool):
                                 print(f"GetName: {ts_ext.Elements.GetName(i)} GetFriendlyName:  {function}")
                                 if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>": #TODO: check if exist a better way to identify holder
                                     print(f"found : {function}")
+                                    holder_found += 1
                                     create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder)
                                     break
                                 elif function == "Compensation outil <TO>":
                                     print(f"not an holder : {function} is one tool")
-                                    out = wx.MessageBox('no holder file open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
                                     break
                     
-                    
-        #noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
+        if holder_found == 0:
+            noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
+            if noTool == wx.OK:
+                copy_holder(ts_ext, tool)
+            print("noTool: ", noTool)
     
 
                     

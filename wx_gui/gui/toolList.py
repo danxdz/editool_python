@@ -7,7 +7,7 @@ from gui.guiTools import add_columns
 from gui.guiTools import refreshToolList
 from gui.toolPreview import OnPaint
 
-from databaseTools import delete_selected_item
+from databaseTools import delete_selected_item , load_tools_from_database
 
 from ts import copy_tool, copy_holder, get_tool_TSid
 
@@ -65,7 +65,7 @@ class ToolList(wx.Panel):
         add_columns(self)
 
         
-        refreshToolList(self,self.toolData.full_tools_list, -1)
+        refreshToolList(self,self.toolData.full_tools_list)
         if toolData.full_tools_list:
             if len(toolData.full_tools_list) > 0:
                 tool = toolData.full_tools_list[0]
@@ -155,8 +155,9 @@ class ToolList(wx.Panel):
                 print("floatMenu :: Create")      
                 #create tool :: false = no holder 
                 print("create tool :: ", self.toolData.full_tools_list[i+ind].name)
-                copy_tool(self.toolData.full_tools_list[i+ind], False)
-                refreshToolList(self,self.toolData.full_tools_list, self.toolData.full_tools_list[i+ind].toolType)
+                copy_tool(self, self.toolData.full_tools_list[i+ind], False)
+                self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.toolData.full_tools_list[i+ind].toolType)
+                 
             if id == 1:                
                 print("floatMenu ::  Create with holder")     
                 #create tool :: true = holder
@@ -171,7 +172,7 @@ class ToolList(wx.Panel):
                 delete_selected_item(self.GetParent(),i+ind)
             
         
-        refreshToolList(self,self.toolData.full_tools_list, modif_tooltype )
+        refreshToolList(self,self.toolData.full_tools_list )
 
 
     #show popup menu
