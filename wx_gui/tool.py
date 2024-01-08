@@ -7,8 +7,8 @@ class ToolsDefaultsData:
         "FRHE Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FRCH Ø[D] A[A] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FR3T Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
-        "FOAP Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
-        "FOAC Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",
+        "FOAP Ø[D] [NoTT]z Lc[L]",
+        "FOAC Ø[D] [NoTT]z Lc[L]",
         "FO Ø[D] L[L] [NoTT]z Lc[L]",
         "TAR M[M]xP[P] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FRFI [Norm]x[Pitch] Ø[D] L[L] [NoTT]z  Lu[LH]",
@@ -78,7 +78,9 @@ class ToolsCustomData:
         self.tool_types_list = []
         self.full_tools_list = []
         self.tool_names_mask = []
-        self.selected_tool = None
+        self.existent_tooltypes = []
+        self.selected_tool = 0
+        self.selected_toolType = 0
 
     def get_custom_ts_models(self):
         with open("./tooltypes.txt", "r") as f:

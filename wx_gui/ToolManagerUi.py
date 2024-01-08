@@ -38,6 +38,10 @@ class ToolManagerUI(wx.Frame):
     def setupUI(self):
         self.SetBackgroundColour(self.BACKGROUND_COLOUR)
         self.toolData = self.loadToolData()
+        self.toolDefData = self.loadToolDefData()
+        self.selected_tooltype_name = "all"
+        self.selected_toolType = -1
+        self.icons_bar_widget = None
         create_menu(self)
         self.main_sizer = self.createMainSizer()
         self.statusBar = self.createStatusBar()
@@ -45,21 +49,28 @@ class ToolManagerUI(wx.Frame):
 
     def loadToolDefData(self):
         toolDefData = ToolsCustomData()
-        toolDefData.selected_tool = None
+        if len(self.toolData.full_tools_list)>0:
+            toolDefData.selected_tool = self.toolData.full_tools_list[0]
         return toolDefData
     
     def loadToolData(self):
         toolData = ToolsCustomData()
         toolData.get_custom_ts_models()
-        toolData.full_tools_list = load_tools_from_database(-1)
+        toolData.full_tools_list, existent_tooltypes = load_tools_from_database(-1)
+        for existent_tooltype in existent_tooltypes:
+
+            toolData.existent_tooltypes.append(int(existent_tooltype))
         toolData.tool_names_mask = load_masks()
-        print("toolData.tool_names_mask :: ", len(toolData.tool_names_mask))
-        self.toolTypeName = "all"
+        print("toolData.existent_tooltypes :: ", toolData.existent_tooltypes , len(toolData.existent_tooltypes))
+  
+
         return toolData
 
     def createMainSizer(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
-        main_sizer.Add(tooltypesButtons(self),  0, wx.ALL | wx.CENTER, 5)
+        self.icons_bar_widget = tooltypesButtons(self)
+        
+        main_sizer.Add(self.icons_bar_widget,  0, wx.ALL | wx.CENTER, 5)
 
         self.panel = ToolList(self, self.toolData)
         main_sizer.Add(self.panel, 1, wx.ALL | wx.CENTER | wx.EXPAND, 15)
@@ -81,13 +92,13 @@ class ToolManagerUI(wx.Frame):
 
 
     def getLoadedTools(self):
-        out = f"no tools :: type : {self.toolTypeName}"
+        out = f"no tools :: type : {self.selected_tooltype_name}"
         if self.toolData.full_tools_list:
             numTools = len(self.toolData.full_tools_list) or 0
             if numTools == 1:
-                out = f" {numTools} tool :: type : {self.toolTypeName}"
+                out = f" {numTools} tool :: type : {self.selected_tooltype_name}"
             if numTools > 1:
-                out = f" {numTools} tools :: type : {self.toolTypeName}"
+                out = f" {numTools} tools :: type : {self.selected_tooltype_name}"
         return out
     
                 
@@ -96,16 +107,38 @@ class ToolManagerUI(wx.Frame):
         print("filterToolType :: ", i)
         if i >= 0:
             #get the tool type name
-            self.toolTypeName = self.toolData.tool_types_list[i]
-            self.toolType = i
+            self.selected_tooltype_name = self.toolData.tool_types_list[i]
+            self.selected_toolType = i
             #print(f":: filterToolType {self.toolType} :: {self.toolTypeName} :: {i}" )   
         else:
             #print("no filter")
-            self.toolType = -1
-        self.toolData.full_tools_list = load_tools_from_database(self.toolType)
-        refreshToolList(self.panel, self.toolData.full_tools_list, self.toolType)
-        
-        self.statusBar.SetStatusText(self.getLoadedTools())
+            self.selected_toolType = -1
+        self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.selected_toolType)
+        for existent_tooltype in existent_tooltypes:
+                if int(existent_tooltype) not in self.toolData.existent_tooltypes:
+                    self.toolData.existent_tooltypes.append(int(existent_tooltype))
+    
+        refreshToolList(self.panel, self.toolData.full_tools_list, self.selected_toolType)
+
+
+        # Remove the old icons bar from the main sizer
+        self.main_sizer.Hide(self.icons_bar_widget)
+        self.main_sizer.Remove(self.icons_bar_widget)
+
+        # Create a new icons bar and add it to the main sizer
+        self.icons_bar_widget = tooltypesButtons(self)
+        print("self.icons_bar_widget :: ", self.icons_bar_widget)
+        self.main_sizer.Insert(0,self.icons_bar_widget, 0, wx.ALL | wx.CENTER, 5)
+        self.main_sizer.Layout()
+        self.Refresh()
+
+
+
+
+
+
+
+
 
 
     #menu bar functions

@@ -95,9 +95,9 @@ def add_columns(self):
     self.list_ctrl.InsertColumn(11, 'eval', width=100)
 
 def add_line(self, tool):
-    #change color of the line
-    
+        
     index = self.list_ctrl.GetItemCount()
+    
     #print("adding tool line :: ", index, " :: ", tool.name)
 
 
@@ -153,6 +153,13 @@ def tooltypesButtons(self):
     self.bt.SetWindowStyleFlag(wx.NO_BORDER)
     self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
     self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
+    if self.selected_toolType == -1:
+        self.bt.Enabled = False
+    else:
+        self.bt.Enabled = True
+
+    
+    print("existent_tooltypes :: ", self.toolData.existent_tooltypes, self.selected_toolType)
 
     for i, toolType in enumerate(toolDefData.tool_types):
 
@@ -166,10 +173,13 @@ def tooltypesButtons(self):
         self.bt.SetToolTip(wx.ToolTip(toolType))
         self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.bt.SetWindowStyleFlag(wx.NO_BORDER)
-
+        self.bt.Enabled = False
         self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
         self.Bind(wx.EVT_BUTTON, self.filterToolType, id=i)
+        if i in self.toolData.existent_tooltypes and i != self.selected_toolType:
+           self.bt.Enabled = True
 
+        
 
     #add the container to the main sizer
     return (self.iconsBar)

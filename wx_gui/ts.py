@@ -541,7 +541,8 @@ def copy_holder(ts_ext, tool):
     # Connect to TopSolid
     print(ts_design_ext.Connect())
 
-    EndModif(ts_ext, False, False)
+    #uncomment to prevent get TS blocked, may output an error "No modification to end."
+    #EndModif(ts_ext, False, False)
 
 
     try:
@@ -552,8 +553,10 @@ def copy_holder(ts_ext, tool):
         openDocs = ts_ext.Documents.GetOpenDocuments()
         print("openDocs: ", len(openDocs))
 
-        holdersFound = False
-
+        if len(openDocs) == 0:
+            #msg box theres no open holder in TS
+            aze = wx.MessageBox('no filesopen on TS, try to open an holder and retry', 'Warning', wx.OK | wx.ICON_QUESTION)                      
+    
         #check if any holder is open in TS
         for holder in openDocs:
             print("holder: ", holder.PdmDocumentId)
@@ -563,107 +566,119 @@ def copy_holder(ts_ext, tool):
                     #get functions of the part
                     holderFunctions = ts_ext.Entities.GetFunctions(holder)
                     if holderFunctions:
-                        print("toolModelen: ", len(holderFunctions))
+                        print("number functions found: ", len(holderFunctions))
                         if holderFunctions and len(holderFunctions) > 0:
                             for  i in holderFunctions:
-                                print("holderFunctions", ts_ext.Elements.GetName(i))
                                 function = ts_ext.Elements.GetFriendlyName(i)
-                                print("function: ", function)
+                                print(f"GetName: {ts_ext.Elements.GetName(i)} GetFriendlyName:  {function}")
                                 if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>": #TODO: check if exist a better way to identify holder
                                     print(f"found : {function}")
-                                    holdersFound = True
+                                    create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder)
+                                    break
+                                elif function == "Compensation outil <TO>":
+                                    print(f"not an holder : {function} is one tool")
+                                    out = wx.MessageBox('no holder file open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
                                     break
                     
-                    if holdersFound == True:
-                        print("holderFound: ", holdersFound)
-                        
-                        elemModelId = []
-                        elemModelId.append(holder)
-
-                        #get the assembly model 
-                        assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "FR + PO")
-                        print("assemblyModelId: ", assemblyModelId[0].Id)
-                                            
-                        elemModelId.append(tool)
-
-                        #print("elemModelId",elemModelId, len(elemModelId))
-                        #for i in elemModelId:
-                        #    print("elemModelId: ", i.PdmDocumentId)
-
-                        # need a list of PdmObjectId to CopySeveral, but we need to copy only the first tool
-                        firstTool = assemblyModelId[0]
-                        assemblyModelId.Clear()
-                        assemblyModelId.Add(firstTool)
-
-                        newTool = ts_ext.Pdm.CopySeveral(assemblyModelId, output_lib)
-
-                        print(f"Tool copied successfully!", newTool[0].Id)
-                        
-                        newToolDocId = ts_ext.Documents.GetDocument(newTool[0])
-
-                        ts_ext.Documents.Open(newToolDocId)
-
-                        ts_ext.Application.StartModification("tmp", True)
-                                        
-                        dirt = ts_ext.Documents.EnsureIsDirty(newToolDocId)
-
-                        print(f"dirt:: {dirt.PdmDocumentId} :: {newToolDocId.PdmDocumentId}")
-
-                        ops = ts_ext.Operations.GetOperations(dirt)
-
-                        print("ops", ops, len(ops))
-                        i = 0
-
-                        for o in ops:
-                            if i > 1:
-                                break      
-
-                            Name = ts_ext.Elements.GetName(o)
-                            #check if it's an inclusion : 3 first letters of name = "Inc"
-                            if Name:
-                                elemType = getType(ts_ext, o)
-                                print("elemType: ", elemType)
-                                if elemType == "TopSolid.Cad.Design.DB.Inclusion.InclusionOperation":
-                                    print("name::: ",Name)
-                                    print("child: ", o.DocumentId)
-                                    
-                                    IsInclusion = ts_design_ext.Assemblies.IsInclusion(o)
-                                    print("child: ", IsInclusion, o.DocumentId)
-
-                                    if IsInclusion == True:
-                                        ts_ext.Application.StartModification("tmp", True)
-
-                                        newTool = elemModelId[i]  #ts_ext.Documents.GetDocument(elemModelId[i])
-                                        i = i + 1
-                                        print("newTool: ", newTool.PdmDocumentId)
-
-                                        ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
-                                        
-                                        EndModif(ts_ext, True,True)
-                        
-                        ts_ext.Application.StartModification("tmp", True)
-
-                        name = "[FR] + [PO]"
-
-                        ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
-
-                        EndModif(ts_ext, True, False)
-                        ts_ext.Documents.Save(newToolDocId)
-
-                        
                     
-                    
-        if holdersFound == False:
-            print("holder not found")
-            noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
+        #noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK | wx.ICON_QUESTION)
     
-                
+
                     
 
     except Exception as ex:
         print("Error copying tool: " + str(ex))
         EndModif(ts_ext, False, False)
 
+
+
+def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holder = true or false
+    
+        print("create_tool_w_holder: ", holder)
+        
+        elemModelId = []
+        elemModelId.append(holder)
+
+        #get the assembly model
+        print("output_lib: ", output_lib.Id)
+        assemblyModelId = ts_ext.Pdm.SearchDocumentByName(output_lib, "FR + PO")
+        print("tset: ", assemblyModelId, len(assemblyModelId))
+        if len(assemblyModelId) == 0:
+            print("assembly not found. need to import/create it?")
+            #TODO: add a dialog to select if recreate or not
+            resp = wx.MessageBox('assembly not found. need to import/create it?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)
+            return
+        
+        else:
+            print("assemblyModelId: ", assemblyModelId[0].Id)
+                            
+            elemModelId.append(tool)
+
+            #print("elemModelId",elemModelId, len(elemModelId))
+            #for i in elemModelId:
+            #    print("elemModelId: ", i.PdmDocumentId)
+
+            # need a list of PdmObjectId to CopySeveral, but we need to copy only the first tool
+            firstTool = assemblyModelId[0]
+            assemblyModelId.Clear()
+            assemblyModelId.Add(firstTool)
+
+            newTool = ts_ext.Pdm.CopySeveral(assemblyModelId, output_lib)
+
+            print(f"Tool copied successfully!", newTool[0].Id)
+            
+            newToolDocId = ts_ext.Documents.GetDocument(newTool[0])
+
+            ts_ext.Documents.Open(newToolDocId)
+
+            ts_ext.Application.StartModification("tmp", True)
+                            
+            dirt = ts_ext.Documents.EnsureIsDirty(newToolDocId)
+
+            print(f"dirt:: {dirt.PdmDocumentId} :: {newToolDocId.PdmDocumentId}")
+
+            ops = ts_ext.Operations.GetOperations(dirt)
+
+            print("ops", ops, len(ops))
+            i = 0
+
+            for o in ops:
+                if i > 1:
+                    break      
+
+                Name = ts_ext.Elements.GetName(o)
+                #check if it's an inclusion : 3 first letters of name = "Inc"
+                if Name:
+                    elemType = getType(ts_ext, o)
+                    print("elemType: ", elemType)
+                    if elemType == "TopSolid.Cad.Design.DB.Inclusion.InclusionOperation":
+                        print("name::: ",Name)
+                        print("child: ", o.DocumentId)
+                        
+                        IsInclusion = ts_design_ext.Assemblies.IsInclusion(o)
+                        print("child: ", IsInclusion, o.DocumentId)
+
+                        if IsInclusion == True:
+                            ts_ext.Application.StartModification("tmp", True)
+
+                            newTool = elemModelId[i]  #ts_ext.Documents.GetDocument(elemModelId[i])
+                            i = i + 1
+                            print("newTool: ", newTool.PdmDocumentId)
+
+                            ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
+                            
+                            EndModif(ts_ext, True,True)
+            
+            ts_ext.Application.StartModification("tmp", True)
+
+            name = "[FR] + [PO]"
+
+            ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
+
+            EndModif(ts_ext, True, False)
+            ts_ext.Documents.Save(newToolDocId)
+
+            #update tool in database    
 
 
 

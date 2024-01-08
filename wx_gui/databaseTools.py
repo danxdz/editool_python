@@ -25,8 +25,12 @@ def load_tools_from_database(toolType):
             #print("Tools readed from database: ", len(tools))
             # add tools to list
             tools_list = []
+            existent_tooltypes = []
             for tool_data in tools:
                 tool = Tool(*tool_data[0:])
+                #create a list of tooltypes, add a new tooltype if not exists
+                if tool.toolType not in existent_tooltypes:
+                    existent_tooltypes.append(tool.toolType)
                 tools_list.append(tool)
                 #print("tool added: ", tool.name)
                         
@@ -40,12 +44,13 @@ def load_tools_from_database(toolType):
             self.L2_cb.Append(str(" "))
             self.Z_cb.Append(str(" "))
             '''
-
-            return tools_list
+            print("load_tools_from_database :: ", len(tools_list), " :: ", len(existent_tooltypes))
+            return tools_list, existent_tooltypes
         
         except Exception as e:
             #create_db()
             print("Error: ", e)
+            return [], []
 
 def deleteTool(tool):
     #connect to the database
