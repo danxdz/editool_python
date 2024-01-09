@@ -65,7 +65,7 @@ class ToolList(wx.Panel):
         add_columns(self)
 
         
-        refreshToolList(self,self.toolData.full_tools_list)
+        refreshToolList(self,self.toolData)
         if toolData.full_tools_list:
             if len(toolData.full_tools_list) > 0:
                 tool = toolData.full_tools_list[0]
@@ -166,13 +166,13 @@ class ToolList(wx.Panel):
                 copy_holder(None, get_tool_TSid(self.toolData.full_tools_list[i+ind]))
             elif id == 2:
                 print("floatMenu :: Edit :: ", self.toolData.full_tools_list[i+ind].name )
-                validateToolDialog(self, self.toolData.full_tools_list[i+ind]).ShowModal()
+                validateToolDialog(self, self.toolData.full_tools_list[i+ind],False).ShowModal()
             elif id == 3:
                 print("floatMenu :: Delete")
                 delete_selected_item(self.GetParent(),i+ind)
             
         
-        refreshToolList(self,self.toolData.full_tools_list )
+        refreshToolList(self,self.toolData )
 
 
     #show popup menu

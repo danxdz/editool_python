@@ -80,6 +80,7 @@ def OnPaint(self, dc, tool):
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
             draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2'])
         elif tool.toolType == 2:
+
             draw_rectangle(rad, axis_line, scaled_values['L1']-rad, -scaled_values['D1'])
             dc.DrawArc(rad, axis_line-rad,0, axis_line, rad, axis_line)
         elif tool.toolType == 3:
@@ -88,44 +89,46 @@ def OnPaint(self, dc, tool):
 
 
         #find the middle of the tool l3, so we can draw the text in the middle of tool corps
-        m_l1 = int((scaled_values['L1']-0)/2)+0
-        m_l2 = int((scaled_values['L2']-scaled_values['L1'])/2)+scaled_values['L1']
-        m_l3 = int((scaled_values['L3']-scaled_values['L2'])/2)+scaled_values['L2']
+        m_l1 = int((scaled_values['L1'])/2)
+        m_l2 = int((scaled_values['L2'] - (scaled_values['L2']/2))+scaled_values['L1'])
+        m_l3 = int((scaled_values['L3'] - scaled_values['L2'])/2)+scaled_values['L2']
 
         #get tool parameters text size
-        d1_w, d1_h = dc.GetTextExtent(str(tool.D1))
-        l1_w, l1_h = dc.GetTextExtent(str(tool.L1))
-        d2_w, d2_h = dc.GetTextExtent(str(tool.D2))
-        l2_w, l2_h = dc.GetTextExtent(str(tool.L2))
+        d1_w, d1_h = dc.GetTextExtent(f"D1: {tool.D1}")
+
+        d2_w, d2_h = dc.GetTextExtent(f"D2: {tool.D2}")
         d3_w, d3_h = dc.GetTextExtent(str(tool.D3))
-        l3_w, l3_h = dc.GetTextExtent(str(tool.L3))        
+
+        x_dl1 = m_l1-(int(d1_w/2))
+        x_dl2 = m_l2-(int(d2_w/2))
+        x_dl3 = m_l3-(int(d3_w/2))         
 
         # Draw tool parameters labels        
         dc.SetFont(self.font_tool_params_12)
         dc.SetTextForeground(nocut_len_border_color)
-        dc.DrawText('D1:', m_l1, axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
-        dc.DrawText('L1:', m_l1, axis_line + (text_spacer_h*2))
-        if tool.D2 and tool.D2 != 0:
-            dc.DrawText('D2:', m_l2, axis_line - int(scaled_values['D1'] + d2_h + text_spacer_h))
-            dc.DrawText('L2:', m_l2, axis_line + (text_spacer_h*2))
+        dc.DrawText('D1:', x_dl1, axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
+        dc.DrawText('L1:', x_dl1, axis_line + int(scaled_values['D1']/2))
+        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2:
+            dc.DrawText('D2:', x_dl2, axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
+            dc.DrawText('L2:', x_dl2, axis_line + int(scaled_values['D2']/2))
         #if tool.toolType == 2: 
             #dc.DrawText('r', text_spacer_w, int(axis_line-(scaled_values['D1']*2)))
-        dc.DrawText('D3:', m_l3, axis_line - int(scaled_values['D1'] + d3_h + text_spacer_h))
-        dc.DrawText('L3:', m_l3, axis_line + (text_spacer_h*2))
+        dc.DrawText('D3:', x_dl3, axis_line - int(scaled_values['D3'] + d3_h + text_spacer_h))
+        dc.DrawText('L3:', x_dl3, axis_line + int(scaled_values['D3']/2))
         
         # Draw tool parameters values
         dc.SetTextForeground(cut_len_border_color)
-        dc.DrawText(str(tool.D1), m_l1 + text_spacer_w, axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
-        dc.DrawText(str(tool.L1), m_l1 + text_spacer_w, axis_line + (text_spacer_h*2))
-        if tool.D2 and tool.D2 != 0:
-            dc.DrawText(str(tool.D2), m_l2 + text_spacer_w, axis_line - int(scaled_values['D1'] + d2_h + text_spacer_h))
-            dc.DrawText(str(tool.L2), m_l2 + text_spacer_w, axis_line + (text_spacer_h*2))
+        dc.DrawText(str(tool.D1), int(m_l1-(d1_w/2)+text_spacer_w), axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
+        dc.DrawText(str(tool.L1), int(m_l1-(d1_w/2)+text_spacer_w), axis_line + int(scaled_values['D1']/2))
+        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2:
+            dc.DrawText(str(tool.D2), int(m_l2-(d2_w/2)+text_spacer_w), axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
+            dc.DrawText(str(tool.L2), int(m_l2-(d2_w/2)+text_spacer_w), axis_line + int(scaled_values['D2']/2))
         if tool.toolType == 2:
             r_w, r_h = dc.GetTextExtent(str("r "))
             #dc.DrawText(str(tool.cornerRadius), int(text_spacer_w+r_w+5), int(axis_line-(scaled_values['D1']*2)))
 
-        dc.DrawText(str(tool.D3), m_l3 + text_spacer_w, axis_line - int(scaled_values['D1'] + d3_h + text_spacer_h))
-        dc.DrawText(str(tool.L3), m_l3 + text_spacer_w, axis_line + (text_spacer_h*2))
+        dc.DrawText(str(tool.D3), int(m_l3-(d3_w/2)+text_spacer_w), axis_line - int(scaled_values['D3'] + d3_h + text_spacer_h))
+        dc.DrawText(str(tool.L3), int(m_l3-(d3_w/2)+text_spacer_w), axis_line + int(scaled_values['D3']/2))
 
         
         # Draw axis line

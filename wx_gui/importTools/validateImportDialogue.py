@@ -176,7 +176,7 @@ class validateToolDialog(wx.Dialog):
         if self.isNew:
             self.Destroy()  # Close the dialog after saving tool
 
-        refreshToolList(self.parent, self.toolData.full_tools_list, self.tool.toolType)
+        refreshToolList(self.parent, self.toolData)
         
 
     def on_create(self, event):

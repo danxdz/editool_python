@@ -129,55 +129,56 @@ def add_columns(self):
     self.list_ctrl.InsertColumn(10, 'Manuf', width=100)
     self.list_ctrl.InsertColumn(11, 'eval', width=100)
 
-def add_line(self, tool):
+def add_line(panel, tool):
         
-    index = self.list_ctrl.GetItemCount()
+    index = panel.list_ctrl.GetItemCount()
     
     #print("adding tool line :: ", index, " :: ", tool.name)
 
 
     
-    index = self.list_ctrl.InsertItem(index, str(index + 1))
-    self.list_ctrl.SetItem(index, 1, str(tool.name))
+    index = panel.list_ctrl.InsertItem(index, str(index + 1))
+    panel.list_ctrl.SetItem(index, 1, str(tool.name))
     #set item background color
-    self.list_ctrl.SetItemBackgroundColour(index, wx.Colour(255, 255, 255))
-    self.list_ctrl.SetItem(index, 2, str(tool.D1))
-    self.list_ctrl.SetItem(index, 3, str(tool.L1))
-    self.list_ctrl.SetItem(index, 4, str(tool.D2))
-    self.list_ctrl.SetItem(index, 5, str(tool.L2))
-    self.list_ctrl.SetItem(index, 6, str(tool.D3))
-    self.list_ctrl.SetItem(index, 7, str(tool.L3))
-    self.list_ctrl.SetItem(index, 8, str(tool.z))
-    self.list_ctrl.SetItem(index, 9, str(tool.cornerRadius))
-    self.list_ctrl.SetItem(index, 10, str(tool.mfr))
+    panel.list_ctrl.SetItemBackgroundColour(index, wx.Colour(255, 255, 255))
+    panel.list_ctrl.SetItem(index, 2, str(tool.D1))
+    panel.list_ctrl.SetItem(index, 3, str(tool.L1))
+    panel.list_ctrl.SetItem(index, 4, str(tool.D2))
+    panel.list_ctrl.SetItem(index, 5, str(tool.L2))
+    panel.list_ctrl.SetItem(index, 6, str(tool.D3))
+    panel.list_ctrl.SetItem(index, 7, str(tool.L3))
+    panel.list_ctrl.SetItem(index, 8, str(tool.z))
+    panel.list_ctrl.SetItem(index, 9, str(tool.cornerRadius))
+    panel.list_ctrl.SetItem(index, 10, str(tool.mfr))
     if tool.TSid:
         #print("tool.TSid :: ", tool.TSid)
-        self.list_ctrl.SetItemBackgroundColour(index, wx.Colour(230, 250, 230))
+        panel.list_ctrl.SetItemBackgroundColour(index, wx.Colour(230, 250, 230))
     return index
 
 
-def refreshToolList(self,tools):
+def refreshToolList(panel, toolData):
     #print("refreshToolList :: tooltype :: ", toolType)
     #tools = load_tools_from_database(toolType)
-    tool_type = self.toolData.selected_toolType
+   
+    tool_type = toolData.selected_toolType
+    tools = toolData.full_tools_list
     if tools:
         print("refreshToolList :: ", len(tools), " :: ", tool_type)
-    self.list_ctrl.DeleteAllItems()
+        panel.list_ctrl.DeleteAllItems()
 
-    newToolTypeText = "all"
+    new_tool_type_text = "all"
     if tool_type != -1:
-        newToolTypeText = self.toolData.tool_types_list[tool_type] 
-        print("refreshToolList :: ", newToolTypeText)     
+        new_tool_type_text = toolData.tool_types_list[tool_type] 
+        print("refreshToolList :: ", new_tool_type_text)     
     if tools:
-        print(f"{len(tools)} tools loaded :: type : {newToolTypeText}")
+        print(f"{len(tools)} tools loaded :: type : {new_tool_type_text}")
         #self.list_ctrl.DeleteAllItems()
         for tool in tools:
-            add_line(self, tool)
+            add_line(panel, tool)
     else:
-        print(f"no tools loaded :: type : {newToolTypeText}")
-        #self.list_ctrl.DeleteAllItems()
+        print(f"no tools loaded :: type : {new_tool_type_text}")
     
-    self.list_ctrl.Refresh()
+    panel.Refresh()
 
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)

@@ -118,7 +118,7 @@ class ToolManagerUI(wx.Frame):
                 if int(existent_tooltype) not in self.toolData.existent_tooltypes:
                     self.toolData.existent_tooltypes.append(int(existent_tooltype))
     
-        refreshToolList(self.panel, self.toolData.full_tools_list, self.selected_toolType)
+        refreshToolList(self.panel, self.toolData)
 
 
         # Remove the old icons bar from the main sizer
