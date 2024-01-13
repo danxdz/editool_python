@@ -39,12 +39,41 @@ class ToolList(wx.Panel):
 
         #this is the list control that will hold the tools list
         screenWidth, screenHeight = wx.GetDisplaySize()
-        self.list_ctrl = wx.ListCtrl(
-            self, size=(int(screenWidth/3), int(screenHeight/2)),
-            style=wx.LC_REPORT | wx.BORDER_SIMPLE | wx.LC_VRULES 
-        )   
-        #add the list control to the sizer
-        self.sizer.Add(self.list_ctrl, 0, wx.ALL | wx.EXPAND | wx.CENTER, 5)
+
+
+        #get the columns for the list control from tool class
+
+        simpleColumns = [
+            ColumnDefn("Name", "left", 100, "name"),
+            ColumnDefn("D1", "left", 50, "D1"),
+            ColumnDefn("D2", "left", 50, "D2"),
+            ColumnDefn("D3", "left", 50, "D3"),
+            ColumnDefn("L1", "left", 50, "L1"),
+            ColumnDefn("L2", "left", 50, "L2"),
+            ColumnDefn("L3", "left", 50, "L3"),
+            ColumnDefn("Z", "left", 50, "z"),
+            ColumnDefn("Corner Radius", "left", 50, "cornerRadius"),
+        ]
+        
+        self.dataObjects = self.toolData.full_tools_list
+        self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+
+        self.olvSimple.SetColumns(simpleColumns)
+        self.olvSimple.SetObjects(self.dataObjects)
+        self.olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
+        
+        self.sizer.Add(self.olvSimple, 1, wx.ALL|wx.EXPAND, 5)
+
+        #bind the events to the list control
+        self.olvSimple.Bind(wx.EVT_LIST_ITEM_SELECTED, self.toolSelected, self.olvSimple, id=wx.ID_ANY)
+        #right click event
+        self.olvSimple.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.olvSimple)
+        #double left click event
+        self.olvSimple.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.olvSimple)
+
+
+
+
 
         self.toolView = wx.Panel(self, size=(int(screenWidth/3), int(screenHeight/5)))
         self.sizer.Add(self.toolView, 0, wx.ALL | wx.CENTER, 5)
@@ -53,9 +82,7 @@ class ToolList(wx.Panel):
 
         
    
-        #this is needed to allow the lines oflist control to be selected
-        self.list_ctrl.Enable(True)
-
+        '''
         #bind the events to the list control
         self.list_ctrl.Bind(wx.EVT_LIST_ITEM_SELECTED, self.toolSelected, self.list_ctrl, id=wx.ID_ANY)
         #right click event
@@ -63,7 +90,7 @@ class ToolList(wx.Panel):
         #double left click event
         self.list_ctrl.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.list_ctrl)
 
-        add_columns(self)
+        add_columns(self)'''
 
         
         refreshToolList(self,self.toolData)
@@ -73,16 +100,6 @@ class ToolList(wx.Panel):
    
         
 
-        simpleColumns = [ColumnDefn("Tool", "left", 200, "name"),]
-        
-        self.dataObjects = toolData.full_tools_list
-        #olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-
-        '''  olvSimple.SetColumns(simpleColumns)
-        olvSimple.SetObjects(self.dataObjects)
-        olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
-        '''
-        #self.sizer.Add(olvSimple, 1, wx.ALL|wx.EXPAND, 5)
 
         
         #create popup menu
@@ -103,30 +120,29 @@ class ToolList(wx.Panel):
         if tool:
             OnPaint(self, dc, tool)
 
+
     def toolSelected(self, event):
-        tool = self.toolData.full_tools_list[self.list_ctrl.GetFirstSelected()]  
-        toolTypeName = self.toolData.tool_types_list[tool.toolType]           
-        self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {toolTypeName}")
+        #get the selected tool
+
+        tool = self.olvSimple.GetSelectedObject()
+                  
+        self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tool.toolType}")
 
         if tool.name:
-            print ("tool selected: ", tool.name , " :: ", toolTypeName )
+            print ("tool selected: ", tool.name , " :: ", tool.toolType)
             self.Refresh()
             self.selected_tool = tool           
-
         else:
             print("error :: tool selected:: ", tool)  
 
-
        
     def db_click(self, event):
-        print("edit tool: ",  self.list_ctrl.GetFirstSelected())
-        i = self.list_ctrl.GetFirstSelected()
+        print("edit tool: ", self.olvSimple.GetSelectedObject().name)
 
-        tool = self.toolData.full_tools_list[i]
+        tool = self.olvSimple.GetSelectedObject()
 
         #EditDialog(self,tool, self.toolData.tool_types_list).ShowModal()
         validateToolDialog(self, tool, False).ShowModal()
-      
 
 
     def right_click(self, event):

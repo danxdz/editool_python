@@ -9,7 +9,7 @@ from ts import copy_tool
 from databaseTools import saveTool
 from databaseTools import update_tool
 
-from share.rethink import testdb
+from wx_gui.share.save_rethink import testdb
 
 
 

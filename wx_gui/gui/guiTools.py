@@ -164,7 +164,7 @@ def refreshToolList(panel, toolData):
     tools = toolData.full_tools_list
     if tools:
         print("refreshToolList :: ", len(tools), " :: ", tool_type)
-        panel.list_ctrl.DeleteAllItems()
+        #panel.list_ctrl.DeleteAllItems()
 
     new_tool_type_text = "all"
     if tool_type != -1:
@@ -173,8 +173,8 @@ def refreshToolList(panel, toolData):
     if tools:
         print(f"{len(tools)} tools loaded :: type : {new_tool_type_text}")
         #self.list_ctrl.DeleteAllItems()
-        for tool in tools:
-            add_line(panel, tool)
+        #for tool in tools:
+           # add_line(panel, tool)
     else:
         print(f"no tools loaded :: type : {new_tool_type_text}")
     

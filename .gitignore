@@ -15,3 +15,5 @@ wx_gui/importTools/__pycache__/pasteDialog.cpython-311.pyc
 wx_gui/gui/__pycache__/editDialog.cpython-311.pyc
 wx_gui/importTools/__pycache__/import_past.cpython-311.pyc
 wx_gui/importTools/__pycache__/pasteDialog.cpython-311.pyc
+wx_gui/share/.env
+wx_gui/share/env.py
