@@ -9,6 +9,8 @@ from ts import copy_tool
 from databaseTools import saveTool
 from databaseTools import update_tool
 
+from share.rethink import testdb
+
 
 
 class validateToolDialog(wx.Dialog):
@@ -167,9 +169,17 @@ class validateToolDialog(wx.Dialog):
             update_tool(self.tool)
         else:
             print("saving ", self.tool.name, self.tool.toolType , " in database")
-            saveTool(self.tool,self.toolData.tool_types_list) 
+            saveTool(self.tool,self.toolData.tool_types_list)
+
+            #testdb(self.tool)
+
 
             self.toolData.full_tools_list.append(self.tool)
+            count = len(self.toolData.full_tools_list)
+
+            self.parent.setSelectTool(count-1)
+
+
 
         self.parent.Refresh()
         
@@ -183,6 +193,8 @@ class validateToolDialog(wx.Dialog):
         print("create " , self.tool.name, self.tool.toolType)
 
         saveTool(self.tool,self.toolData.tool_types_list)
+
+
         
         copy_tool(self, self.tool, False)
 

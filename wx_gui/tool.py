@@ -1,5 +1,16 @@
 #hardcoded values for tool types
 class ToolsDefaultsData:
+    '''
+    
+        tool_names_mask
+
+        tool_types
+
+        ts_models
+
+        coolants_types    
+
+    '''
 
     tool_names_mask = [
         "FR2T Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]",

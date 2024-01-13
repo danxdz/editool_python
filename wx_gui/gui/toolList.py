@@ -11,6 +11,7 @@ from databaseTools import delete_selected_item , load_tools_from_database
 
 from ts import copy_tool, copy_holder, get_tool_TSid
 
+from ObjectListView import ObjectListView, ColumnDefn
 
 class ToolList(wx.Panel):    
     def __init__(self, parent, toolData):
@@ -71,6 +72,17 @@ class ToolList(wx.Panel):
                 tool = toolData.full_tools_list[0]
    
         
+
+        simpleColumns = [ColumnDefn("Tool", "left", 200, "name"),]
+        
+        self.dataObjects = toolData.full_tools_list
+        #olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+
+        '''  olvSimple.SetColumns(simpleColumns)
+        olvSimple.SetObjects(self.dataObjects)
+        olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
+        '''
+        #self.sizer.Add(olvSimple, 1, wx.ALL|wx.EXPAND, 5)
 
         
         #create popup menu

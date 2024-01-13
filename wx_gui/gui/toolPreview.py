@@ -44,7 +44,8 @@ def OnPaint(self, dc, tool):
 
         #print("scale_width", scale_width, scaled_values['L3'])
 
-        rad = int(scaled_values['D1']) #int((scale_width*tool.cornerRadius))
+        rad = int(scaled_values['D1']) 
+        corner_rad = int((scale_width*float(tool.cornerRadius)))
 
 
         #for key, value in scaled_values.items():
@@ -54,6 +55,7 @@ def OnPaint(self, dc, tool):
         cut_len_border_color = wx.Colour("#6C3B12")
         cut_len_fill_color = wx.Colour("#C87A46")
         cut_len_border_pen = wx.Pen(cut_len_border_color, 1, wx.PENSTYLE_SOLID)
+        cut_len_fill_pen = wx.Pen(cut_len_fill_color, 1, wx.PENSTYLE_SOLID)
         cut_len_fill_brush = wx.Brush(cut_len_fill_color, wx.BRUSHSTYLE_SOLID)
         nocut_len_border_color = wx.Colour("dark gray")
         nocut_len_fill_color = wx.Colour("gray")
@@ -67,25 +69,62 @@ def OnPaint(self, dc, tool):
         dc.SetBrush(nocut_len_fill_brush)
         # Need to center the tool neck, by find the dif between d1 and d2 and divide by 2
         dif = (scaled_values['D1'] - scaled_values['D2']) / 2
-        draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2']+dif)
-        draw_rectangle(scaled_values['L2']-1, axis_line, scaled_values['L3']-scaled_values['L2']+1, -scaled_values['D3'])
+
+        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2:
+            # draw tool neck
+            #draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D1']+int(0.2 * scale_width)/2)
+            draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2']+dif)
+
+            # draw tool corps
+            draw_rectangle(scaled_values['L2']-1, axis_line, scaled_values['L3']-scaled_values['L2']+1, -scaled_values['D3'])
+        elif tool.L2 == 0:
+            # draw tool corps    
+            draw_rectangle(scaled_values['L1'], axis_line, scaled_values['L3']-scaled_values['L2']+1, -scaled_values['D3'])
+        else:
+            # draw tool neck
+            draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2']+dif)
+            # draw tool corps
+            draw_rectangle(scaled_values['L2']-1, axis_line, scaled_values['L3']-scaled_values['L2']+1, -scaled_values['D3'])
         
         
         dc.SetPen(cut_len_border_pen)
         dc.SetBrush(cut_len_fill_brush)
-
-        if tool.toolType == 0: 
+        # Draw tool sections
+        # cut section
+        if tool.toolType == 0: # endmill
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
-        elif tool.toolType == 1:
-            draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
-            draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2'])
-        elif tool.toolType == 2:
+        elif tool.toolType == 1: # radius
+                
+            dc.SetPen(cut_len_fill_pen)
+            dc.SetBrush(cut_len_fill_brush)
 
+            #calculate the center of the circle
+            center_x = corner_rad
+            #center = d1 - corner_rad
+            center_y = int(- corner_rad + scaled_values['D1'])
+            #calculate the start point of the circle
+            p1_x = 0
+            p1_y = int(-scaled_values['D1']+corner_rad)
+            #calculate the end point of the circle
+            p2_x = corner_rad
+            p2_y = int(-scaled_values['D1'])
+
+
+
+            dc.DrawArc(p2_x, axis_line + p2_y, p1_x, axis_line + p1_y, p2_x, axis_line + p1_y)
+            #print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
+            draw_rectangle(p1_x, axis_line, scaled_values['L1']+1, p1_y)
+            draw_rectangle(p2_x, axis_line, scaled_values['L1']-corner_rad+1, p2_y)
+            
+
+
+
+        elif tool.toolType == 2: # ball
             draw_rectangle(rad, axis_line, scaled_values['L1']-rad, -scaled_values['D1'])
             dc.DrawArc(rad, axis_line-rad,0, axis_line, rad, axis_line)
-        elif tool.toolType == 3:
-            draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
-            draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2'])
+        elif tool.toolType == 3: # chamfer
+            #draw_rectangle(rad, axis_line, scaled_values['L1']-rad, -scaled_values['D1'])
+            dc.DrawArc(corner_rad, axis_line-corner_rad+scaled_values['D1'],0, axis_line, rad, axis_line)
 
 
         #find the middle of the tool l3, so we can draw the text in the middle of tool corps
@@ -108,7 +147,7 @@ def OnPaint(self, dc, tool):
         dc.SetTextForeground(nocut_len_border_color)
         dc.DrawText('D1:', x_dl1, axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
         dc.DrawText('L1:', x_dl1, axis_line + int(scaled_values['D1']/2))
-        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2:
+        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2 or tool.L2 > tool.L1:
             dc.DrawText('D2:', x_dl2, axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
             dc.DrawText('L2:', x_dl2, axis_line + int(scaled_values['D2']/2))
         #if tool.toolType == 2: 
@@ -118,11 +157,13 @@ def OnPaint(self, dc, tool):
         
         # Draw tool parameters values
         dc.SetTextForeground(cut_len_border_color)
-        dc.DrawText(str(tool.D1), int(m_l1-(d1_w/2)+text_spacer_w), axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
-        dc.DrawText(str(tool.L1), int(m_l1-(d1_w/2)+text_spacer_w), axis_line + int(scaled_values['D1']/2))
-        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2:
-            dc.DrawText(str(tool.D2), int(m_l2-(d2_w/2)+text_spacer_w), axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
-            dc.DrawText(str(tool.L2), int(m_l2-(d2_w/2)+text_spacer_w), axis_line + int(scaled_values['D2']/2))
+        dc.DrawText(str(tool.D1), int(x_dl1+text_spacer_w), axis_line - int(scaled_values['D1'] + d1_h + text_spacer_h))
+        dc.DrawText(str(tool.L1), int(x_dl1+text_spacer_w), axis_line + int(scaled_values['D1']/2))
+        
+        if tool.D2 and tool.D2 != 0 and tool.L1 != tool.L2 or tool.L2 > tool.L1:
+            dc.DrawText(str(tool.D2), int(x_dl2+text_spacer_w), axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
+            dc.DrawText(str(tool.L2), int(x_dl2+text_spacer_w), axis_line + int(scaled_values['D2']/2))
+
         if tool.toolType == 2:
             r_w, r_h = dc.GetTextExtent(str("r "))
             #dc.DrawText(str(tool.cornerRadius), int(text_spacer_w+r_w+5), int(axis_line-(scaled_values['D1']*2)))
