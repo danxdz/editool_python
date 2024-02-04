@@ -76,4 +76,8 @@ missing module named dummy_thread - imported by cffi.lock (conditional, optional
 missing module named thread - imported by cffi.lock (conditional, optional), cffi.cparser (conditional, optional)
 missing module named cPickle - imported by pycparser.ply.yacc (delayed, optional)
 missing module named cffi._pycparser - imported by cffi (optional), cffi.cparser (optional)
+missing module named 'Carbon.Appearance' - imported by wx.lib.stattext (conditional, optional)
+missing module named wx.DatePickerCtrl - imported by wx (conditional), ObjectListView.CellEditor (conditional)
+missing module named ExampleImages - imported by ObjectListView.ListCtrlPrinter (conditional)
+missing module named ExampleModel - imported by ObjectListView.ListCtrlPrinter (conditional)
 missing module named Carbon - imported by wx.lib.colourutils (conditional, optional)

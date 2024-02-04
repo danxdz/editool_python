@@ -1,11 +1,71 @@
+import wx
+
 from tool import Tool
 from tool import ToolsCustomData
 #from gui.guiTools import getToolTypesNumber
 from importTools.validateImportDialogue import validateToolDialog
+from importTools import import_past
 
 def open_file(self, title):      
-    tool = Tool()  
-    validateToolDialog(self.panel, tool, True).ShowModal()
+    
+    # Read text from clipboard
+    text_data = wx.TextDataObject()
+    if wx.TheClipboard.Open():
+        success = wx.TheClipboard.GetData(text_data)
+        wx.TheClipboard.Close()
+    if success:
+        data = text_data.GetText()
+    
+        data = str(data)
+        len_data = len(data)
+
+        print(len_data , " :: " ,  data)
+
+        if len(data) > 100:
+            self.tool = import_past.process_input_13999(data, self.toolData.tool_types_list)
+            #print("tool :: ", self.tool)
+        else:
+            #lets process data without headers
+            #divide data by tab and spaces into list
+            tool_data = data.split()
+            for element in tool_data:
+                print(element)
+
+            #strip M from tool diameter
+            self.tool.name = tool_data[0]
+            self.tool.D1 = tool_data[1]
+            if self.tool.D1[0] == 'M':
+                #check if it is a threadMill , if its number is a threadMill, if is '6HX' one number and letters its a tap
+                for letter in tool_data[3]:
+                    if letter.isalpha():
+                        self.tool.toolType = 8
+                        break
+                if self.tool.toolType == 9:
+                    # 167081	M1.4	1.06	0.300	39.0	0.6	6	3.00	3	1.10
+                    print("threadMill")
+                    #self.tool.toolType = 9
+                    self.tool.D1 = self.tool.D1[2:]
+                    self.tool.D2 = tool_data[2]
+                    self.tool.threadPitch = tool_data[3]
+                    self.tool.L3 = tool_data[4]
+                    self.tool.L1 = tool_data[5]
+                    self.tool.L2 = tool_data[6]
+                    self.tool.D3 = tool_data[7]
+                    self.tool.z = tool_data[8]
+                else:
+                    # 176692	M8	8.00	6H 	1.250 	90.0 	20.0 	6.00 	4.9 	2 	6.80
+                    print("tap")
+                    self.tool.toolType = 5
+                    self.tool.D1 = tool_data[2]
+                    self.tool.threadTolerance = tool_data[3]
+                    self.tool.threadPitch = tool_data[4]
+                    self.tool.L3 = tool_data[5]
+                    self.tool.L1 = tool_data[6]
+                    self.tool.D3 = tool_data[7]
+                    self.tool.z = tool_data[9] 
+
+
+        validateToolDialog(self.panel, self.tool, True).ShowModal()
 
 
 def process_input_13999(input_text, toolTypesList):
@@ -14,7 +74,7 @@ def process_input_13999(input_text, toolTypesList):
 
 
     # Parse the config file to create the mapping
-    with open("13999_paste.txt") as config_file:
+    with open("13999_paste.txt",  encoding='UTF-8') as config_file:
         config_text = config_file.read()
     config_lines = config_text.split('\n')
     name_mapping = {}

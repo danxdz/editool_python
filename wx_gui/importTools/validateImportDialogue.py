@@ -6,10 +6,9 @@ from gui.guiTools import refreshToolList
 
 from ts import copy_tool
 
-from databaseTools import saveTool
-from databaseTools import update_tool
+from databaseTools import saveTool, update_tool, load_tools_from_database
 
-from wx_gui.share.save_rethink import testdb
+#from share.save_supabase import readTools
 
 
 
@@ -19,6 +18,7 @@ class validateToolDialog(wx.Dialog):
         super().__init__(parent=None, title=title)
       
         self.parent = parent
+        self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.tool = tool
 
         self.isNew = isNew
@@ -98,7 +98,6 @@ class validateToolDialog(wx.Dialog):
         self.main_sizer.Add(btn_sizer, 0, wx.CENTER)
 
         self.SetSizer(self.main_sizer)
-
         
         self.on_load(tool)
 
@@ -173,28 +172,20 @@ class validateToolDialog(wx.Dialog):
 
             #testdb(self.tool)
 
+        self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.toolData.selected_toolType, self.lang)
 
-            self.toolData.full_tools_list.append(self.tool)
-            count = len(self.toolData.full_tools_list)
-
-            self.parent.setSelectTool(count-1)
-
-
-
-        self.parent.Refresh()
+        refreshToolList(self.parent, self.toolData)
+        self.parent.olvSimple.Refresh()
         
         if self.isNew:
             self.Destroy()  # Close the dialog after saving tool
 
-        refreshToolList(self.parent, self.toolData)
         
 
     def on_create(self, event):
         print("create " , self.tool.name, self.tool.toolType)
 
         saveTool(self.tool,self.toolData.tool_types_list)
-
-
         
         copy_tool(self, self.tool, False)
 

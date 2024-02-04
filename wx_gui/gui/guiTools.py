@@ -3,9 +3,9 @@ import wx, os
 from tool import ToolsDefaultsData
 from tool import ToolsCustomData
 
+from gui.menus_inter import MenusInter
 
-
-
+from databaseTools import load_tools_from_database
 
 class GenericMessageBox(wx.Dialog):
     def __init__(self, parent, text, title = ''):
@@ -13,7 +13,7 @@ class GenericMessageBox(wx.Dialog):
         panel = wx.Panel(self, wx.ID_ANY, size = (360, 50), pos = (0,0))
         panel.SetBackgroundColour('#FFFFFF')
         label = wx.StaticText(panel, -1, text, pos = (50,20))        
-        panel2 = wx.Panel(self, wx.ID_ANY, size = (360, 40), pos = (0, 50))
+        panel2 = wx.Panel(self, wx.ID_ANY, size = (360, 60), pos = (0, 50))
         #add sizer buttons
         sz = wx.BoxSizer(wx.HORIZONTAL)
         btn = wx.Button(panel2, wx.ID_OK, "duplicate", pos = (100, 10))
@@ -29,17 +29,8 @@ class GenericMessageBox(wx.Dialog):
         self.Center()
 
 
-
-
-
-
-
-
 toolData = ToolsCustomData()
 toolDefData = ToolsDefaultsData()
-
-
-
 
 
 def load_masks():
@@ -82,13 +73,9 @@ def toolDetailsPanel(self, tool):
                 self.tool_labels[key].SetFont(font_12)
                 #self.tool_labels[key].SetPosition((300, 250))
             
-
-    #add widgets to the sizer
-    
+    #add widgets to the sizer    
 
     return wids
-
-
 
 
 def on_change(self, event, label_text ):
@@ -111,60 +98,49 @@ def on_change(self, event, label_text ):
 
 
 
-
-
-#TODO: add columns to config
-
-def add_columns(self):
-    self.list_ctrl.InsertColumn(0, "n" , width=30)
-    self.list_ctrl.InsertColumn(1, 'name', width=100)
-    self.list_ctrl.InsertColumn(2, 'D1', width=50)
-    self.list_ctrl.InsertColumn(3, 'L1', width=50)
-    self.list_ctrl.InsertColumn(4, 'D2', width=50)
-    self.list_ctrl.InsertColumn(5, 'L2', width=50)
-    self.list_ctrl.InsertColumn(6, 'D3', width=50)
-    self.list_ctrl.InsertColumn(7, 'L3', width=50)
-    self.list_ctrl.InsertColumn(8, 'Z', width=50)
-    self.list_ctrl.InsertColumn(9, 'r', width=50)
-    self.list_ctrl.InsertColumn(10, 'Manuf', width=100)
-    self.list_ctrl.InsertColumn(11, 'eval', width=100)
-
 def add_line(panel, tool):
         
-    index = panel.list_ctrl.GetItemCount()
+    index = panel.olvSimple.GetItemCount()
     
     #print("adding tool line :: ", index, " :: ", tool.name)
 
 
     
-    index = panel.list_ctrl.InsertItem(index, str(index + 1))
-    panel.list_ctrl.SetItem(index, 1, str(tool.name))
+    index = panel.olvSimple.InsertItem(index, str(tool.TSid))
+    #set one V if TSid exist
+
+    panel.olvSimple.SetItem(index, 1, str(tool.name))
     #set item background color
-    panel.list_ctrl.SetItemBackgroundColour(index, wx.Colour(255, 255, 255))
-    panel.list_ctrl.SetItem(index, 2, str(tool.D1))
-    panel.list_ctrl.SetItem(index, 3, str(tool.L1))
-    panel.list_ctrl.SetItem(index, 4, str(tool.D2))
-    panel.list_ctrl.SetItem(index, 5, str(tool.L2))
-    panel.list_ctrl.SetItem(index, 6, str(tool.D3))
-    panel.list_ctrl.SetItem(index, 7, str(tool.L3))
-    panel.list_ctrl.SetItem(index, 8, str(tool.z))
-    panel.list_ctrl.SetItem(index, 9, str(tool.cornerRadius))
-    panel.list_ctrl.SetItem(index, 10, str(tool.mfr))
+    panel.olvSimple.SetItemBackgroundColour(index, wx.Colour(255, 255, 255))
+    panel.olvSimple.SetItem(index, 2, str(tool.D1))
+    panel.olvSimple.SetItem(index, 3, str(tool.L1))
+    panel.olvSimple.SetItem(index, 4, str(tool.D2))
+    panel.olvSimple.SetItem(index, 5, str(tool.L2))
+    panel.olvSimple.SetItem(index, 6, str(tool.D3))
+    panel.olvSimple.SetItem(index, 7, str(tool.L3))
+    panel.olvSimple.SetItem(index, 8, str(tool.z))
+    #panel.olvSimple.SetItem(index, 9, str(tool.cornerRadius))
+    #panel.olvSimple.SetItem(index, 10, str(tool.mfr))
     if tool.TSid:
         #print("tool.TSid :: ", tool.TSid)
-        panel.list_ctrl.SetItemBackgroundColour(index, wx.Colour(230, 250, 230))
+        panel.olvSimple.SetItemBackgroundColour(index, wx.Colour(230, 250, 230))
     return index
 
 
 def refreshToolList(panel, toolData):
     #print("refreshToolList :: tooltype :: ", toolType)
-    #tools = load_tools_from_database(toolType)
-   
+    
+    selected = panel.olvSimple.GetSelectedObject()
+    if selected:
+        print("selected :: ", selected.name)
+    
     tool_type = toolData.selected_toolType
     tools = toolData.full_tools_list
+    
+
     if tools:
         print("refreshToolList :: ", len(tools), " :: ", tool_type)
-        #panel.list_ctrl.DeleteAllItems()
+        panel.olvSimple.DeleteAllItems()
 
     new_tool_type_text = "all"
     if tool_type != -1:
@@ -173,8 +149,9 @@ def refreshToolList(panel, toolData):
     if tools:
         print(f"{len(tools)} tools loaded :: type : {new_tool_type_text}")
         #self.list_ctrl.DeleteAllItems()
-        #for tool in tools:
-           # add_line(panel, tool)
+
+        panel.olvSimple.SetObjects(tools)
+
     else:
         print(f"no tools loaded :: type : {new_tool_type_text}")
     
@@ -203,7 +180,7 @@ def tooltypesButtons(self):
         #print("toolType :: ", toolType)
         icon = wx.Bitmap(f'icons/{toolType}.png')
         #set button size
-        self.iconsBar.SetMinSize((20, 40))
+        #self.iconsBar.SetMinSize((20, 40))
 
         #add button to the container
         self.bt = wx.BitmapButton(self, id=i, bitmap=icon, name=toolType,style=wx.BORDER_RAISED)
@@ -227,86 +204,71 @@ def tooltypesButtons(self):
 
 def create_menu(self):
 
-    # add file menu
+    #read the language from the config file
+    #if the file not exist create it and add the default language
+    check = os.path.isfile('config.txt')
+    if check:
+        file = open('config.txt', 'r', encoding='utf-8')
+        #read the data from the file
+        lines = file.readlines()
+        lines = [x.strip() for x in lines]
+        lang = int(lines[0])
+        file.close()
+        
+    else:
+        file = open('config.txt', 'w', encoding='utf-8')
+        file.write("1\n")
+        file.close()
+        lang = 1
+
+
+    print("create_menu :: ", lang)
+
+    #get the menu text from the dictionary
+    menu = MenusInter(lang)
+
+    #for key, value in menu.menus.items():
+    #    print("key :: ", key, " :: ", value)
+
     file_menu = wx.Menu()
 
-    open_xml = file_menu.Append(
-        wx.ID_ANY, 'Open xml file', 
-        'open a xml file with tool data'
-    )        
-    self.Bind(
-        event=wx.EVT_MENU, 
-        handler=self.on_open_xml,
-        source=open_xml,
-    )
+    open_xml = file_menu.Append(wx.ID_ANY, menu.get_menu("importXml"), 'open a xml file with tool data')        
+    self.Bind(event=wx.EVT_MENU, handler=self.on_open_xml,source=open_xml,)
 
-    ISO13999 = file_menu.Append(
-        wx.ID_ANY, 'Paste tool ISO13999', 
-        'paste tool data ISO13999'
-    )        
-    self.Bind(
-        event=wx.EVT_MENU, 
-        handler=self.on_paste_iso13999,
-        source=ISO13999,
-    )
+    ISO13999 = file_menu.Append(wx.ID_ANY, menu.get_menu("pasteISO"), 'paste tool data ISO13999')        
+    self.Bind(event=wx.EVT_MENU, handler=self.on_paste_iso13999,source=ISO13999,)
 
-    open_zip = file_menu.Append(
-        wx.ID_ANY, 'Open zip file', 
-        'open a zip file with tool data'
-    )        
-    self.Bind(
-        event=wx.EVT_MENU, 
-        handler=self.on_open_zip,
-        source=open_zip,
-    )
+    exp_xml = file_menu.Append(wx.ID_ANY, menu.get_menu("exportXml"), 'export tool data into XML file')
+    self.Bind(event=wx.EVT_MENU, handler=self.on_export_xml,source=exp_xml)
 
-    exp_xml = file_menu.Append(
-        wx.ID_ANY, 'Export XML file', 
-        'export tool data into XML file'
-    )
-    self.Bind(
-        event=wx.EVT_MENU, 
-        handler=self.on_export_xml,
-        source=exp_xml,
-    )
+    exit = file_menu.Append(wx.ID_ANY, menu.get_menu('exit'), "close app")
 
-    exit = file_menu.Append(
-        wx.ID_ANY, "exit", "close app"
-    )
-    self.Bind(
-        event=wx.EVT_MENU,
-        handler=self.close_app,
-        source=exit
-    )
+    self.Bind(event=wx.EVT_MENU,handler=self.close_app,source=exit)
 
     # add file menu to menu bar
-    
     menu_bar = wx.MenuBar()
     menu_bar.Append(file_menu, '&File')
 
     # add tools config menu
     config = wx.Menu()
-    toolSetup = config.Append(
-        wx.ID_ANY, 'Tool Setup', 
-        'setup tool data'
-    )
-    self.Bind(
-        event=wx.EVT_MENU,
-        handler=self.toolSetupPanel,
-        source=toolSetup
-    )
+    toolSetup = config.Append(wx.ID_ANY, 'Tool Setup', 'setup tool data')
+    self.Bind( event=wx.EVT_MENU, handler=self. toolSetupPanel, source=toolSetup)
+    # add holders config menu
+    holdersConfig = config.Append(wx.ID_ANY, 'Holders', 'setup holder data')        
+    self.Bind(event=wx.EVT_MENU,handler=self.HoldersSetupPanel,source=holdersConfig)
+    # add language submenu
+    self.language_menu = wx.Menu()
+       
+    self.language_menu.Append(0, 'English', 'English')
+    self.language_menu.Append(1, 'Français', 'Français')
+    self.language_menu.Append(2, 'Português', 'Português')
+
+    self.language_menu.Bind(event=wx.EVT_MENU,handler=self.change_language)
+
+    config.AppendSubMenu(self.language_menu, 'Language')
+
     menu_bar.Append(config, '&Config')
 
-    # add holders config menu
-    holdersConfig = config.Append(
-        wx.ID_ANY, 'Holders', 
-        'setup holder data'
-    )        
-    self.Bind(
-        event=wx.EVT_MENU,
-        handler=self.HoldersSetupPanel,
-        source=holdersConfig
-    )
-
-
     self.SetMenuBar(menu_bar)
+
+    return lang

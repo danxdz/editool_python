@@ -1,6 +1,8 @@
 import wx
 import xml.etree.ElementTree as ET
 
+import csv
+
 #from gui.guiTools import getToolTypesNumber
 
 from tool import Tool, ToolsDefaultsData
@@ -121,6 +123,8 @@ def parse_hyper_xml_data(root):
     newTool = Tool(**tool_data) 
     for key, value in newTool.getAttributes().items():
         print(key, value)
+
+    newTool.toolType = fix_toolType(newTool)
 
     return newTool
 
@@ -434,27 +438,9 @@ def parse_new_xml_data(tool):
        #print("new toolType: J22  ", newTool.toolType)
     
     if not newTool.toolType:
-        newTool.toolType = 0 #TODO: find way to get tool type from xml   
+        newTool.toolType = 0 #TODO: find way to get tool type from xml 
+        newTool.tooltype = fix_toolType(newTool)
 
-    if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
-        newTool.toolType = 0
-
-    if newTool.toolType == "Eckradiusfräser" or newTool.toolType == "VHM-Torusfräser":
-        newTool.toolType = 1
-
-    if newTool.toolType == "NC-Anbohrer":
-        newTool.toolType = 5
-
-    if newTool.toolType == "drillTool":
-        newTool.toolType = 7
-    
-    #change tslootcutter to tslotMill
-    if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
-        newTool.toolType = 4
-
-    if newTool.toolType == "Trennstellenkodierung maschinenseitig":
-        newTool.toolType = 9
-    
     #print("tool_data: ",newTool.mfr, newTool.name, newTool.toolType, newTool.cuttingMaterial, newTool.neckAngle, newTool.centerCut, newTool.coolantType, newTool.threadTolerance, newTool.threadPitch, newTool.mfr, newTool.mfrRef, newTool.mfrSecRef, newTool.code, newTool.codeBar, newTool.comment)
 
     #alert if toolType is not valid
@@ -463,6 +449,31 @@ def parse_new_xml_data(tool):
         msgError = wx.MessageBox("Tool cut diameter not detected", "Warning", wx.OK | wx.ICON_WARNING)
 
     return newTool
+
+def fix_toolType(newTool):
+    
+    if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
+        newTool.toolType = 0
+
+    if newTool.toolType == "Eckradiusfräser" or newTool.toolType == "VHM-Torusfräser":
+        newTool.toolType = 1
+        
+    #change tslootcutter to tslotMill
+    if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
+        newTool.toolType = 4
+
+
+    if newTool.toolType == "NC-Anbohrer":
+        newTool.toolType = 5
+
+    if newTool.toolType == "drillTool":
+        newTool.toolType = 7
+
+    if newTool.toolType == "Trennstellenkodierung maschinenseitig":
+        newTool.toolType = 9
+    
+    return newTool.toolType
+    
 
 def open_file(self,title,wCard):
 
@@ -488,8 +499,7 @@ def open_file(self,title,wCard):
 
         toolsList = []
 
-        toolData = ToolsDefaultsData()
-        
+        toolData = ToolsDefaultsData()       
 
 
         for path in xml_file_path:
@@ -513,12 +523,47 @@ def open_file(self,title,wCard):
                 print("tool: ", tool.name, tool.toolType, tool.toolMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
                 toolsList.append(tool)
 
+
+
+                '''                # Caminho do arquivo CSV
+                                csv_file_path = "ferramentas.csv"
+
+
+                                add_tools_to_csv(toolsList, csv_file_path)
+
+                                # Lê as ferramentas do arquivo CSV
+                                loaded_tools = read_tools_from_csv(csv_file_path)
+
+                                # Exibir ferramentas carregadas
+                                for tool in loaded_tools:
+                                    print(tool)
+'''
+                                        
+                        
+                        
             except Exception as e:
                 print("Error: ", e)
                 print("rest :: ", tool)
+
         print("toolsList :: ", len(toolsList))
         return toolsList
- 
 
-   
+
+
+# Adiciona ferramentas ao arquivo CSV sem cabeçalho
+def add_tools_to_csv(tools, file_path):
+    with open(file_path, mode="a", newline="", encoding="utf-8") as file:
+        writer = csv.writer(file, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
+        # Adiciona as ferramentas sem verificar o cabeçalho
+        for tool in tools:
+            writer.writerow(tool.getAttributes().values())
+
+# Lê as ferramentas do arquivo CSV
+def read_tools_from_csv(file_path):
+    loaded_tools = []
+    with open(file_path, mode="r", encoding="utf-8") as file:
+        reader = csv.DictReader(file)
+        for row in reader:
+            loaded_tools.append(row)
+    return loaded_tools
 

@@ -208,7 +208,7 @@ def EndModif (ts_ext, op, ot):
 
 
 
-def copy_tool(self, tool, holder): #holder = true or false
+def copy_tool(self, tool, holder, clone): #holder = true or false
 
 
     #load default data
@@ -217,29 +217,31 @@ def copy_tool(self, tool, holder): #holder = true or false
     toolData = ToolsCustomData()
     toolData = toolData.get_custom_ts_models()
 
-    #check if tool is created
-    print("tool :: ", tool.name, " :: ", tool.TSid)
-    if tool.TSid == "" or tool.TSid == None :
-        print("tool :: ", tool.name, " not created in ts")
-    else:        
-        #answer = wx.MessageBox('tool already created, duplicate tool?', 'Warning', wx.YES_NO)
-        #answer = wx.MessageBox('tool already created, update TSid? or clone tool?', 'Warning', wx.YES_NO)  #TODO: add a dialog to select if recreate or not
-        #get the response
-        box = GenericMessageBox(self, "tool already created, duplicate tool? or update TSid?", "Tool already created")
-        answer = box.ShowModal()
-        print("answer: ", answer)
+    if not clone:
 
-        if answer == wx.ID_OK:
-            print("duplicate tool (db and ts): ", tool.TSid)
-            #create duplicate tool in database
-            tool.id = 0 #set id to 0 to create a new tool
-            saveTool(tool, self.toolData.tool_types_list)
-        elif answer == wx.ID_YES:
-            print("update TSid: ", tool.TSid)
-        else:
-            print("canceled")
-            return
-        
+        #check if tool is created
+        print("tool :: ", tool.name, " :: ", tool.TSid)
+        if tool.TSid == "" or tool.TSid == None :
+            print("tool :: ", tool.name, " not created in ts")
+        else:        
+            #answer = wx.MessageBox('tool already created, duplicate tool?', 'Warning', wx.YES_NO)
+            #answer = wx.MessageBox('tool already created, update TSid? or clone tool?', 'Warning', wx.YES_NO)  #TODO: add a dialog to select if recreate or not
+            #get the response
+            box = GenericMessageBox(self, "tool already created, duplicate tool? or update TSid?", "Tool already created")
+            answer = box.ShowModal()
+            print("answer: ", answer)
+
+            if answer == wx.ID_OK:
+                print("duplicate tool (db and ts): ", tool.TSid)
+                #create duplicate tool in database
+                tool.id = 0 #set id to 0 to create a new tool
+                saveTool(tool, self.toolData.tool_types_list)
+            elif answer == wx.ID_YES:
+                print("update TSid: ", tool.TSid)
+            else:
+                print("canceled")
+                return
+            
 
     
     ts_ext = tsConn()
@@ -251,6 +253,17 @@ def copy_tool(self, tool, holder): #holder = true or false
         
         #search for editool project for custom tools models and tool assembly templates
         output_lib = ts_ext.Pdm.SearchProjectByName("editool")
+        if not output_lib:
+            #if not found, use current project to create tools
+            #alert user to import editool project to use all features
+            print("editool project not found")
+            alert = wx.MessageBox('editool project not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
+            
+            #TODO :: show a dialog to import editool project
+
+
+            output_lib = ts_ext.Pdm.GetCurrentProject()
+
         output_lib = output_lib[0]
         if output_lib:
             
@@ -623,7 +636,7 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
         else:
             print("assemblyModelId: ", assemblyModelId[0].Id)
                             
-            elemModelId.append(tool)
+            elemModelId.append(tool.TSid)
 
             #print("elemModelId",elemModelId, len(elemModelId))
             #for i in elemModelId:

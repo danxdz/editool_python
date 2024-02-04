@@ -19,7 +19,7 @@ class ToolsDefaultsData:
         "FRCH Ø[D] A[A] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FR3T Ø[D] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FOAP Ø[D] [NoTT]z Lc[L]",
-        "FOAC Ø[D] [NoTT]z Lc[L]",
+        "FOAC Ø[D2] SD[D1] [NoTT]z Lc[L]",
         "FO Ø[D] L[L] [NoTT]z Lc[L]",
         "TAR M[M]xP[P] L[L] [NoTT]z Lc[L] Lu[CTS_AL]",
         "FRFI [Norm]x[Pitch] Ø[D] L[L] [NoTT]z  Lu[LH]",
@@ -83,27 +83,57 @@ class ToolsDefaultsData:
 
 
 class ToolsCustomData:
+    """
+    - full_tools_list is a list of all (filtered) tools
+    - selected_tool is the tool selected in the tool list
+    - tool_types_list is a list of all tool types
+    - existent_tooltypes is a list of all existent tool types in the database
+    - tool_names_mask is a list of all tool names masks
+    """
     def __init__(self):
         self.ts_models = []
+        """ list of custom TS models """
         self.tool_type_numbers = []
+        """ list of all tools types numbers """
         self.tool_types_list = []
+        """ list of all tools types names """
         self.full_tools_list = []
+        """ list of filtered tools """
         self.tool_names_mask = []
+        """ list of all tool names masks """
         self.existent_tooltypes = []
-        self.selected_tool = 0
-        self.selected_toolType = 0
+        """ list of all existent tool types in the database """
+        self.selected_tool = 0 
+        """ selected tool on list ctrl """
+        self.selected_toolType = -1
+        """ selected tool type on list ctrl """
 
     def get_custom_ts_models(self):
-        with open("./tooltypes.txt", "r") as f:
+        """
+        This method reads the file tooltypes.txt where we define the custom TS models
+            
+            ex:
+            - 8;tap;  <-- "no custom TS model"
+            - 9;threadMill;threadMill_editool  <-- "custom TS model"
+
+            and sets the following attributes:
+            - tool_types_list
+            - ts_models
+            - tool_type_numbers
+
+        """
+        with open("./tooltypes.txt", "r",  encoding='UTF-8') as f:
             for line in f:
                 parts = line.split(";")
                 if len(parts) < 3:
-                    print(f"Skipping line {line.strip()} because it does not have enough parts")
+                    print(f"Skipping line {line.strip()} because it does not have enough parts, check tooltypes.txt file")
                     continue
                 self.tool_types_list.append(parts[1])
                 self.ts_models.append(parts[2].strip())
                 self.tool_type_numbers.append(parts[0])
         return self
+
+
 
 class Tool:
     """

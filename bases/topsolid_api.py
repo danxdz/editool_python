@@ -13,6 +13,7 @@ class TopSolidAPI:
 
     def __init__(self):
         self.design = None
+        self.connected = False
         self._initialize_topsolid()
 
     def _initialize_topsolid(self):
@@ -53,17 +54,21 @@ class TopSolidAPI:
             
 
             print("TopSolid " + top_solid_version + " connected successfully!")
+            self.connected = True 
 
         except Exception as ex:
             print("Error initializing TopSolid:", ex)
+            self.connected = False
 
     def disconnect_topsolid(self):
         try:
             if self.design is not None:
                 self.design.Disconnect()
                 print("Disconnected from TopSolid")
+                self.connected = False
         except Exception as ex:
             print("Error disconnecting from TopSolid:", ex)
+            self.connected = False
 
     def get_default_tools_lib(self):
         # Load TopSolid DLLs
@@ -123,74 +128,83 @@ class TopSolidAPI:
             # Handle
             print("error :: ", ex)
 
-    def get_constituents(self, folder, printInfo = False):
-        folder_const = self.design.Pdm.GetConstituents(folder)
-        folder_name = self.get_name(folder)
-        
-        files = self.check_folder_or_file(folder_const, printInfo)
-        
+    def get_constituents(self, proj, printInfo = False):
+        '''get constituents of current project'''
+        if proj is None:
+            proj = self.design.Pdm.GetCurrentProject()
 
+        proj_const = self.design.Pdm.GetConstituents(proj)
+        proj_name = self.get_name(proj)
+ 
+        files = self.check_folder_or_file(proj_const, printInfo)
+        
         if printInfo:
-            self.print_folder(folder_const, folder_name)
+            self.print_folder(proj_const, proj_name)
 
         return files
 
     def check_folder_or_file(self, folder_const, printInfo = False):
         
-        #print("folder path ::")
-        ts_files = []
+        files = []
 
         for file in folder_const[1]:
+            #printInfo(file, "files")
             self.filter_types(file, printInfo)
-            ts_files.append(file)
-            #files_names.append(self.get_name(file))
-
+            files.append(file)
+            
         for dir in folder_const[0]:
-            i_files = self.get_constituents(dir)
-            #files_names.extend(i_files)
+            print ("folder path ::", self.get_name(dir))
 
-        return ts_files
+            iFiles = self.get_constituents(dir, printInfo)
+            for i in iFiles:
+                files.append(i)
+
+        return files
+
 
     def filter_types(self, file, printInfo = False):
         file_type = self.get_type(file)
         match file_type:
             case ".TopPrt":
-                type_text = "part file"               
+                type_text = "part"               
             case ".TopAsm":
-                type_text = "assembly file"
+                type_text = "assembly"
             case ".TopDft":
-                type_text = "drawing file"
+                type_text = "drawing"
             case ".TopMillTurn":
-                type_text = "mill turn file"
+                type_text = "mill turn"
+            case ".TopMacComp":
+                type_text = "machine component"
             case ".png":
-                type_text = "image file"
+                type_text = "image"
             case ".jpg":
-                type_text = "image file"
+                type_text = "image"
             case ".pdf":
-                type_text = "pdf file"
+                type_text = "pdf"
             case ".doc":
-                type_text = "word file"
+                type_text = "word"
             case ".docx":
-                type_text = "word file"
+                type_text = "word"
             case ".xls":
-                type_text = "excel file"
+                type_text = "excel"
             case ".xlsx":
-                type_text = "excel file"
+                type_text = "excel"
             case ".nc":
-                type_text = "nc file"
+                type_text = "nc"
             case ".iso":
-                type_text = "iso file"
+                type_text = "iso"
             case ".h":
-                type_text = "heidenhain file"
+                type_text = "heidenhain"
             case ".mpf":
-                type_text = "siemens SINUMERIK file"
+                type_text = "siemens SINUMERIK"
             case ".stp":
-                type_text = "3d step file"
+                type_text = "step"
+
             case _:
                 type_text = "unknown file type"
         
         if printInfo:
-            print(f"{type_text} : {self.get_name(file)} : {file_type}")
+            print(f"{self.get_name(file)} : {file_type} :: {type_text}")
 
     def get_type(self, obj):
         obj_type = type(obj)
@@ -216,6 +230,7 @@ class TopSolidAPI:
         return ts_type
 
     def get_name(self, obj):
+        '''get name of object by type, either PdmObjectId, DocumentId or ElementId'''
         obj_type = type(obj)
         name = ""
     
@@ -233,13 +248,14 @@ class TopSolidAPI:
         return name
 
     def print_info(self, file, msg):
+        '''print info about TS object'''
         file_name = self.get_name(file)
         file_type = self.get_type(file)
         print(msg, " ; ", file_name, " ; ", file_type)
 
     def print_folder(self, folder_const, folder_name):
         if len(folder_const[0]) > 0 or len(folder_const[1]) > 0:
-            print(f"dir {folder_name} @ have ", end="")
+            print(f"project {folder_name} @ have ", end="")
             if len(folder_const[0]) > 0:
                 print(f"{len(folder_const[0])} folders ", end="")
             if len(folder_const[1]) > 0:
@@ -283,13 +299,7 @@ class TopSolidAPI:
 
         '''ask repere of file'''
         try:
-            '''string titre = "Plan XY";
-                string label = "Merci de sélectionner le plan XY du repère";
-                UserQuestion QuestionPlan = new UserQuestion(titre, label);
-                QuestionPlan.AllowsCreation = true;
-                TopSolidHost.User.AskFrame3D(QuestionPlan, true, null, out ReponseRepereUser);
-            }'''
-
+           
             titre = "Plan XY"
             label = "Merci de sélectionner le plan XY du repère"
             QuestionPlan = UserQuestion(titre, label)
@@ -336,9 +346,42 @@ class TopSolidAPI:
 
 
 
-            '''file explorer functions'''
 
-    def open_file(self):
+    def make_path(self, path):
+        try:
+            res = os.makedirs(path, exist_ok=True)
+            print("MAKE_PATH :: dir created :: ", path, res)
+        except Exception as ex:
+            # Handle
+            print("error :: ", ex)
+            pass
+
+
+    def export_all_pdfs(self, export_path_docs):
+        current_project = self.design.Pdm.GetCurrentProject()
+        proj_const = self.design.Pdm.GetConstituents(current_project)
+
+        for const in proj_const:
+            for elem in const:
+                elem_name = self.design.Pdm.GetName(elem)
+                elem_type = self.get_type(elem)
+
+                if elem_type == ".TopDft":
+                    doc_id = self.design.Documents.GetDocument(elem)
+                    doc_name = self.design.Documents.GetName(doc_id)
+
+                    self.make_path(export_path_docs)
+
+                    exporter_type = self.design.Application.GetExporterFileType(10, "outFile", "outExt")  # 10 for pdf
+                    complete_path = os.path.join(export_path_docs, f"{doc_name}{exporter_type[1][0]}")
+
+                    export = self.design.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
+
+
+
+    '''********************                     file explorer functions'''
+
+    def open_file_explorer(self):
         '''open file with wxpython dialogue'''
 
         try:

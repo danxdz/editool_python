@@ -3,12 +3,12 @@ from topsolid_api import TopSolidAPI
 def main():
     # Criar uma instância da classe TopSolidAPI
     with TopSolidAPI() as topSolid:
-
-        '''        # get the current project library and name
+        
+        # get the current project library and name
         lib, name = topSolid.get_current_project()
         print(lib, name)
    
-        # get the onject type of the current project
+        # get the object type of the current project
         lib_type = lib.GetType() 
         print(lib_type)
 
@@ -20,11 +20,12 @@ def main():
         #for i in lib_const:
         #    topSolid.open_file(i)
 
-        topSolid.check_in_all(lib_const)'''
-
-
+        topSolid.check_in_all(lib_const)
+        
+        # get the current project library and name
+        
         files = topSolid.get_open_files()
-        print(type(files))
+        print(type(files), len(files))
         if type(files) == 'TopSolid.Kernel.Automating.DocumentId':
             topSolid.ask_plan(files)
         else:
@@ -35,6 +36,7 @@ def main():
 
 
         print(topSolid.design.IsConnected)
+
 
 
 

@@ -1,6 +1,7 @@
 import wx
 import sys
 
+from gui.menus_inter import MenusInter
 
 from gui.toolList import ToolList
 from gui.toolSetup import toolSetupPanel
@@ -22,6 +23,8 @@ from export_xml_wx import create_xml_data
 
 from tool import ToolsCustomData
 
+#from share.save_supabase import read_menu
+
 
 class ToolManagerUI(wx.Frame):
     BACKGROUND_COLOUR = wx.Colour(240, 240, 240)
@@ -37,43 +40,53 @@ class ToolManagerUI(wx.Frame):
 
     def setupUI(self):
         self.SetBackgroundColour(self.BACKGROUND_COLOUR)
+        # load the default tool data
+
+        #menu = read_menu()
+        #print("menu :: ", menu)
+        #TODO backup menu to text file
+
+        self.lang = create_menu(self)
+
+        self.menu = MenusInter(self.lang)
+
         self.toolData = self.loadToolData()
-        self.toolDefData = self.loadToolDefData()
         self.selected_tooltype_name = "all"
         self.selected_toolType = -1
         self.icons_bar_widget = None
-        create_menu(self)
+     
         self.main_sizer = self.createMainSizer()
         self.statusBar = self.createStatusBar()
         self.setFrameSizeAndPosition()
 
-    def loadToolDefData(self):
-        toolDefData = ToolsCustomData()
-        if len(self.toolData.full_tools_list)>0:
-            toolDefData.selected_tool = self.toolData.full_tools_list[0]
-        return toolDefData
     
     def loadToolData(self):
         toolData = ToolsCustomData()
         toolData.get_custom_ts_models()
-        toolData.full_tools_list, existent_tooltypes = load_tools_from_database(-1)
+        
+        toolData.full_tools_list, existent_tooltypes = load_tools_from_database(-1, self.lang)
+        
         for existent_tooltype in existent_tooltypes:
-
             toolData.existent_tooltypes.append(int(existent_tooltype))
         toolData.tool_names_mask = load_masks()
         print("toolData.existent_tooltypes :: ", toolData.existent_tooltypes , len(toolData.existent_tooltypes))
+        toolData.selected_tool = -1
+        if len(toolData.full_tools_list)>0:
+            toolData.selected_tool = toolData.full_tools_list[0]
   
-
         return toolData
 
     def createMainSizer(self):
         main_sizer = wx.BoxSizer(wx.VERTICAL)
         self.icons_bar_widget = tooltypesButtons(self)
-        
+        #print("self.icons_bar_widget :: ", self.icons_bar_widget)
         main_sizer.Add(self.icons_bar_widget,  0, wx.ALL | wx.CENTER, 5)
 
-        self.panel = ToolList(self, self.toolData)
+        self.panel = ToolList(self)
+
         main_sizer.Add(self.panel, 1, wx.ALL | wx.CENTER | wx.EXPAND, 15)
+
+
         self.SetSizer(main_sizer)
         return main_sizer
 
@@ -113,13 +126,12 @@ class ToolManagerUI(wx.Frame):
         else:
             #print("no filter")
             self.selected_toolType = -1
-        self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.selected_toolType)
+        self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.selected_toolType, self.lang)
         for existent_tooltype in existent_tooltypes:
                 if int(existent_tooltype) not in self.toolData.existent_tooltypes:
                     self.toolData.existent_tooltypes.append(int(existent_tooltype))
     
         refreshToolList(self.panel, self.toolData)
-
 
         # Remove the old icons bar from the main sizer
         self.main_sizer.Hide(self.icons_bar_widget)
@@ -127,24 +139,17 @@ class ToolManagerUI(wx.Frame):
 
         # Create a new icons bar and add it to the main sizer
         self.icons_bar_widget = tooltypesButtons(self)
-        print("self.icons_bar_widget :: ", self.icons_bar_widget)
+        #print("self.icons_bar_widget :: ", self.icons_bar_widget)
         self.main_sizer.Insert(0,self.icons_bar_widget, 0, wx.ALL | wx.CENTER, 5)
         self.main_sizer.Layout()
         self.Refresh()
 
 
 
-
-
-
-
-
-
-
     #menu bar functions
     def on_open_xml(self, event):
         print(": import from xml file :: menu_bar")
-        title = "Choose a XML file:"
+        title = f"{self.menu.get_menu('importXml').capitalize()}"
         wcard ="XML files (*.xml)|*.xml"
         tools = import_xml_wx.open_file(self, title, wcard)
         #print("tools :: ", tools, len(tools))
@@ -191,3 +196,19 @@ class ToolManagerUI(wx.Frame):
     
     def HoldersSetupPanel(self, event):
         HoldersSetupPanel(self).ShowModal()
+
+
+    def change_language(self, event):
+        print("change_language :: ", event.GetId())
+        #get the language from the menu label
+        #get the language index
+        lang = event.GetId()
+        if lang >= 0:
+            print("change_language :: ", lang)
+            #write the language index to the config file
+            file = open('config.txt', 'w', encoding='utf-8')
+            file.write(f"{lang}\n")
+            file.close()
+            #reload the text from the language file and refresh the UI
+            print("reload the text from the language file and refresh the UI")
+            create_menu(self)
