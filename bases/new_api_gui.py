@@ -118,11 +118,16 @@ class TopSolidGUI(wx.Frame):
 
                 try:
                     # Chama o método import_documents
-                    imported_documents, log, bad_document_ids = self.topSolid.Import_file_w_conv(7, file_path, lib)
+                    imported_documents, log, bad_document_ids = self.topSolid.Import_file_w_conv(10, file_path, lib)
                     
                     # Examine os resultados conforme necessário
                     if imported_documents:
-                        wx.MessageBox(f"Documents imported successfully. Document IDs: {imported_documents}", "Success", wx.OK | wx.ICON_INFORMATION)
+                        print(f"Documents imported successfully. Document IDs: {len(imported_documents)}", "Success", wx.OK | wx.ICON_INFORMATION)
+                        for doc in imported_documents:
+                            print(len(doc), doc)
+                            for d in doc:
+                                print(d)
+                                self.topSolid.check_in(d)
                     else:
                         wx.MessageBox(f"Error importing documents. Log: {log}. Bad Document IDs: {bad_document_ids}", "Error", wx.OK | wx.ICON_ERROR)
 
