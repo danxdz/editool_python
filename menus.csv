@@ -1,3 +1,8 @@
+file;file;fichier;ficheiro
+setup;setup;configuration;configuração
+language;language;langue;idioma
+tool_setup;tool setup;configuration outil;configuração ferramenta
+holder_setup;holder setup;configuration porte-outil;configuração porta-ferramenta
 open;open;ouvrir;abrir
 save;save;enregistrer;gravar
 cancel;cancel;annuler;cancelar
@@ -5,6 +10,7 @@ close;close;fermer;fechar
 exit;exit;quitter;sair
 create;create;créer;criar
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
+importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml
 importJson;import from Json;importer depuis Json;importar Json
 exportJson;export to Json;exporter vers Json;exportar Json

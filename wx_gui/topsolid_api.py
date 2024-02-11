@@ -8,6 +8,9 @@ from System.Collections.Generic import List
 
 import wx
 
+
+key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
+
 class use_frames:
     MCS = None
     CWS = None
@@ -113,7 +116,8 @@ class StepFileViewer:
                             found_elements[element_name] = axis_placement
 
                 except Exception as e:
-                    print(f"Error parsing element content: {e}")
+                   #print(f"Error parsing element content: {e}")
+                    pass
 
         return found_elements
 
@@ -128,7 +132,8 @@ class StepFileViewer:
                     z = parts[5].replace("'", "")
                     content = [x, y, z]
                 except Exception as e:
-                    print(f"Error parsing element content: {e}")
+                    pass
+                    #print(f"Error parsing element content: {e}")
         return content
 
 
@@ -141,7 +146,7 @@ class TopSolidAPI:
         self.disconnect_topsolid()
 
     def __init__(self):
-        self.design = None
+        self.ts = None
         self.connected = False
         self._initialize_topsolid()
 
@@ -175,24 +180,75 @@ class TopSolidAPI:
             from TopSolid.Kernel.Automating import SmartText
 
             top_solid_kernel_type = Automating.TopSolidHostInstance
-            self.design = clr.System.Activator.CreateInstance(top_solid_kernel_type)
+            self.ts = clr.System.Activator.CreateInstance(top_solid_kernel_type)
 
             # Connect to TopSolid
-            self.design.Connect()
+            self.ts.Connect()
 
+            if self.ts.IsConnected:
+                print(f"TopSolid " + top_solid_version + " connected successfully! ") 
+                #print(dir(self.ts))
+
+                self.connected = True 
+
+                top_solid_design_path = os.path.join(top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+                print(f"Loading dll: {top_solid_design_path}")
+                clr.AddReference(top_solid_design_path)    
             
+                #set preload to true to load all dependent dlls
+                clr.setPreload(True)
 
-            print("TopSolid " + top_solid_version + " connected successfully!")
-            self.connected = True 
+                import TopSolid.Cad.Design.Automating as Automating
+
+                self.ts_d = Automating.TopSolidDesignHostInstance(self.ts)
+
+                # Connect to TopSolid Design
+                self.ts_d.Connect()
+                if self.ts_d.IsConnected:
+                    print(f"TopSolid Design connected successfully!")
+                    # how i can list all dll methods?
+                    #print(dir(self.ts_d))
+
+
 
         except Exception as ex:
             print("Error initializing TopSolid:", ex)
             self.connected = False
 
+    def get_top_solid_path(self):
+        top_solid_version = self.get_version()
+
+        try:
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
+            value = winreg.QueryValueEx(key, "InstallDir")
+            return (value[0], top_solid_version)
+        except Exception as ex:
+            # Handle exception
+            return ex
+
+    def get_ts_design_ext(self):
+        ts = self.get_top_solid_path()
+        top_solid_path = ts[0]
+        if top_solid_path is None:
+            # Handle
+            return None
+
+        top_solid_design_path = os.path.join(
+        top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+        print(f"Loading dll: {top_solid_design_path}")
+        clr.AddReference(top_solid_design_path)    
+        
+        #set preload to true to load all dependent dlls
+        clr.setPreload(True)
+
+        import TopSolid.Cad.Design.Automating as Automating
+
+        return Automating
+    
     def disconnect_topsolid(self):
         try:
-            if self.design is not None:
-                self.design.Disconnect()
+            if self.ts is not None:
+                self.ts.Disconnect()
                 print("Disconnected from TopSolid")
                 self.connected = False
         except Exception as ex:
@@ -201,16 +257,16 @@ class TopSolidAPI:
 
     def get_default_tools_lib(self):
         # Load TopSolid DLLs
-        if self.design is None:
+        if self.ts is None:
             # Handle error
             return None
 
-        PdmObjectIdType = type(self.design.Pdm.SearchProjectByName("TopSolid Machining User Tools")) #cheat to get type
-        PdmObjectIdType = self.design.Pdm.SearchProjectByName("TopSolid Machining User Tools")
+        PdmObjectIdType = type(self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")) #cheat to get type
+        PdmObjectIdType = self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")
 
 
         for i in PdmObjectIdType:
-            name = self.design.Pdm.GetName(i)
+            name = self.ts.Pdm.GetName(i)
             #print("name: ", name)
             if name == "Outils d'usinage utilisateur TopSolid" or name == "TopSolid Machining User Tools":
                 PdmObjectIdType.Clear()
@@ -222,7 +278,7 @@ class TopSolidAPI:
 
     def start_modif(self, op, ot):
         try:
-            self.design.Application.StartModification(op, ot)
+            self.ts.Application.StartModification(op, ot)
             print("Start modifications")
         except Exception as ex:
             print(str(ex))
@@ -231,7 +287,7 @@ class TopSolidAPI:
 
     def end_modif(self, op, ot):
         try:
-            self.design.Application.EndModification(True, False)
+            self.ts.Application.EndModification(True, False)
             print("End modifications")
         except Exception as ex:
             print(str(ex))
@@ -242,10 +298,10 @@ class TopSolidAPI:
     def init_folders(self):
         try:
             # Get Topsolid types
-            current_project = self.design.Pdm.GetCurrentProject()
+            current_project = self.ts.Pdm.GetCurrentProject()
             current_proj_name = self.get_name(current_project)
 
-            proj_const = self.design.Pdm.GetConstituents(current_project)
+            proj_const = self.ts.Pdm.GetConstituents(current_project)
             print(f"{str(len(proj_const[0]) - 1)} folders in root project, {str(len(proj_const[1]))} files in root project")
 
             consts = self.check_folder_or_file(proj_const)
@@ -260,9 +316,9 @@ class TopSolidAPI:
     def get_constituents(self, proj, printInfo = False):
         '''get constituents of current project'''
         if proj is None:
-            proj = self.design.Pdm.GetCurrentProject()
+            proj = self.ts.Pdm.GetCurrentProject()
 
-        proj_const = self.design.Pdm.GetConstituents(proj)
+        proj_const = self.ts.Pdm.GetConstituents(proj)
         proj_name = self.get_name(proj)
  
         files = self.check_folder_or_file(proj_const, printInfo)
@@ -345,16 +401,16 @@ class TopSolidAPI:
         from TopSolid.Kernel.Automating import ElementId
 
         if obj_type is PdmObjectId:
-            raw_ts_type = self.design.Pdm.GetType(obj)
+            raw_ts_type = self.ts.Pdm.GetType(obj)
             if str(raw_ts_type[0]) == "Folder":
                 ts_type = str(raw_ts_type[0])
             else:
-                ts_type = str(self.design.Pdm.GetType(obj)[1])
+                ts_type = str(self.ts.Pdm.GetType(obj)[1])
         elif obj_type is DocumentId:
-            is_part = self.design.Documents.IsPart(obj)
-            ts_type = str(self.design.Documents.GetType(obj)[0])
+            is_part = self.ts.Documents.IsPart(obj)
+            ts_type = str(self.ts.Documents.GetType(obj)[0])
         elif obj_type is ElementId:
-            ts_type = str(self.design.Elements.GetTypeFullName(obj))
+            ts_type = str(self.ts.Elements.GetTypeFullName(obj))
 
         return ts_type
 
@@ -368,11 +424,11 @@ class TopSolidAPI:
         from TopSolid.Kernel.Automating import ElementId
 
         if obj_type is PdmObjectId:
-            name = str(self.design.Pdm.GetName(obj))
+            name = str(self.ts.Pdm.GetName(obj))
         elif obj_type is DocumentId:
-            name = str(self.design.Documents.GetName(obj))
+            name = str(self.ts.Documents.GetName(obj))
         elif obj_type is ElementId:
-            name = str(self.design.Elements.GetName(obj))
+            name = str(self.ts.Elements.GetName(obj))
 
         return name
 
@@ -395,17 +451,38 @@ class TopSolidAPI:
             print(f"dir {folder_name} is empty")
 
     def get_current_project(self):
-        current_project = self.design.Pdm.GetCurrentProject()
+        current_project = self.ts.Pdm.GetCurrentProject()
         #get current project name
         current_proj_name = self.get_name(current_project)
         return current_project, current_proj_name
+    
+    def get_open_files(self, file_type = None):
+        '''get open files'''
+        docId = []
+        tmp = self.ts.Documents.GetOpenDocuments()
+        num = len(tmp)
+        print(f"number of open files : {num}")
+        if tmp is not None:
+            if tmp.Count > 1:
+                for i in tmp:
+                    docId.append(i)
+                return docId
+            else:
+                return tmp
+        
+        print(f"file opened : {docId}")
+        return docId
+    
+    def is_assenbly(self, file):
+        '''check if file is assembly'''
+        return self.ts.Assemblies.IsAssembly(file)
     
 
     def open_file(self, file):
         '''open file in TopSolid'''
         try:
             #docId = self.ts_ext.Documents.GetDocument(file)
-            self.design.Documents.Open(file)
+            self.ts.Documents.Open(file)
             print("file opened")
         except Exception as ex:
             print(str(ex))
@@ -416,16 +493,16 @@ class TopSolidAPI:
         '''check in file'''
         from TopSolid.Kernel.Automating import PdmObjectId
         #PdmObjectId GetPdmObject( DocumentId inDocumentId )
-        pdm_obj = self.design.Documents.GetPdmObject(file)
+        pdm_obj = self.ts.Documents.GetPdmObject(file)
         print("file to check in :: ", file.PdmDocumentId)
-        self.design.Pdm.CheckIn(pdm_obj, True)
+        self.ts.Pdm.CheckIn(pdm_obj, True)
 
     def check_in_all(self, files):
         '''check in all files in list'''
         from TopSolid.Kernel.Automating import PdmObjectId
         #need a list of PdmObjectId
         for file in files:
-            self.design.Pdm.CheckIn(file, True)
+            self.ts.Pdm.CheckIn(file, True)
 
 
     def ask_plan(self, file):
@@ -443,7 +520,7 @@ class TopSolidAPI:
             QuestionPlan.AllowsCreation = True
 
             ReponseRepereUser = None            
-            ReponseRepereUser = self.design.User.AskFrame3D(QuestionPlan, True, None, ReponseRepereUser)
+            ReponseRepereUser = self.ts.User.AskFrame3D(QuestionPlan, True, None, ReponseRepereUser)
             print(ReponseRepereUser)
             if ReponseRepereUser[1]:
                 print("plan selected")
@@ -463,7 +540,7 @@ class TopSolidAPI:
         '''get open files'''
         try:
             docId = []
-            tmp = self.design.Documents.GetOpenDocuments()
+            tmp = self.ts.Documents.GetOpenDocuments()
             num = len(tmp)
             print(f"number of open files : {num}")
             if tmp is not None:
@@ -495,30 +572,30 @@ class TopSolidAPI:
 
 
     def export_all_pdfs(self, export_path_docs):
-        current_project = self.design.Pdm.GetCurrentProject()
-        proj_const = self.design.Pdm.GetConstituents(current_project)
+        current_project = self.ts.Pdm.GetCurrentProject()
+        proj_const = self.ts.Pdm.GetConstituents(current_project)
 
         for const in proj_const:
             for elem in const:
-                elem_name = self.design.Pdm.GetName(elem)
+                elem_name = self.ts.Pdm.GetName(elem)
                 elem_type = self.get_type(elem)
 
                 if elem_type == ".TopDft":
-                    doc_id = self.design.Documents.GetDocument(elem)
-                    doc_name = self.design.Documents.GetName(doc_id)
+                    doc_id = self.ts.Documents.GetDocument(elem)
+                    doc_name = self.ts.Documents.GetName(doc_id)
 
                     self.make_path(export_path_docs)
 
-                    exporter_type = self.design.Application.GetExporterFileType(10, "outFile", "outExt")  # 10 for pdf
+                    exporter_type = self.ts.Application.GetExporterFileType(10, "outFile", "outExt")  # 10 for pdf
                     complete_path = os.path.join(export_path_docs, f"{doc_name}{exporter_type[1][0]}")
 
-                    export = self.design.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
+                    export = self.ts.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
 
     def ImportFile(self, inFullName, inOwnerId, inDocumentName):
             try:
                 
                 # Substitua essas linhas pela chamada real do método ImportFile na sua interface
-                result = self.design.Pdm.ImportFile(inFullName, inOwnerId, inDocumentName)
+                result = self.ts.Pdm.ImportFile(inFullName, inOwnerId, inDocumentName)
                 return result
             except Exception as e:
                 # Trate a exceção conforme necessário
@@ -578,10 +655,10 @@ class TopSolidAPI:
             uop = ""
             out = ""
 
-            file_type = self.design.Application.GetImporterFileType(inImporterIx, uop, out)
+            file_type = self.ts.Application.GetImporterFileType(inImporterIx, uop, out)
             print("file_type :: ", file_type, uop, out)        
 
-            opt = self.design.Application.GetImporterOptions(inImporterIx)
+            opt = self.ts.Application.GetImporterOptions(inImporterIx)
             print("opt :: ", opt, len(opt)) 
             
             # need to change 'SIMPLIFIES_GEOMETRY' to True
@@ -608,7 +685,7 @@ class TopSolidAPI:
             for i, item in enumerate(opt):
                 print(i, item.Key, item.Value)
                             
-            result = self.design.Documents.ImportWithOptions(inImporterIx, opt ,  inFullName,  inOwnerId)
+            result = self.ts.Documents.ImportWithOptions(inImporterIx, opt ,  inFullName,  inOwnerId)
 
             print(f"Import result: {result}")
 
@@ -619,7 +696,7 @@ class TopSolidAPI:
 
             self.open_file(newdoc[0])
             #IGeometries3D.GetFrames 
-            frames = self.design.Geometries3D.GetFrames(newdoc[0])
+            frames = self.ts.Geometries3D.GetFrames(newdoc[0])
             print("frames :: ", frames, len(frames))
             for frame in frames:
                 frame_name = self.get_name(frame)
@@ -701,15 +778,15 @@ class TopSolidAPI:
                     self.start_modif("frame", False)
 
 
-                    new_frame = self.design.Geometries3D.CreateSmartFrame(newdoc[0],  new_frame) 
+                    new_frame = self.ts.Geometries3D.CreateSmartFrame(newdoc[0],  new_frame) 
                     
                 #List<ElementId> GetShapes(DocumentId inDocumentId)
-                shapes = self.design.Shapes.GetShapes(newdoc[0])
+                shapes = self.ts.Shapes.GetShapes(newdoc[0])
                 print("shapes :: ", shapes, len(shapes))
                 for shape in shapes:
                     print(self.get_name(shape), self.get_type(shape))
 
-                axis = self.design.Geometries3D.GetAxes(newdoc[0])
+                axis = self.ts.Geometries3D.GetAxes(newdoc[0])
                 print("axis :: ", axis)
                 for ax in axis:
                     print(self.get_name(ax))
@@ -722,7 +799,7 @@ class TopSolidAPI:
                 shape = SmartShape(shapes[0])
                 print("shape :: ", shape, self.get_name(shape))
 
-                planes = self.design.Geometries3D.GetPlanes(newdoc[0])
+                planes = self.ts.Geometries3D.GetPlanes(newdoc[0])
                 for plane3d in planes:
                     print(self.get_name(plane3d))
 
@@ -730,21 +807,21 @@ class TopSolidAPI:
                 #plane = Plane3D(p3d, Direction3D(1, 0, 0), Direction3D(0, 0, 1))
                 #splane = SmartPlane3D(plane, 0,0,0,0)
 
-                plane = self.design.Geometries3D.GetAbsoluteXZPlane(newdoc[0])
+                plane = self.ts.Geometries3D.GetAbsoluteXZPlane(newdoc[0])
                 splane = SmartPlane3D(plane, False)
 
 
-                sketch = self.design.Sketches2D.CreateSketchIn3D(newdoc[0], splane,  SmartPoint3D(Point3D(0, 0, 1)), True, SmartDirection3D(Direction3D(1, 0,0), Point3D(1, 0, 0)))
+                sketch = self.ts.Sketches2D.CreateSketchIn3D(newdoc[0], splane,  SmartPoint3D(Point3D(0, 0, 1)), True, SmartDirection3D(Direction3D(1, 0,0), Point3D(1, 0, 0)))
 
 
 
-                self.design.Sketches2D.StartModification(sketch)
-                revolv = self.design.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
-                self.design.Sketches2D.EndModification()
+                self.ts.Sketches2D.StartModification(sketch)
+                revolv = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
+                self.ts.Sketches2D.EndModification()
 
 
             #SearchProjectByName(string inProjectName)
-            func_proj =  self.design.Pdm.SearchProjectByName("TopSolid Machining")
+            func_proj =  self.ts.Pdm.SearchProjectByName("TopSolid Machining")
             print("func_proj :: ", func_proj, len(func_proj))
 
             for func in func_proj:
@@ -755,30 +832,30 @@ class TopSolidAPI:
             
             
             #get function PdmDocumentId by Name
-            ts_func = self.design.Pdm.SearchDocumentByName(func_proj, "Attachement cylindrique porte outil")              
+            ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Attachement cylindrique porte outil")              
             print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
             #Get DocumentId by PdmObjectId
-            func_doc = self.design.Documents.GetDocument(ts_func[0])         
+            func_doc = self.ts.Documents.GetDocument(ts_func[0])         
             #ElementId ProvideFunction( DocumentId inDocumentId,DocumentId inFunctionId,string inOccurrenceName)                
-            prov_func = self.design.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique pour l'outil")
+            prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique pour l'outil")
 
             # IGeometries3D - void SetFramePublishingDefinition( inElementId,SmartFrame3D inDefinition)
                     #self.design.Geometries3D.SetFramePublishingDefinition(prov_func, use_frames.CSW)
 
 
             
-            ts_func = self.design.Pdm.SearchDocumentByName(func_proj, "Profil de révolution pour l'analyse de collision")
+            ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Profil de révolution pour l'analyse de collision")
             print("ts_func :: ", ts_func, len(ts_func))
-            func_doc = self.design.Documents.GetDocument(ts_func[0])
-            prov_func = self.design.Entities.ProvideFunction(newdoc[0], func_doc, "Profil def collision")
+            func_doc = self.ts.Documents.GetDocument(ts_func[0])
+            prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Profil def collision")
             
-            ts_func = self.design.Pdm.SearchDocumentByName(func_proj, "Système de fixation outil")
+            ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Système de fixation outil")
             print("ts_func :: ", ts_func, len(ts_func))
-            func_doc = self.design.Documents.GetDocument(ts_func[0])
-            prov_func = self.design.Entities.ProvideFunction(newdoc[0], func_doc, "Système de fixation vers la machine")
+            func_doc = self.ts.Documents.GetDocument(ts_func[0])
+            prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Système de fixation vers la machine")
             
             #List<ElementId> GetFunctions( DocumentId inDocumentId )                
-            functions = self.design.Entities.GetFunctions(newdoc[0])
+            functions = self.ts.Entities.GetFunctions(newdoc[0])
 
 
             
@@ -786,15 +863,15 @@ class TopSolidAPI:
             for func in functions:
                 print(self.get_name(func))
                 #GetFunctionDefinition(	ElementId inElementId)
-                func_def = self.design.Entities.GetFunctionDefinition(func)
+                func_def = self.ts.Entities.GetFunctionDefinition(func)
                 print("func_def :: ", func_def, self.get_name(func_def))
 
                 #GetFunctionOccurrenceName(	ElementId inElementId ) as String
-                func_occ = self.design.Entities.GetFunctionOccurrenceName(func)
+                func_occ = self.ts.Entities.GetFunctionOccurrenceName(func)
                 print("func_occ :: ", func_occ)
 
                 #GetFunctionPublishings(ElementId inElementId) as List<ElementId>
-                func_pubs = self.design.Entities.GetFunctionPublishings(func)
+                func_pubs = self.ts.Entities.GetFunctionPublishings(func)
                 print("func_pubs :: ", func_pubs, len(func_pubs))
                 self.start_modif(True, False)
                 for pub in func_pubs:
@@ -806,36 +883,36 @@ class TopSolidAPI:
                     '''
                     if self.get_name(pub) == "ToolingSystemFrame":
                         #SetFramePublishingDefinition( inElementId,SmartFrame3D inDefinition)
-                        self.design.Geometries3D.SetFramePublishingDefinition(pub, use_frames.PCS)
+                        self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.PCS)
                         print("pub :: ", pub, self.get_name(pub))
                     elif self.get_name(pub) == "ToolingSystemName":
                         pub_type = self.get_type(pub)
                         print("pub_type :: ", pub_type)
                         if pub_type == "TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity":
-                            self.design.Geometries3D.SetFramePublishingDefinition(pub, use_frames.CSW)
+                            self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.CSW)
                         else:
                             #IParameters.SetTextPublishingDefinition Method  
                             pub_name = SmartText("HSK")
-                            self.design.Parameters.SetTextPublishingDefinition(pub, pub_name)
+                            self.ts.Parameters.SetTextPublishingDefinition(pub, pub_name)
                         print("pub :: ", pub, self.get_name(pub))
                     elif self.get_name(pub) == "ToolingSystemSize":
                         pub_size = SmartReal(UnitType.Length, (63/1000)) 
                         #IParameters.SetTextPublishingDefinition Method
-                        self.design.Parameters.SetRealPublishingDefinition(pub, pub_size)
+                        self.ts.Parameters.SetRealPublishingDefinition(pub, pub_size)
                         print("pub :: ", pub, self.get_name(pub))
                     elif self.get_name(pub) == "ToolingSystemType":
                         pub_name = SmartText("Mandrin pour queue cylindrique")
-                        self.design.Parameters.SetTextPublishingDefinition(pub, pub_name)
+                        self.ts.Parameters.SetTextPublishingDefinition(pub, pub_name)
                         print("pub :: ", pub, self.get_name(pub))
                     elif self.get_name(pub) == "Revolute Section":
                         #List<ElementId> GetSketches( DocumentId inDocumentId )
-                        sketches = self.design.Sketches2D.GetSketches(newdoc[0])
+                        sketches = self.ts.Sketches2D.GetSketches(newdoc[0])
                         print("sketches :: ", self.get_name(sketches[0]), len(sketches))
                         #public SmartSection3D(ElementId inElementId)
                         sect = SmartSection3D(sketches[0])
                         print("sect :: ", sect, self.get_name(sect))
                         #void SetSectionPublishingDefinition(ElementId inElementId,SmartSection3D inDefinition)
-                        self.design.Geometries3D.SetSectionPublishingDefinition(pub, sect)
+                        self.ts.Geometries3D.SetSectionPublishingDefinition(pub, sect)
 
 
                 #print("revolv :: ", revolv)
@@ -846,9 +923,9 @@ class TopSolidAPI:
 
             
 
-            smartTextType = SmartText(self.design.Parameters.GetDescriptionParameter(newdoc[0]))
+            smartTextType = SmartText(self.ts.Parameters.GetDescriptionParameter(newdoc[0]))
 
-            self.design.Parameters.PublishText(newdoc[0], "PO", smartTextType)
+            self.ts.Parameters.PublishText(newdoc[0], "PO", smartTextType)
 
 
             #end_modif

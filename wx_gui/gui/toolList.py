@@ -8,7 +8,7 @@ from gui.toolPreview import OnPaint
 
 from databaseTools import delete_selected_item , load_tools_from_database
 
-from ts import copy_tool, copy_holder, get_tool_TSid
+from ts import copy_tool, copy_holder
 
 from ObjectListView import ObjectListView, ColumnDefn
 
@@ -18,6 +18,8 @@ from gui.menus_inter import MenusInter
 class ToolList(wx.Panel):    
     def __init__(self, parent):
         super().__init__(parent=parent)
+
+        self.topSolid = None
 
         self.font_10 = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
@@ -193,7 +195,7 @@ class ToolList(wx.Panel):
             #create tool :: true = holder
             print("create holder for :: ", tool.name)
             #id = ts.get_tool_TSid(tool)
-            copy_holder(None, tool)
+            copy_holder(self, None, tool)
         elif id == 2:
             print("floatMenu :: Edit :: ", tool.name )
             validateToolDialog(self, tool, False).ShowModal()

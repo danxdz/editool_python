@@ -139,21 +139,21 @@ def refreshToolList(panel, toolData):
     
 
     if tools:
-        print("refreshToolList :: ", len(tools), " :: ", tool_type)
+        #print("refreshToolList :: ", len(tools), " :: ", tool_type)
         panel.olvSimple.DeleteAllItems()
 
     new_tool_type_text = "all"
     if tool_type != -1:
         new_tool_type_text = toolData.tool_types_list[tool_type] 
-        print("refreshToolList :: ", new_tool_type_text)     
+        #print("refreshToolList :: ", new_tool_type_text)     
     if tools:
-        print(f"{len(tools)} tools loaded :: type : {new_tool_type_text}")
+        print(f"INFO :: {len(tools)} tools loaded :: type : {new_tool_type_text}")
         #self.list_ctrl.DeleteAllItems()
 
         panel.olvSimple.SetObjects(tools)
 
     else:
-        print(f"no tools loaded :: type : {new_tool_type_text}")
+        print(f"INFO :: no tools loaded :: type : {new_tool_type_text}")
     
     panel.Refresh()
 
@@ -173,7 +173,7 @@ def tooltypesButtons(self):
         self.bt.Enabled = True
 
     
-    print("existent_tooltypes :: ", self.toolData.existent_tooltypes, self.selected_toolType)
+    #print("existent_tooltypes :: ", self.toolData.existent_tooltypes, self.selected_toolType)
 
     for i, toolType in enumerate(toolDefData.tool_types):
 
@@ -222,7 +222,7 @@ def create_menu(self):
         lang = 1
 
 
-    print("create_menu :: ", lang)
+    #print("INFO :: create_menu :: ", lang)
 
     #get the menu text from the dictionary
     menu = MenusInter(lang)
@@ -235,6 +235,9 @@ def create_menu(self):
     open_xml = file_menu.Append(wx.ID_ANY, menu.get_menu("importXml"), 'open a xml file with tool data')        
     self.Bind(event=wx.EVT_MENU, handler=self.on_open_xml,source=open_xml,)
 
+    importStep = file_menu.Append(wx.ID_ANY, menu.get_menu("importSTEP"), 'import tool data from a step file')
+    self.Bind(event=wx.EVT_MENU, handler=self.on_import_step,source=importStep,)
+    
     ISO13999 = file_menu.Append(wx.ID_ANY, menu.get_menu("pasteISO"), 'paste tool data ISO13999')        
     self.Bind(event=wx.EVT_MENU, handler=self.on_paste_iso13999,source=ISO13999,)
 
@@ -247,14 +250,14 @@ def create_menu(self):
 
     # add file menu to menu bar
     menu_bar = wx.MenuBar()
-    menu_bar.Append(file_menu, '&File')
+    menu_bar.Append(file_menu, menu.get_menu("file"))
 
     # add tools config menu
     config = wx.Menu()
-    toolSetup = config.Append(wx.ID_ANY, 'Tool Setup', 'setup tool data')
+    toolSetup = config.Append(wx.ID_ANY, menu.get_menu("tool_setup"), 'setup tool data')
     self.Bind( event=wx.EVT_MENU, handler=self. toolSetupPanel, source=toolSetup)
     # add holders config menu
-    holdersConfig = config.Append(wx.ID_ANY, 'Holders', 'setup holder data')        
+    holdersConfig = config.Append(wx.ID_ANY, menu.get_menu("holder_setup"), 'setup holder data')        
     self.Bind(event=wx.EVT_MENU,handler=self.HoldersSetupPanel,source=holdersConfig)
     # add language submenu
     self.language_menu = wx.Menu()
@@ -265,9 +268,9 @@ def create_menu(self):
 
     self.language_menu.Bind(event=wx.EVT_MENU,handler=self.change_language)
 
-    config.AppendSubMenu(self.language_menu, 'Language')
+    config.AppendSubMenu(self.language_menu, menu.get_menu("language"))
 
-    menu_bar.Append(config, '&Config')
+    menu_bar.Append(config, f'&{menu.get_menu("setup")}')
 
     self.SetMenuBar(menu_bar)
 

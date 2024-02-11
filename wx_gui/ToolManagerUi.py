@@ -1,5 +1,4 @@
-import wx
-import sys
+import wx, os, sys
 
 from gui.menus_inter import MenusInter
 
@@ -23,6 +22,8 @@ from export_xml_wx import create_xml_data
 
 from tool import ToolsCustomData
 
+from topsolid_api import TopSolidAPI
+
 #from share.save_supabase import read_menu
 
 
@@ -34,8 +35,8 @@ class ToolManagerUI(wx.Frame):
     def __init__(self, parent, id, title):
         no_resize = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         wx.Frame.__init__(self, parent, title=title, style=no_resize)
+        self.ts = None
         self.Center()
-
         self.setupUI()
 
     def setupUI(self):
@@ -69,7 +70,8 @@ class ToolManagerUI(wx.Frame):
         for existent_tooltype in existent_tooltypes:
             toolData.existent_tooltypes.append(int(existent_tooltype))
         toolData.tool_names_mask = load_masks()
-        print("toolData.existent_tooltypes :: ", toolData.existent_tooltypes , len(toolData.existent_tooltypes))
+        
+        print("INFO :: toolData.existent_tooltypes :: ", toolData.existent_tooltypes , " len :: " , len(toolData.existent_tooltypes))
         toolData.selected_tool = -1
         if len(toolData.full_tools_list)>0:
             toolData.selected_tool = toolData.full_tools_list[0]
@@ -164,6 +166,43 @@ class ToolManagerUI(wx.Frame):
         else:
             print("no tools loaded")
             self.statusBar.SetStatusText("no tools loaded")
+    
+    def on_import_step(self, event):
+        print("import_step")
+        title = "Import Step file"
+        wcard ="Step files (*.stp)|*.stp"
+        if not self.ts or not self.ts.connected:
+            self.ts = TopSolidAPI()
+        
+        dlg = wx.FileDialog(self, "Choose a file to import", wildcard="All files (*.*)|*.*", style=wx.FD_OPEN)
+        if dlg.ShowModal() == wx.ID_OK:
+            file_path = dlg.GetPath()
+            dlg.Destroy()
+
+            owner_id = 1
+
+            document_name = os.path.basename(file_path)
+
+            lib, name = self.ts.get_current_project()
+
+        try:
+            # Chama o método import_documents
+            imported_documents, log, bad_document_ids = self.ts.Import_file_w_conv(10, file_path, lib)
+            
+            # Examine os resultados conforme necessário
+            if imported_documents:
+                print(f"Documents imported successfully. Document IDs: {len(imported_documents)}", "Success", wx.OK | wx.ICON_INFORMATION)
+                for doc in imported_documents:
+                    print(len(doc), doc)
+                    for d in doc:
+                        print(d)
+                        self.ts.check_in(d)
+            else:
+                wx.MessageBox(f"Error importing documents. Log: {log}. Bad Document IDs: {bad_document_ids}", "Error", wx.OK | wx.ICON_ERROR)
+
+        except Exception as e:
+            wx.MessageBox(f"Error importing documents: {e}", "Error", wx.OK | wx.ICON_ERROR)
+
 
 
     def on_paste_iso13999(self, event):

@@ -174,7 +174,7 @@ def OnPaint(self, dc, tool):
         x_dl2 = m_l2-(int((d2_w/2)))
         x_dl3 = m_l3-(int(d3_w/2))
 
-        print("d1_w", d1_w, "d1_h", d1_h, "d2_w", d2_w, "d2_h", d2_h, "d3_w", d3_w, "d3_h", d3_h)         
+        #print("d1_w", d1_w, "d1_h", d1_h, "d2_w", d2_w, "d2_h", d2_h, "d3_w", d3_w, "d3_h", d3_h)         
 
         # Draw tool parameters labels        
         dc.SetFont(self.font_tool_params_12)

@@ -11,6 +11,7 @@ from tool import ToolsCustomData
 from databaseTools import update_tool, saveTool
 from gui.guiTools import load_masks, GenericMessageBox
 
+from topsolid_api import TopSolidAPI
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
@@ -548,77 +549,90 @@ def copy_tool(self, tool, holder, clone): #holder = true or false
 
 
 
-def copy_holder(ts_ext, tool):
+def copy_holder(self, ts_ext, tool):
 
-    if ts_ext is None:
+    """    if ts_ext is None:
         print("ts_ext is not connected")
         ts_ext = tsConn()
-    
-    top_solid_kernel_design = get_ts_design_ext()
-
-    ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(ts_ext)
-
-    # Connect to TopSolid
-    print(ts_design_ext.Connect())
-
-    #uncomment to prevent get TS blocked, may output an error "No modification to end."
-    #EndModif(ts_ext, False, False)
 
 
-    try:
 
-        # use current project to create assembled tool
-        output_lib = ts_ext.Pdm.GetCurrentProject()
-        #print("GetCurrentProject :: ", output_lib.Id)
-        openDocs = ts_ext.Documents.GetOpenDocuments()
-        print("openDocs: ", len(openDocs))
-
-        if len(openDocs) == 0:
-            #msg box theres no open holder in TS
-            aze = wx.MessageBox('no files open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.CANCEL | wx.ICON_QUESTION)                      
         
-        holder_found = 0
-        #check if any holder is open in TS
-        for holder in openDocs:
-            print("holder: ", holder.PdmDocumentId)
-            #check if it not an assembly, because holder is one part
-            if ts_design_ext.Assemblies.IsAssembly(holder) == False:
-                if ts_design_ext.Parts.IsPart(holder) == True:
-                    #get functions of the part
-                    holderFunctions = ts_ext.Entities.GetFunctions(holder)
-                    if holderFunctions:
-                        print("number functions found: ", len(holderFunctions))
-                        if holderFunctions and len(holderFunctions) > 0:
-                            for  i in holderFunctions:
-                                function = ts_ext.Elements.GetFriendlyName(i)
-                                print(f"GetName: {ts_ext.Elements.GetName(i)} GetFriendlyName:  {function}")
-                                if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>": #TODO: check if exist a better way to identify holder
-                                    print(f"found : {function}")
-                                    holder_found += 1
-                                    create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder)
-                                    break
-                                elif function == "Compensation outil <TO>":
-                                    print(f"not an holder : {function} is one tool")
-                                    break
-                    
-        if holder_found == 0:
-            noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
-            if noTool == wx.OK:
-                copy_holder(ts_ext, tool)
-            print("noTool: ", noTool)
+        top_solid_kernel_design = get_ts_design_ext()
+
+        ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(self.topSolid)
+
+        # Connect to TopSolid
+        print(ts_design_ext.Connect())
+
+        #uncomment to prevent get TS blocked, may output an error "No modification to end."
+        #EndModif(ts_ext, False, False)
+    """
     
+    if not self.topSolid or not self.topSolid.connected:
+        print("topSolid is not connected")
+        self.topSolid = TopSolidAPI()
 
-                    
+    with self.topSolid as api:
 
-    except Exception as ex:
-        print("Error copying tool: " + str(ex))
-        EndModif(ts_ext, False, False)
+        try:
+
+            # use current project to create assembled tool
+            output_lib = api.ts.Pdm.GetCurrentProject()
+            output_lib1 = api.get_current_project()
+
+            print("GetCurrentProject :: ", output_lib.Id, output_lib1[0].Id, output_lib1[1])
+
+            openDocs = api.get_open_files()
+            print("openDocs: ", len(openDocs))
+
+            if len(openDocs) == 0:
+                #msg box theres no open holder in TS
+                output_msg = wx.MessageBox('no files open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.CANCEL | wx.ICON_QUESTION)                      
+            
+            holder_found = 0
+            #check if any holder is open in TS
+            for holder in openDocs:
+                print("check holder: ", holder.PdmDocumentId)
+                #check if it not an assembly, because holder is one part
+                if api.ts_d.Assemblies.IsAssembly(holder) == False:
+                    if api.ts_d.Parts.IsPart(holder) == True:
+                        #get functions of the part
+                        holderFunctions = api.ts.Entities.GetFunctions(holder)
+                        if holderFunctions:
+                            print("number functions found: ", len(holderFunctions))
+                            if holderFunctions and len(holderFunctions) > 0:
+                                for  i in holderFunctions:
+                                    function = api.ts.Elements.GetFriendlyName(i)
+                                    print(f"GetName: {api.ts.Elements.GetName(i)} GetFriendlyName:  {function}")
+                                    if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <Attachement cylindrique pour l'outil>": #TODO: check if exist a better way to identify holder
+                                        print(f"found : {function}")
+                                        holder_found += 1
+                                        create_tool_w_holder(api.ts ,api.ts_d , output_lib, tool, holder)
+                                        break
+                                    elif function == "Compensation outil <TO>":
+                                        print(f"not an holder : {function} is one tool")
+                                        break
+                        
+            if holder_found == 0:
+                noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
+                if noTool == wx.OK:
+                    copy_holder(api.ts, tool)
+                print("noTool: ", noTool)                 
+
+        except Exception as ex:
+            print("Error copying tool: " + str(ex))
+            EndModif(api.ts, False, False)
 
 
 
 def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holder = true or false
-    
-        print("create_tool_w_holder: ", holder)
+        
+
+        from TopSolid.Kernel.Automating import PdmObjectId
+        from TopSolid.Kernel.Automating import DocumentId
+
+        print("create_tool_w_holder: ", holder, tool.name, tool.TSid)
         
         elemModelId = []
         elemModelId.append(holder)
@@ -636,11 +650,11 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
         else:
             print("assemblyModelId: ", assemblyModelId[0].Id)
                             
-            elemModelId.append(tool.TSid)
+            elemModelId.append(DocumentId(tool.TSid))  
 
-            #print("elemModelId",elemModelId, len(elemModelId))
-            #for i in elemModelId:
-            #    print("elemModelId: ", i.PdmDocumentId)
+            print("elemModelId",elemModelId, len(elemModelId))
+            for i in elemModelId:
+                print("elemModelId: ", i)
 
             # need a list of PdmObjectId to CopySeveral, but we need to copy only the first tool
             firstTool = assemblyModelId[0]
@@ -665,6 +679,7 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
 
             print("ops", ops, len(ops))
             i = 0
+            ts_ext.Application.StartModification("tmp", True)
 
             for o in ops:
                 if i > 1:
@@ -683,7 +698,6 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
                         print("child: ", IsInclusion, o.DocumentId)
 
                         if IsInclusion == True:
-                            ts_ext.Application.StartModification("tmp", True)
 
                             newTool = elemModelId[i]  #ts_ext.Documents.GetDocument(elemModelId[i])
                             i = i + 1
@@ -691,7 +705,7 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
 
                             ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
                             
-                            EndModif(ts_ext, True,True)
+            EndModif(ts_ext, True,True)
             
             ts_ext.Application.StartModification("tmp", True)
 

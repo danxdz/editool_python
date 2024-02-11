@@ -34,7 +34,7 @@ def load_tools_from_database(toolType, lang):
                     existent_tooltypes.append(tool.toolType)
                 tools_list.append(tool)
                         
-            print(f"{menu.get_menu('tools_readed_db').capitalize()} :: {len(tools_list)} :: {len(existent_tooltypes)}")
+            print(f"INFO :: {menu.get_menu('tools_readed_db').capitalize()} :: {len(tools_list)} :: {len(existent_tooltypes)}")
             
             return tools_list, existent_tooltypes
         

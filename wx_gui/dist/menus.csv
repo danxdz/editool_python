@@ -1,3 +1,4 @@
+file;file;fichier;ficheiro
 open;open;ouvrir;abrir
 save;save;enregistrer;gravar
 cancel;cancel;annuler;cancelar
@@ -5,6 +6,7 @@ close;close;fermer;fechar
 exit;exit;quitter;sair
 create;create;créer;criar
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
+importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml
 importJson;import from Json;importer depuis Json;importar Json
 exportJson;export to Json;exporter vers Json;exportar Json
