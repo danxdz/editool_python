@@ -1,4 +1,8 @@
 file;file;fichier;ficheiro
+setup;setup;configuration;configuração
+language;language;langue;idioma
+tool_setup;tool setup;configuration outil;configuração ferramenta
+holder_setup;holder setup;configuration porte-outil;configuração porta-ferramenta
 open;open;ouvrir;abrir
 save;save;enregistrer;gravar
 cancel;cancel;annuler;cancelar

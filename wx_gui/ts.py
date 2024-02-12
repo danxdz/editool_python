@@ -629,7 +629,6 @@ def copy_holder(self, ts_ext, tool):
 def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holder = true or false
         
 
-        from TopSolid.Kernel.Automating import PdmObjectId
         from TopSolid.Kernel.Automating import DocumentId
 
         print("create_tool_w_holder: ", holder, tool.name, tool.TSid)

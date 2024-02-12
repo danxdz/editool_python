@@ -8,6 +8,8 @@ from System.Collections.Generic import List
 
 import wx
 
+from step_file_viewer import StepFileViewer
+
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
@@ -17,126 +19,6 @@ class use_frames:
     PCS = None
     WCS = None
     CSW = None
-
-
-
-class CartesianPoint:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-    
-    def __str__(self):
-        return f"({self.x}, {self.y}, {self.z})"
-    
-    def __repr__(self):
-        return self.__str__()
-
-class Direction:
-    def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
-    
-    def __str__(self):
-        return f"({self.x}, {self.y}, {self.z})"
-    
-    def __repr__(self):
-        return self.__str__()
-
-class Axis2Placement3D:
-    def __init__(self, name, coord, dir1, dir2):
-        self.name = name
-        self.coord = coord
-        self.dir1 = dir1
-        self.dir2 = dir2
-    
-    def __str__(self):
-        return f"{self.name}: coord={self.coord}, dir1={self.dir1}, dir2={self.dir2}"
-    
-    def __repr__(self):
-        return self.__str__()
-
-    
-
-class StepFileViewer:
-    def __init__(self):
-        self.step_data = None
-
-    def loadStepFile(self, step_file_path):
-        try:
-            with open(step_file_path, 'r') as step_file:
-                self.step_data = step_file.readlines()
-
-        except Exception as e:
-            print(f"Error loading STEP file: {e}")
-            raise
-
-    def findPlacementElements(self, element_names):
-        found_elements = {}
-
-        if self.step_data is None:
-            print("Step data not loaded. Call loadStepFile() first.")
-            return found_elements
-
-        for line in self.step_data:
-            if line.startswith("#"):
-                # #1661=AXIS2_PLACEMENT_3D('MCS',#1658,#1659,#1660);
-                # Break down the line into its parts
-                parts = re.split(r'[(),]', line)
-                try:
-                    # Get the element number
-                    num = parts[0].replace("#", "")
-                    element_number = num.split("=")[0]
-                    element_type = num.split("=")[1]
-
-                    # Check if the element type is AXIS2_PLACEMENT_3D:
-                    if element_type == "AXIS2_PLACEMENT_3D":
-                        # Get the element name
-                        element_name = parts[1].replace("'", "")
-
-                        # Get the element content
-                        element_content = parts[2:]
-
-                        # If element has a name
-                        if True:#element_name:# and element_name in element_names:
-                            cart = element_content[0].replace("#", "")
-                            dir1 = element_content[1].replace("#", "")
-                            dir2 = element_content[2].replace("#", "")
-
-                            cart_content = self.get_element_content(cart)
-                            dir1_content = self.get_element_content(dir1)
-                            dir2_content = self.get_element_content(dir2)
-
-                            coord = CartesianPoint(float(cart_content[0]), float(cart_content[1]), float(cart_content[2]))
-                            dir1 = Direction(float(dir1_content[0]), float(dir1_content[1]), float(dir1_content[2]))
-                            dir2 = Direction(float(dir2_content[0]), float(dir2_content[1]), float(dir2_content[2]))
-
-                            axis_placement = Axis2Placement3D(element_name, coord, dir1, dir2)
-                            found_elements[element_name] = axis_placement
-
-                except Exception as e:
-                   #print(f"Error parsing element content: {e}")
-                    pass
-
-        return found_elements
-
-    def get_element_content(self, element_number):
-        content = []
-        for line in self.step_data:
-            if line.startswith(f"#{element_number}"):
-                parts = re.split(r'[(),]', line)
-                try:
-                    x = parts[3].replace("'", "")
-                    y = parts[4].replace("'", "")
-                    z = parts[5].replace("'", "")
-                    content = [x, y, z]
-                except Exception as e:
-                    pass
-                    #print(f"Error parsing element content: {e}")
-        return content
-
-
 
 class TopSolidAPI:
     def __enter__(self):
@@ -173,11 +55,6 @@ class TopSolidAPI:
             clr.setPreload(True)
 
             import TopSolid.Kernel.Automating as Automating
-            
-            from TopSolid.Kernel.Automating import PdmObjectId
-            from TopSolid.Kernel.Automating import DocumentId
-            from TopSolid.Kernel.Automating import ElementId
-            from TopSolid.Kernel.Automating import SmartText
 
             top_solid_kernel_type = Automating.TopSolidHostInstance
             self.ts = clr.System.Activator.CreateInstance(top_solid_kernel_type)
@@ -186,9 +63,10 @@ class TopSolidAPI:
             self.ts.Connect()
 
             if self.ts.IsConnected:
-                print(f"TopSolid " + top_solid_version + " connected successfully! ") 
+                #print only 3 first numbers of version 
+                ts_version = str(self.ts.Version)[:3]
+                print(f"TopSolid  {ts_version} connected successfully!") 
                 #print(dir(self.ts))
-
                 self.connected = True 
 
                 top_solid_design_path = os.path.join(top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
@@ -197,34 +75,35 @@ class TopSolidAPI:
             
                 #set preload to true to load all dependent dlls
                 clr.setPreload(True)
-
                 import TopSolid.Cad.Design.Automating as Automating
-
                 self.ts_d = Automating.TopSolidDesignHostInstance(self.ts)
 
                 # Connect to TopSolid Design
                 self.ts_d.Connect()
                 if self.ts_d.IsConnected:
                     print(f"TopSolid Design connected successfully!")
-                    # how i can list all dll methods?
+                    #list all dll methods
                     #print(dir(self.ts_d))
-
-
+                    print("TopSolid Design version: ", self.ts_d.ToString()) 
 
         except Exception as ex:
             print("Error initializing TopSolid:", ex)
             self.connected = False
 
+    # Get TopSolid registry key path
     def get_top_solid_path(self):
         top_solid_version = self.get_version()
-
-        try:
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
-            value = winreg.QueryValueEx(key, "InstallDir")
-            return (value[0], top_solid_version)
-        except Exception as ex:
-            # Handle exception
-            return ex
+        if top_solid_version is None:
+            # Handle
+            return None
+        else:
+            try:
+                key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
+                value = winreg.QueryValueEx(key, "InstallDir")
+                return (value[0], top_solid_version)
+            except Exception as ex:
+                # Handle exception
+                return ex
 
     def get_ts_design_ext(self):
         ts = self.get_top_solid_path()
@@ -591,50 +470,31 @@ class TopSolidAPI:
 
                     export = self.ts.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
 
-    def ImportFile(self, inFullName, inOwnerId, inDocumentName):
-            try:
-                
-                # Substitua essas linhas pela chamada real do método ImportFile na sua interface
-                result = self.ts.Pdm.ImportFile(inFullName, inOwnerId, inDocumentName)
-                return result
-            except Exception as e:
-                # Trate a exceção conforme necessário
-                print(f"Error importing file: {e}")
-                raise
-
 
     def Import_file_w_conv(self, inImporterIx, inFullName, inOwnerId):
-        try:
-
-            
+        try:            
             step_viewer = StepFileViewer()
             # load the step file
             print("Loading step file")
             step_viewer.loadStepFile(inFullName)
 
             # AXIS2_PLACEMENT_3D names to search for
-            placement_names = ['MCS', 'CWS', 'PCS']
+            placement_names = ['MCS', 'CWS', 'PCS', 'WCS', 'CSW']
 
             found_elements = step_viewer.findPlacementElements(placement_names)
 
-            z = 0
             print("Found elements:")
-            print(found_elements)
-  
+            print(found_elements)  
         
-            print("Importing file")
-
             from TopSolid.Kernel.Automating import DocumentId
-            from TopSolid.Kernel.Automating import KeyValue
-            
+            from TopSolid.Kernel.Automating import KeyValue            
             from TopSolid.Kernel.Automating import SmartFrame3D
 
             outLog = []
             outBadDocumentIds = [DocumentId]
 
-            #result = self.design.Documents.Import(8, inFullName, inOwnerId)
-
-            '''for i in range(0, 100):
+            ''' debug
+            for i in range(0, 100):
                 file_type = self.design.Application.GetImporterFileType(i, uop, out)
                 
                 string_array = file_type[1]
@@ -648,18 +508,16 @@ class TopSolidAPI:
                 opt = self.design.Application.GetImporterOptions(importer_type)
                 for i, item in enumerate(opt):
                     print(f"    - {i} :: {item.Key} : {item.Value}")
-
-
             exit()'''
 
             uop = ""
             out = ""
 
             file_type = self.ts.Application.GetImporterFileType(inImporterIx, uop, out)
-            print("file_type :: ", file_type, uop, out)        
+            #print("file_type :: ", file_type, uop, out)        
 
             opt = self.ts.Application.GetImporterOptions(inImporterIx)
-            print("opt :: ", opt, len(opt)) 
+            #print("opt :: ", opt, len(opt)) 
             
             # need to change 'SIMPLIFIES_GEOMETRY' to True
             # but is index change from TS version to version, so lets loop through the options and change the one we want
