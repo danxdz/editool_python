@@ -4,9 +4,9 @@ import re
 
 class CartesianPoint:
     def __init__(self, x, y, z):
-        self.x = x
-        self.y = y
-        self.z = z
+        self.x = x/1000
+        self.y = y/1000
+        self.z = z/1000
     
     def __str__(self):
         return f"({self.x}, {self.y}, {self.z})"

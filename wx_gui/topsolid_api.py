@@ -471,6 +471,37 @@ class TopSolidAPI:
                     export = self.ts.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
 
 
+
+    def get_Frames(self, file):
+        '''get all frames from file'''
+        #IGeometries3D.GetFrames 
+        frames = self.ts.Geometries3D.GetFrames(file)
+        print("INFO :: frames :: ", frames, len(frames))
+        return frames
+    
+    def setFrame (self, frame):
+        #ItemLabel(byte inType,int inId,string inMoniker,string inName)
+        from TopSolid.Kernel.Automating import ItemLabel
+        from TopSolid.Kernel.Automating import SmartFrame3D
+
+        name = self.get_name(frame)
+        
+        frame = SmartFrame3D(frame, False)
+        print("setFrame :: ", name)
+
+        if name == "MCS":
+            use_frames.MCS = frame
+        elif name == "CWS":
+            use_frames.CWS = frame
+        elif name == "PCS":
+            use_frames.PCS = frame
+        elif name == "WCS" or name == "$TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteFrame":
+            use_frames.WCS = frame
+        elif name == "CSW":
+            use_frames.CSW = frame
+
+        
+
     def Import_file_w_conv(self, inImporterIx, inFullName, inOwnerId):
         try:            
             step_viewer = StepFileViewer()
@@ -514,10 +545,10 @@ class TopSolidAPI:
             out = ""
 
             file_type = self.ts.Application.GetImporterFileType(inImporterIx, uop, out)
-            #print("file_type :: ", file_type, uop, out)        
+            print("file_type :: ", file_type, uop, out)        
 
             opt = self.ts.Application.GetImporterOptions(inImporterIx)
-            #print("opt :: ", opt, len(opt)) 
+            print("opt :: ", opt, len(opt)) 
             
             # need to change 'SIMPLIFIES_GEOMETRY' to True
             # but is index change from TS version to version, so lets loop through the options and change the one we want
@@ -525,19 +556,27 @@ class TopSolidAPI:
                 print(i, item.Key, item.Value)
                 if item.Key == "SIMPLIFIES_GEOMETRY":
                     opt[i] = KeyValue("SIMPLIFIES_GEOMETRY", "True")
+                    opt[i+1] = KeyValue("SEWS_SHEETS", "True") 
+                    opt[i+2] = KeyValue("LINEAR_TOLERANCE", "1E-01") # 1E-05 = 0.00001 / 1E-01 = 0.1
+                    opt[12] = KeyValue("DEEP_HEALING", "True")
+                    print("SIMPLIFIES_GEOMETRY changed to True")
                     break
-                '''if item.Key == "SEWS_SHEETS":
-                    opt[i] = KeyValue("SEWS_SHEETS", "True")   
-                    break'''           
 
-            ''' Default options
-            opt[0] = KeyValue("TRANSLATES_ASSEMBLY", "True")
-            opt[1] = KeyValue("TRANSLATES_ATTRIBUTES", "True")
-            opt[2] = KeyValue("SIMPLIFIES_GEOMETRY", "True")
-            opt[3] = KeyValue("SEWS_SHEETS", "False")
-            opt[4] = KeyValue("LINEAR_TOLERANCE", "1E-05")
-            opt[5] = KeyValue("BODY_DOCUMENT_EXTENSION", ".TopPrt")
-            opt[6] = KeyValue("ASSEMBLY_DOCUMENT_EXTENSION", ".TopAsm")
+            ''' Default options 716
+            0 TRANSLATES_ASSEMBLY True
+            1 TRANSLATES_ATTRIBUTES True
+            2 SIMPLIFIES_GEOMETRY True
+            3 SEWS_SHEETS True
+            4 LINEAR_TOLERANCE 1E-02 # 1E-05 = 0.00001 / 1E-01 = 0.1 / 1E-02 = 0.01 
+            5 BODY_DOCUMENT_EXTENSION .TopPrt
+            6 ASSEMBLY_DOCUMENT_EXTENSION .TopPrt
+            7 TRANSLATES_FREE_CURVES True
+            8 TRANSLATES_FREE_SURFACES True
+            9 TRANSLATES_HIDDEN_ENTITIES False
+            10 IMPORTS_PMI True
+            11 TRANSLATES_MATERIAL False
+            12 DEEP_HEALING False
+            13 IS_TRANSLATOR_SILENT False
             '''
 
             for i, item in enumerate(opt):
@@ -549,31 +588,21 @@ class TopSolidAPI:
 
             newdoc = result[0]
 
+            # ************************************************************************************************
+            # ************************************************************************************************
+            # ************************************************************************************************
+            # Process the found elements after the import
+
+            frames = self.get_Frames(newdoc[0])
+            for frame in frames:
+                self.setFrame(frame)
+                
+
             #open the file
             print("Opening file", len(newdoc))
 
             self.open_file(newdoc[0])
-            #IGeometries3D.GetFrames 
-            frames = self.ts.Geometries3D.GetFrames(newdoc[0])
-            print("frames :: ", frames, len(frames))
-            for frame in frames:
-                frame_name = self.get_name(frame)
-                print(frame_name)
-                #we can create a local def?
-                def setFrame (name, frame):
-                    frame = SmartFrame3D(frame, False)
-
-                    if name == "MCS":
-                        use_frames.MCS = frame
-                    elif name == "CWS":
-                        use_frames.CWS = frame
-                    elif name == "PCS":
-                        use_frames.PCS = frame
-                    elif name == "WCS":
-                        use_frames.WCS = frame
-                    elif name == "CSW":
-                        use_frames.CSW = frame
-                setFrame(frame_name, frame)
+            
 
             if len(frames) :#<= 1:
 
@@ -604,6 +633,8 @@ class TopSolidAPI:
                 from TopSolid.Kernel.Automating import SmartPlane3D
                 from TopSolid.Kernel.Automating import SmartText
                 from TopSolid.Kernel.Automating import SmartSection3D
+                from TopSolid.Kernel.Automating import Frame3D
+                from TopSolid.Kernel.Automating import SmartFrame3DType
 
                 inReferenceFrame = frames[0]
 
@@ -625,18 +656,57 @@ class TopSolidAPI:
                     
                     label = ItemLabel(0, 0, name, name)
 
-                    new_frame = SmartFrame3D(Main_SmartFrame, sdir, distance)
+                    test = Frame3D(p3d, Direction3D(1, 0, 0), Direction3D(0, 1, 0), Direction3D(0, 0, 1))
+                    # ElementId CreateFrame(DocumentId inDocumentId,Frame3D inGeometry)
+
+                    self.start_modif("frame", False)
+
+                    new_frame = self.ts.Geometries3D.CreateFrame(newdoc[0], test)
+
+                    print("00new_frame :: ", new_frame, self.get_name(new_frame))
+
+                    # SetName(ElementId inElementId,string inName)
+
+                    f_name = self.ts.Elements.GetFriendlyName(new_frame)
+
+                    print("f_name :: ", f_name, name)
+                    if name:
+                        self.ts.Elements.SetName(new_frame, name)
+                        self.setFrame(new_frame)
+
+                
+
+
+                    '''
+                    public SmartFrame3D(
+                                        SmartFrame3DType inType,
+                                        Nullable<Frame3D> inGeometry,
+                                        Nullable<double> inExtentXMin,
+                                        Nullable<double> inExtentXMax,
+                                        Nullable<double> inExtentYMin,
+                                        Nullable<double> inExtentYMax,
+                                        Nullable<double> inExtentZMin,
+                                        Nullable<double> inExtentZMax,
+                                        ElementId inElementId,
+                                        ItemLabel inItemLabel,
+                                        bool inIsReversed
+                    )
+                    '''
+
+                    #public enum SmartFrame3DType
+
+                    new_frame = SmartFrame3D(SmartFrame3DType(4), test, 0, 0, 0, 0, 0, 0, frames[0], label, False)
 
                     named_frame = SmartFrame3D(new_frame.ElementId , label, False)
 
 
                     print("new_frame :: ", new_frame.Type, named_frame.Type)
-
+                          
                     #start_modif
-                    self.start_modif("frame", False)
 
 
                     new_frame = self.ts.Geometries3D.CreateSmartFrame(newdoc[0],  new_frame) 
+                    print("new_frame :: ", new_frame)
                     
                 #List<ElementId> GetShapes(DocumentId inDocumentId)
                 shapes = self.ts.Shapes.GetShapes(newdoc[0])
@@ -677,6 +747,8 @@ class TopSolidAPI:
                 revolv = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
                 self.ts.Sketches2D.EndModification()
 
+        
+            
 
             #SearchProjectByName(string inProjectName)
             func_proj =  self.ts.Pdm.SearchProjectByName("TopSolid Machining")
@@ -684,7 +756,7 @@ class TopSolidAPI:
 
             for func in func_proj:
                 print(self.get_name(func), self.get_type(func))
-                if self.get_name(func) == "Usinage TopSolid":
+                if self.get_name(func) == "Usinage TopSolid" or self.get_name(func) == "TopSolid Machining":
                     func_proj = func
                     break
             
@@ -731,14 +803,20 @@ class TopSolidAPI:
                 #GetFunctionPublishings(ElementId inElementId) as List<ElementId>
                 func_pubs = self.ts.Entities.GetFunctionPublishings(func)
                 print("func_pubs :: ", func_pubs, len(func_pubs))
-                self.start_modif(True, False)
+
+
+
+                self.start_modif("func", False)
+
                 for pub in func_pubs:
                     print(self.get_name(pub))
+
                     '''
                     ToolingSystemFrame
                     ToolingSystemName
                     ToolingSystemSize
                     '''
+
                     if self.get_name(pub) == "ToolingSystemFrame":
                         #SetFramePublishingDefinition( inElementId,SmartFrame3D inDefinition)
                         self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.PCS)
