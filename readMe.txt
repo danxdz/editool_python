@@ -5,10 +5,10 @@
 - import from dxf ( testing )
 - import from "copy/paste" iso13999 data
 
-
+Tools types:
 https://www.youtube.com/watch?v=EHkpP05kN3U
-
-[![fast tools creation](https://img.youtube.com/vi/EdAxDCfOY84/0.jpg)](https://www.youtube.com/watch?v=EdAxDCfOY84)
+Tools from excel/csv files:
+https://www.youtube.com/watch?v=EdAxDCfOY84
 
 - Import from xml tool Data ( DIN4000 data )
     - FRAISA
