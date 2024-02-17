@@ -1,3 +1,10 @@
+* News
+
+- import holders from .step files
+- put your saved tools into tool assembly
+- import from dxf ( testing )
+- import from "copy/paste" iso13999 data
+
 
 - Import from xml tool Data ( DIN4000 data )
     - FRAISA
@@ -12,7 +19,8 @@
         TAP             - "176695	M16	16.00	6H 	2.000 	110.0 	30.0 	12.00 	9.0 	3 	14.00"
     
     - import SECO
-        format "JS532040G2B.0Z2-NXT 
+        example format: 
+                JS532040G2B.0Z2-NXT 
                 GDG code	B29 - JABRO-SOLID2
                 Item number	02928204
                 1
