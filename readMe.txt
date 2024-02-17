@@ -1,10 +1,14 @@
 * News
 
-- import holders from .step files
-- put your saved tools into tool assembly
+- import holders from .step files - https://www.youtube.com/watch?v=WugiCcJBAqc
+- put your saved tools into tool assembly - https://www.youtube.com/watch?v=gAXpcI4HdC8
 - import from dxf ( testing )
 - import from "copy/paste" iso13999 data
 
+
+https://www.youtube.com/watch?v=EHkpP05kN3U
+
+[![fast tools creation](https://img.youtube.com/vi/EdAxDCfOY84/0.jpg)](https://www.youtube.com/watch?v=EdAxDCfOY84)
 
 - Import from xml tool Data ( DIN4000 data )
     - FRAISA
