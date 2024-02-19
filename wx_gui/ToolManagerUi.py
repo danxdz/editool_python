@@ -174,7 +174,7 @@ class ToolManagerUI(wx.Frame):
         if not self.ts or not self.ts.connected:
             self.ts = TopSolidAPI()
         
-        dlg = wx.FileDialog(self, "Choose a file to import", wildcard="All files (*.*)|*.*", style=wx.FD_OPEN)
+        dlg = wx.FileDialog(self, "Choose a STEP file to import", wildcard=wcard, style=wx.FD_OPEN)
         if dlg.ShowModal() == wx.ID_OK:
             file_path = dlg.GetPath()
             dlg.Destroy()

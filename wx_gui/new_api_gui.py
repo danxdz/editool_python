@@ -1,6 +1,10 @@
 import wx
 import os
+
+# Import the TopSolidAPI class from the top_solid_api module
 from topsolid_api import TopSolidAPI
+
+
 
 class TopSolidGUI(wx.Frame):
     def __init__(self, parent, title):
@@ -28,6 +32,10 @@ class TopSolidGUI(wx.Frame):
             "Export all to pdfs",
             "Import File",
             "Import File w conversion",
+            "Get tools",
+            "Get elem constituents",
+            "Get culture language",
+            
         ]
 
         self.function_combo = wx.ComboBox(self.panel, choices=functions, style=wx.CB_DROPDOWN)
@@ -134,12 +142,48 @@ class TopSolidGUI(wx.Frame):
                 except Exception as e:
                     wx.MessageBox(f"Error importing documents: {e}", "Error", wx.OK | wx.ICON_ERROR)
 
+
+            elif selected_function == "Import File w conversion":
+                print("Import File w conversion")
+
+
+            elif selected_function == "Get tools":
+                doc = self.topSolid.get_open_files()
+                print(doc)
+                for d in doc:
+                    print(d)
+                    tools = self.topSolid.get_tools(d)
+                    print(tools)
+
+            elif selected_function == "Get elem constituents":
+                doc = self.topSolid.get_open_files()
+                print(doc)
+                f = open("output.txt", "w")
+                for d in doc:
+                    print(d)
+                    #List<ElementId> GetElements(DocumentId inDocumentId)
+                    elem = self.topSolid.ts.Elements.GetElements(d)
+                    print(elem)
+                    for e in elem:
+                        consts = self.topSolid.ts.Elements.GetConstituents(e)
+                        print("consts :: ", consts , len(consts))
+                        for c in consts:
+                            #print(self.topSolid.get_name(c), c.DocumentId , c.Id)
+                            #output to txt file
+                            f.write(self.topSolid.get_name(c) + " " + str(c.DocumentId) + " " + str(c.Id) + "\n")
+
+                f.close()
+
+            elif selected_function  == "Get culture language":
+                print(self.topSolid.get_language())
+
+
     def on_add_button(self, event):
         selected_function = self.function_combo.GetValue()
         
-        # Adiciona um novo botão com base na função selecionada
+        # add new button to panel with selected function
         new_button = wx.Button(self.panel, label=selected_function)
-        new_button.Bind(wx.EVT_BUTTON, self.on_execute)  # Pode ajustar o evento conforme necessário
+        new_button.Bind(wx.EVT_BUTTON, self.on_execute) 
         self.panel.GetSizer().Add(new_button, 0, wx.ALL | wx.CENTER, 10)
         self.panel.Layout()
 
