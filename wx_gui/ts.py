@@ -384,7 +384,7 @@ def copy_tool(self, tool, holder, clone): #holder = true or false
             ts_ext.Parameters.SetRealValue(ts_ext.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
 
         if tool.z:
-            z = tool.z
+            z = int(float(tool.z)) #dont work with float
             ts_ext.Parameters.SetIntegerValue(ts_ext.Elements.SearchByName(savedToolModif, "NoTT"), int(z))
             print("z: ", z)
 
@@ -541,7 +541,6 @@ def copy_tool(self, tool, holder, clone): #holder = true or false
        
     except Exception as ex:
         EndModif(ts_ext, True,False)
-
         print("Error copying tool: " + str(ex))
 
     # Disconnect TopSolid and end the modification
@@ -549,7 +548,7 @@ def copy_tool(self, tool, holder, clone): #holder = true or false
 
 
 
-def copy_holder(self, ts_ext, tool):
+def copy_holder(self, tool):
 
     """    if ts_ext is None:
         print("ts_ext is not connected")
@@ -562,18 +561,18 @@ def copy_holder(self, ts_ext, tool):
 
         ts_design_ext = top_solid_kernel_design.TopSolidDesignHostInstance(self.topSolid)
 
-        # Connect to TopSolid
+        Connect to TopSolid
         print(ts_design_ext.Connect())
 
         #uncomment to prevent get TS blocked, may output an error "No modification to end."
         #EndModif(ts_ext, False, False)
     """
     
-    if not self.topSolid or not self.topSolid.connected:
+    if not self.ts or not self.ts.connected:
         print("topSolid is not connected")
-        self.topSolid = TopSolidAPI()
+        self.ts = TopSolidAPI()
 
-    with self.topSolid as api:
+    with self.ts as api:
 
         try:
 
@@ -603,9 +602,11 @@ def copy_holder(self, ts_ext, tool):
                             print("number functions found: ", len(holderFunctions))
                             if holderFunctions and len(holderFunctions) > 0:
                                 for  i in holderFunctions:
-                                    function = api.ts.Elements.GetFriendlyName(i)
+                                    function = str(api.ts.Elements.GetFriendlyName(i))
                                     print(f"GetName: {api.ts.Elements.GetName(i)} GetFriendlyName:  {function}")
-                                    if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <Attachement cylindrique pour l'outil>": #TODO: check if exist a better way to identify holder
+                                    #if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <Attachement cylindrique pour l'outil>" or function == "Tooling Shank <Système de fixation outil>": #TODO: check if exist a better way to identify holder
+                                    #check if function is a holder by get first words "Tooling Shank"
+                                    if function.startswith("Tooling Shank") or function.startswith("Attachement cylindrique porte outil") or function.startswith("Système de fixation porte-outil") or function.startswith("Attachement cylindrique pour l'outil") or function.startswith("Attachement cylindrique porte outil  <ToolingHolder_1>"):
                                         print(f"found : {function}")
                                         holder_found += 1
                                         create_tool_w_holder(api.ts ,api.ts_d , output_lib, tool, holder)
@@ -617,10 +618,13 @@ def copy_holder(self, ts_ext, tool):
             if holder_found == 0:
                 noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
                 if noTool == wx.OK:
-                    copy_holder(api.ts, tool)
+                    copy_holder(self, tool)
                 print("noTool: ", noTool)                 
 
         except Exception as ex:
+            # msg box error copying tool
+            dialog = wx.MessageBox('Error copying tool: ' + str(ex), 'Warning', wx.OK_DEFAULT | wx.ICON_ERROR)
+
             print("Error copying tool: " + str(ex))
             EndModif(api.ts, False, False)
 
@@ -631,7 +635,7 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
 
         from TopSolid.Kernel.Automating import DocumentId
 
-        print("create_tool_w_holder: ", holder, tool.name, tool.TSid)
+        print("INFO :: ", holder, tool.name, tool.TSid)
         
         elemModelId = []
         elemModelId.append(holder)
@@ -702,15 +706,20 @@ def create_tool_w_holder(ts_ext,ts_design_ext, output_lib, tool, holder): #holde
                             i = i + 1
                             print("newTool: ", newTool.PdmDocumentId)
 
+                            print("child: ", o.DocumentId)
+                            print("child: ", newTool.PdmDocumentId)
+
                             ts_design_ext.Assemblies.RedirectInclusion(o, newTool)
                             
-            EndModif(ts_ext, True,True)
-            
-            ts_ext.Application.StartModification("tmp", True)
+    
 
+            ''' 
             name = "[FR] + [PO]"
+                try:
+                ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
 
-            ts_ext.Parameters.SetTextParameterizedValue(ts_ext.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
+            except Exception as ex:
+                print("Error setting name: ", ex)'''
 
             EndModif(ts_ext, True, False)
             ts_ext.Documents.Save(newToolDocId)

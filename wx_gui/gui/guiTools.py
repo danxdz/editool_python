@@ -1,4 +1,6 @@
-import wx, os
+import wx
+import os
+import logging
 
 from tool import ToolsDefaultsData
 from tool import ToolsCustomData
@@ -9,31 +11,30 @@ from databaseTools import load_tools_from_database
 
 class GenericMessageBox(wx.Dialog):
     def __init__(self, parent, text, title = ''):
-        wx.Dialog.__init__(self, parent, -1, title = title, size = (360,120), style = wx.DEFAULT_DIALOG_STYLE)
-        panel = wx.Panel(self, wx.ID_ANY, size = (360, 50), pos = (0,0))
-        panel.SetBackgroundColour('#FFFFFF')
-        label = wx.StaticText(panel, -1, text, pos = (50,20))        
-        panel2 = wx.Panel(self, wx.ID_ANY, size = (360, 60), pos = (0, 50))
+        wx.Dialog.__init__(self, parent, -1, title = title, size = (360,140), style = wx.DEFAULT_DIALOG_STYLE)
+        header_panel = wx.Panel(self, wx.ID_ANY, size = (360, 60), pos = (0,0))
+        header_panel.SetBackgroundColour('#FFFFFF')
+        label = wx.StaticText(header_panel, -1, text, pos = (20,20))        
+        buttons_panel = wx.Panel(self, wx.ID_ANY, size = (500, 100), pos = (0, 50))
         #add sizer buttons
         sz = wx.BoxSizer(wx.HORIZONTAL)
-        btn = wx.Button(panel2, wx.ID_OK, "duplicate", pos = (100, 10))
-        bt2 = wx.Button(panel2, wx.ID_YES, "update", pos = (200, 10))
-        bt_cancel = wx.Button(panel2, wx.ID_CANCEL, "cancel", pos = (300, 10))
-
+        btn = wx.Button(buttons_panel, wx.ID_OK, "duplicate", pos = (20, 15))
+        bt2 = wx.Button(buttons_panel, wx.ID_YES, "update", pos = (120, 15))
+        bt_cancel = wx.Button(buttons_panel, wx.ID_CANCEL, "cancel", pos = (250, 15))
 
         btn.SetDefault()
         sz.Add(btn, 0, wx.ALL, 5)
         sz.Add(bt2, 0, wx.ALL, 5)
 
-        panel2.SetSizer(sz)
+        buttons_panel.SetSizer(sz)
         self.Center()
-
 
 toolData = ToolsCustomData()
 toolDefData = ToolsDefaultsData()
 
 
 def load_masks():
+    '''load the masks from the file or from the default data'''
     masks = toolDefData.tool_names_mask
     #check if the file exist
     check = os.path.isfile('toolsetup.txt')        
@@ -103,8 +104,6 @@ def add_line(panel, tool):
     index = panel.olvSimple.GetItemCount()
     
     #print("adding tool line :: ", index, " :: ", tool.name)
-
-
     
     index = panel.olvSimple.InsertItem(index, str(tool.TSid))
     #set one V if TSid exist
@@ -133,24 +132,22 @@ def refreshToolList(panel, toolData):
     selected = panel.olvSimple.GetSelectedObject()
     if selected:
         print("selected :: ", selected.name)
+        logging.info(f"selected :: {selected.name}")
     
     tool_type = toolData.selected_toolType
     tools = toolData.full_tools_list
     
-
-    if tools:
-        #print("refreshToolList :: ", len(tools), " :: ", tool_type)
-        panel.olvSimple.DeleteAllItems()
-
     new_tool_type_text = "all"
     if tool_type != -1:
         new_tool_type_text = toolData.tool_types_list[tool_type] 
         #print("refreshToolList :: ", new_tool_type_text)     
     if tools:
         print(f"INFO :: {len(tools)} tools loaded :: type : {new_tool_type_text}")
-        #self.list_ctrl.DeleteAllItems()
-
+        #panel.olvSimple.DeleteAllItems()
         panel.olvSimple.SetObjects(tools)
+
+        panel.olvSimple.Refresh()
+        print("INFO :: refreshToolList :: ", panel.olvSimple.GetItemCount(), " :: ", len(tools))
 
     else:
         print(f"INFO :: no tools loaded :: type : {new_tool_type_text}")
@@ -193,71 +190,77 @@ def tooltypesButtons(self):
         if i in self.toolData.existent_tooltypes and i != self.selected_toolType:
            self.bt.Enabled = True
 
-        
-
     #add the container to the main sizer
     return (self.iconsBar)
 
 
+def get_custom_settings(self):
 
-    
+    lang = ''   
 
-def create_menu(self):
-
-    #read the language from the config file
-    #if the file not exist create it and add the default language
-    check = os.path.isfile('config.txt')
-    if check:
+    #read the config file
+    #if the file not exist create it and add the default language get from the ts
+    config_exists = os.path.isfile('config.txt')
+    if config_exists:
         file = open('config.txt', 'r', encoding='utf-8')
-        #read the data from the file
+        #read all lines from the file
         lines = file.readlines()
-        lines = [x.strip() for x in lines]
-        lang = int(lines[0])
+        lines = [x.strip().split(";") for x in lines]
+        #check if line is not empty
+        if lines:
+            for  line in lines:
+                if line[0] == 'lang':
+                    lang = line[1]
         file.close()
         
-    else:
-        file = open('config.txt', 'w', encoding='utf-8')
-        file.write("1\n")
-        file.close()
-        lang = 1
+    elif lang == '':
+        logging.warning('config file not exist')
+        lang = self.ts.get_language()
+        logging.info(f"ts current language :: {lang}")
+        MenusInter.set_lang(self,lang)
+        
+    logging.info(f"saved language :: {lang}")
 
+    self.lang = lang
+    
 
-    #print("INFO :: create_menu :: ", lang)
+def build_menus(self):
 
     #get the menu text from the dictionary
-    menu = MenusInter(lang)
+    self.menu = MenusInter(self.lang)
 
     #for key, value in menu.menus.items():
     #    print("key :: ", key, " :: ", value)
 
     file_menu = wx.Menu()
 
-    open_xml = file_menu.Append(wx.ID_ANY, menu.get_menu("importXml"), 'open a xml file with tool data')        
+    open_xml = file_menu.Append(wx.ID_ANY, self.menu.get_menu("importXml"), 'open a xml file with tool data')        
     self.Bind(event=wx.EVT_MENU, handler=self.on_open_xml,source=open_xml,)
 
-    importStep = file_menu.Append(wx.ID_ANY, menu.get_menu("importSTEP"), 'import tool data from a step file')
+    importStep = file_menu.Append(wx.ID_ANY, self.menu.get_menu("importSTEP"), 'import tool data from a step file')
     self.Bind(event=wx.EVT_MENU, handler=self.on_import_step,source=importStep,)
+    self.Bind(event=wx.EVT_ENTER_WINDOW, handler=self.help,source=importStep,)
     
-    ISO13999 = file_menu.Append(wx.ID_ANY, menu.get_menu("pasteISO"), 'paste tool data ISO13999')        
+    ISO13999 = file_menu.Append(wx.ID_ANY, self.menu.get_menu("pasteISO"), 'paste tool data ISO13999')        
     self.Bind(event=wx.EVT_MENU, handler=self.on_paste_iso13999,source=ISO13999,)
 
-    exp_xml = file_menu.Append(wx.ID_ANY, menu.get_menu("exportXml"), 'export tool data into XML file')
-    self.Bind(event=wx.EVT_MENU, handler=self.on_export_xml,source=exp_xml)
+    #exp_xml = file_menu.Append(wx.ID_ANY, self.menu.get_menu("exportXml"), 'export tool data into XML file')
+    #self.Bind(event=wx.EVT_MENU, handler=self.on_export_xml,source=exp_xml)
 
-    exit = file_menu.Append(wx.ID_ANY, menu.get_menu('exit'), "close app")
+    exit = file_menu.Append(wx.ID_ANY, self.menu.get_menu('exit'), "close app")
 
     self.Bind(event=wx.EVT_MENU,handler=self.close_app,source=exit)
 
     # add file menu to menu bar
     menu_bar = wx.MenuBar()
-    menu_bar.Append(file_menu, menu.get_menu("file"))
+    menu_bar.Append(file_menu, self.menu.get_menu("file"))
 
     # add tools config menu
     config = wx.Menu()
-    toolSetup = config.Append(wx.ID_ANY, menu.get_menu("tool_setup"), 'setup tool data')
+    toolSetup = config.Append(wx.ID_ANY, self.menu.get_menu("tool_setup"), 'setup tool data')
     self.Bind( event=wx.EVT_MENU, handler=self. toolSetupPanel, source=toolSetup)
     # add holders config menu
-    holdersConfig = config.Append(wx.ID_ANY, menu.get_menu("holder_setup"), 'setup holder data')        
+    holdersConfig = config.Append(wx.ID_ANY, self.menu.get_menu("holder_setup"), 'setup holder data')        
     self.Bind(event=wx.EVT_MENU,handler=self.HoldersSetupPanel,source=holdersConfig)
     # add language submenu
     self.language_menu = wx.Menu()
@@ -268,10 +271,18 @@ def create_menu(self):
 
     self.language_menu.Bind(event=wx.EVT_MENU,handler=self.change_language)
 
-    config.AppendSubMenu(self.language_menu, menu.get_menu("language"))
+    config.AppendSubMenu(self.language_menu, self.menu.get_menu("language"))
 
-    menu_bar.Append(config, f'&{menu.get_menu("setup")}')
+    menu_bar.Append(config, f'&{self.menu.get_menu("setup")}')
+
+    # add help menu
+    help_menu = wx.Menu()
+    help = help_menu.Append(wx.ID_ANY, f"&{self.menu.get_menu('help')}\tF1", 'help')
+    self.Bind(event=wx.EVT_MENU,handler=self.help,source=help)
+    about = help_menu.Append(wx.ID_ANY, f"{self.menu.get_menu('about')}\t&A", 'about')
+    self.Bind(event=wx.EVT_MENU,handler=self.about,source=about)
+    menu_bar.Append(help_menu, self.menu.get_menu("help"))
 
     self.SetMenuBar(menu_bar)
-
-    return lang
+    
+    

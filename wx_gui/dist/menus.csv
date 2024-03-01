@@ -9,6 +9,7 @@ cancel;cancel;annuler;cancelar
 close;close;fermer;fechar
 exit;exit;quitter;sair
 create;create;créer;criar
+createToolWHholder;add tool to holder;ajouter outil au porte-outil;adicionar ferramenta ao suporte
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
 importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml

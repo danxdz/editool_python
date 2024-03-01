@@ -1,0 +1,83 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Ajuda da Aplicação</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+        }
+        #content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+        a:hover {
+            color: #666;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <ul>
+                <li><a href="#topic1">Tópico 1</a></li>
+                <li><a href="#topic2">Tópico 2</a></li>
+                <li><a href="#topic3">Tópico 3</a></li>
+                <!-- Adicione mais itens conforme necessário -->
+            </ul>
+        </div>
+        <div id="content">
+            <h1 id="topic1">Tópico 1</h1>
+            <p>Conteúdo do tópico 1...</p>
+            <img src="imagem1.jpg" alt="Imagem 1">
+
+            <h1 id="topic2">Tópico 2</h1>
+            <p>Conteúdo do tópico 2...</p>
+            <img src="imagem2.jpg" alt="Imagem 2">
+
+            <h1 id="topic3">Tópico 3</h1>
+            <p>Conteúdo do tópico 3...</p>
+            <img src="imagem3.jpg" alt="Imagem 3">
+            
+            <h1 id="topic4">Tópico 4</h1>
+            <p>Conteúdo do tópico 4...</p>
+            <img src="imagem4.jpg" alt="Imagem 4">
+
+            <h1 id="topic5">Tópico 5</h1>
+            <p>Conteúdo do tópico 5...</p>
+            <img src="imagem5.jpg" alt="Imagem 5">
+            
+        </div>
+    </div>
+</body>
+</html>

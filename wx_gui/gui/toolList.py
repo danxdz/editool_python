@@ -19,13 +19,12 @@ class ToolList(wx.Panel):
     def __init__(self, parent):
         super().__init__(parent=parent)
 
-        self.topSolid = None
-
         self.font_10 = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_tool_params_12 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Courier 10 Pitch')
             
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
+        self.ts = parent.ts
        
 
         #get the menu text from the dictionary
@@ -104,12 +103,12 @@ class ToolList(wx.Panel):
             #create popup menu
             self.popup_menu = wx.Menu()
             self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
-            self.popup_menu.Append(1, "Create tool with holder")
-            self.popup_menu.Append(2, "Edit")
-            self.popup_menu.Append(5, "Duplicate")
-            self.popup_menu.Append(3, "Delete")
+            self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
+            self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
+            self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
+            self.popup_menu.Append(3, f"{menu.get_menu('delete').capitalize()}")
             self.popup_menu.AppendSeparator()
-            self.popup_menu.Append(4, "Export")
+            #self.popup_menu.Append(4, "Export")
             self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
 
     def getTsImage(self, tool):
@@ -126,13 +125,15 @@ class ToolList(wx.Panel):
             return "tslotMill"
         
 
-    def OnPaint(self, event):        
-        tool = self.selected_tool
-        #print("OnPaint :: ", tool)
-        #print("OnPaint", tool.name)
-        dc = wx.PaintDC(self.toolView)
-        if tool:
-            OnPaint(self, dc, tool)
+    def OnPaint(self, event):   
+        #check if there is a any tool
+        if len(self.toolData.full_tools_list) > 0:
+            tool = self.selected_tool
+            #print("OnPaint :: ", tool)
+            #print("OnPaint", tool.name)
+            dc = wx.PaintDC(self.toolView)
+            if tool:
+                OnPaint(self, dc, tool)
 
 
     def toolSelected(self, event):
@@ -195,7 +196,9 @@ class ToolList(wx.Panel):
             #create tool :: true = holder
             print("create holder for :: ", tool.name)
             #id = ts.get_tool_TSid(tool)
-            copy_holder(self, None, tool)
+            #copy_holder(self, tool)
+            print (self.ts.insert_into_holder(tool))
+
         elif id == 2:
             print("floatMenu :: Edit :: ", tool.name )
             validateToolDialog(self, tool, False).ShowModal()

@@ -20,6 +20,8 @@ def open_file(self, title):
         len_data = len(data)
 
         print(len_data , " :: " ,  data)
+        
+        self.tool = Tool()
 
         if len(data) > 100:
             self.tool = import_past.process_input_13999(data, self.toolData.tool_types_list)

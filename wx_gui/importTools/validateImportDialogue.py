@@ -187,7 +187,7 @@ class validateToolDialog(wx.Dialog):
 
         saveTool(self.tool,self.toolData.tool_types_list)
         
-        copy_tool(self, self.tool, False)
+        copy_tool(self, self.tool, False, False)
 
         self.Destroy()  # Close the dialog after create tool    
 

@@ -7,8 +7,27 @@ open;open;ouvrir;abrir
 save;save;enregistrer;gravar
 cancel;cancel;annuler;cancelar
 close;close;fermer;fechar
+edit;edit;éditer;editar
+delete;delete;supprimer;apagar
+duplicate;duplicate;dupliquer;duplicar
+cut;cut;couper;cortar
+copy;copy;copier;copiar
+paste;paste;coller;colar
+selectAll;select all;sélectionner tout;selecionar tudo
+unselectAll;unselect all;déselectionner tout;deselecionar tudo
+invertSelection;invert selection;inverser la sélection;inverter seleção
+find;find;rechercher;procurar
+findNext;find next;rechercher suivant;procurar seguinte
+findPrevious;find previous;rechercher précédent;procurar anterior
+replace;replace;remplacer;substituir
+replaceNext;replace next;remplacer suivant;substituir seguinte
+replacePrevious;replace previous;remplacer précédent;substituir anterior
+replaceFind;replace find;rechercher et remplacer;procurar e substituir
+undo;undo;annuler;desfazer
+redo;redo;refaire;refazer
 exit;exit;quitter;sair
 create;create;créer;criar
+createToolWithHolder;add tool to holder;ajouter outil au porte-outil;adicionar ferramenta ao suporte
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
 importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml

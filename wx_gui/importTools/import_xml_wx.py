@@ -357,7 +357,7 @@ def parse_new_xml_data(tool):
         newTool.D3 = get_float_property(tool, "C3")
     
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
-    newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
+    newTool.z = int(get_property_value(tool, "F21")) or int(get_property_value(tool, "D1"))
     newTool.cornerRadius = get_float_property(tool, "G1")
 
     #print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)

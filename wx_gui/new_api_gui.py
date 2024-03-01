@@ -35,6 +35,7 @@ class TopSolidGUI(wx.Frame):
             "Get tools",
             "Get elem constituents",
             "Get culture language",
+            "Read functions from open file",
             
         ]
 
@@ -176,6 +177,14 @@ class TopSolidGUI(wx.Frame):
 
             elif selected_function  == "Get culture language":
                 print(self.topSolid.get_language())
+
+            elif selected_function  == "Read functions from open file":
+                doc = self.topSolid.get_open_files()
+                print(doc)
+                for d in doc:
+                    print(d)
+                    functions = self.topSolid.read_functions(d)
+                    print(functions)
 
 
     def on_add_button(self, event):
