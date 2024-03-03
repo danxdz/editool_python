@@ -223,3 +223,7 @@ class ToolList(wx.Panel):
     def show_popup(self, event):
         pos = event.GetPosition()        
         self.PopupMenu(self.popup_menu, pos)
+
+
+
+

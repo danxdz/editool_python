@@ -738,6 +738,9 @@ class TopSolidAPI:
                         print("INFO :: n of faces :: ", self.ts.Shapes.GetFaceCount(shape))
 
                         faces = self.ts.Shapes.GetFaces(shape)
+                        cut_len = []
+                        circles_radius = []
+
                         for face in faces:
                             face_type = self.ts.Shapes.GetFaceSurfaceType(face)
                             print(f"{face} :: {face_type} :: {len(faces)}")
@@ -749,79 +752,37 @@ class TopSolidAPI:
 
                             #List<ElementItemId> GetFaceEdges(ElementItemId inFaceId)
                             edges = self.ts.Shapes.GetFaceEdges(face)
-                            print("edges :: ", edges, len(edges))
+                            print("******************** edges :: ", edges, len(edges))
+
+
                             for edge in edges:
                                 # CurveType GetEdgeCurveType(ElementItemId inEdgeId)
                                 c_type = self.ts.Shapes.GetEdgeCurveType(edge)
-                                print(edge, c_type )
+                                # Point3D GetEdgePoint(ElementItemId inEdgeId,double inT)
+                                e_point = self.ts.Shapes.GetEdgePoint(edge, 0.0)
+                                print("edge :: ", edge, c_type, e_point.X, e_point.Y, e_point.Z, e_point.P0.X, e_point.P0.Y, e_point.P0.Z)
+                                cut_len.append(e_point.Z)
+                                # void GetEdgeVertices(ElementItemId inEdgeId,out ElementItemId outStartVertexId,out ElementItemId outEndVertexId)
+                                start_vertex, end_vertex = self.ts.Shapes.GetEdgeVertices(edge)
+                                print("start_vertex :: ", start_vertex, "end_vertex :: ", end_vertex)
+                                # double GetEdgeLength(ElementItemId inEdgeId)
+                                e_length = self.ts.Shapes.GetEdgeLength(edge)
+                                print("e_length :: ", e_length)
+
                                 if str(c_type) == "Circle":
                                     # void GetEdgeCircleCurve(ElementItemId inEdgeId,out Plane3D outPlane,out double outRadius)
                                     circle , c_radius = self.ts.Shapes.GetEdgeCircleCurve(edge)
                                     print("circle :: ", circle, c_radius)
-                                    tool.D1 = c_radius * 2 * 1000
+                                    circles_radius.append(c_radius)
 
-                            '''
-                            #Function GetFaceSurfaceParameters ( 
-                                            inFaceId As ElementItemId,
-                                            inPoint As Point3D,
-                                            <OutAttribute> ByRef outU As Double,
-                                            <OutAttribute> ByRef outV As Double
-                                        ) As Point3D
+                    
+                        print("cut_len :: ", cut_len, circles_radius)
+                        #take the max value of the list and get de diference between the max and min value, and round to 3 decimal places
+                        tool.L1 = round((max(cut_len) - min(cut_len)), 3)
+                        print("dif :: ", tool.L1 * 1000)
+                        #to radius of the circle we need to take the max, but stay on test
+                        tool.D1 = round(max(circles_radius), 3)*2
 
-                                        Dim instance As IShapes
-                                        Dim inFaceId As ElementItemId
-                                        Dim inPoint As Point3D
-                                        Dim outU As Double
-                                        Dim outV As Double
-                                        Dim returnValue As Point3D
-
-                                        returnValue = instance.GetFaceSurfaceParameters(inFaceId, 
-                                            inPoint, outU, outV)
-                                            '''
-                            outU = 0.0
-                            outV = 0.0
-
-
-                            if str(face_type) == "Cylinder":
-                                '''void GetFaceRange(
-                                                        ElementItemId inFaceId,
-                                                        out double outUMin,
-                                                        out double outUMax,
-                                                        out double outVMin,
-                                                        out double outVMax)
-                                                    '''
-                                
-
-
-                                for cf in connected_faces:                                        
-                                    cf_type = self.ts.Shapes.GetFaceSurfaceType(cf)
-                                    print(cf_type)
-
-                                    #void GetFaceCylinderSurface(ElementItemId inFaceId,out Frame3D outFrame,out double outRadius)
-                                    if str(cf_type) == "Cylinder":
-                                        print(cf)
-
-                                        cyl_face = self.ts.Shapes.GetFaceCylinderSurface(face)
-                                        print("cyl_face :: ", cyl_face)
-                                        for c in cyl_face:
-                                            print(c)
-                                            #double GetFaceCylinderRadius(ElementItemId inFaceId)
-                                            #diam = self.ts.Shapes.GetFaceCylinderRadius(c)
-                                            #print("diam :: ", diam)
-
-
-
-                            x_min = 0.0
-                            x_max = 0
-                            y_min = 0
-                            y_max = 0
-                            z_min = 0
-                            z_max = 0
-
-                        '''
-                            self.ts.Shapes.GetFaceEnclosingCoordinates(face, x_min, x_max, y_min, y_max, z_min, z_max)
-                            print(f"face {face} :: {x_min} :: {x_max} :: {y_min} :: {y_max} :: {z_min} :: {z_max}")'''
-                        
 
                         print("INFO :: n of edges :: ", self.ts.Shapes.GetEdgeCount(shape))
                         edges = self.ts.Shapes.GetEdges(shape)
@@ -847,7 +808,7 @@ class TopSolidAPI:
 
                         #eii = self.auto.ElementItemId(shape, self.auto.ItemLabel(0, 0, "CUT", "CUT"))
                         
-                        print("Multiple shapes found, 'CUT' shape found, is a tool :: D1 :: ", tool.D1)
+                        print("Multiple shapes found, 'CUT' shape found, is a tool :: D1 :: ", tool.D1 * 1000, "L1 :: ", tool.L1 * 1000)
                         
                 if self.tool == False:
                     print("Multiple shapes found, no 'CUT' shape, is a holder")
@@ -859,8 +820,8 @@ class TopSolidAPI:
             #**************************************************************
             # need to check if is a tool or holder before begin the process
             #**************************************************************
-            # if tool need 2 shapes, so 2 revolved sketches
-            # if holder need 1 shape, so 1 revolved sketch
+            # if tool need 2 shapes, 2 revolved sketches
+            # if holder need 1 shape, 1 revolved sketch
 
             print("is tool? :: ", self.tool)
 
@@ -883,8 +844,9 @@ class TopSolidAPI:
 
             #get the shape to revolve
             for shape in shapes:
+                shape_name = self.get_name(shape)
+                print("shape_name :: ", shape_name)
                 shape = self.auto.SmartShape(shape)
-                #print("shape :: ", shape, self.get_name(shapes[0]))
 
                 planes = self.ts.Geometries3D.GetPlanes(newdoc[0])
                 '''
@@ -909,6 +871,14 @@ class TopSolidAPI:
 
                 #ElementId CreateRevolvedSilhouette(SmartShape inShape,SmartAxis3D inAxis,bool inMerge)
                 revolved = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
+                #set the name of the revolved sketch
+                #put shape_name into minus case
+                minus_shape_name = shape_name.lower()
+                #check if the name is numeric, so it cant be in minus case
+                if minus_shape_name.isnumeric():
+                    minus_shape_name = f"shape_{minus_shape_name}"
+                self.ts.Elements.SetName(sketch, minus_shape_name)
+
                 print("revolved :: ", revolved)
 
                 self.ts.Sketches2D.EndModification()
@@ -925,39 +895,114 @@ class TopSolidAPI:
             
             if self.tool == True:
                 print("INFO :: add tool functions")
+
+                '''      
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Fraise 2 tailles")
                 print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
                 prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Fraise 2 tailles")
+
+                ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Attachement cylindrique outil")
+                print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
+                func_doc = self.ts.Documents.GetDocument(ts_func[0])
+                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique outil")
+                '''
+
+                self.provide_tool_function(newdoc[0], func_proj, "Fraise 2 tailles")
+                self.provide_tool_function(newdoc[0], func_proj, "Attachement cylindrique outil")
+                self.provide_tool_function(newdoc[0], func_proj, "Profil de révolution pour l'analyse de collision")          
+                self.provide_tool_function(newdoc[0], func_proj, "Profil de révolution pour mise à jour du brut")
+
+
                 functions = self.ts.Entities.GetFunctions(newdoc[0])
+
+                #List<ElementId> GetSketches( DocumentId inDocumentId )
+                sketches = self.ts.Sketches2D.GetSketches(newdoc[0])
+                print("sketches :: ", sketches, len(sketches))
+        
                 print("functions :: ", functions, len(functions))
                 for f in functions:
                     # List<ElementId> GetFunctionPublishings(ElementId inElementId)
                     func_pubs = self.ts.Entities.GetFunctionPublishings(f)
-                    print("func_pubs :: ", func_pubs, len(func_pubs))
+                    # string GetFunctionOccurrenceName(ElementId inElementId)
+                    func_pub_name = self.ts.Entities.GetFunctionOccurrenceName(f)
+                    print("func_pubs :: ", func_pub_name, len(func_pubs))
+
+
                     for pub in func_pubs:
                         p_name = self.get_name(pub)
+                        print("INFO :: function found :: ", p_name, self.get_type(pub))
                         '''
-                            Function Use TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
-                            CuttingEdgeOrigin TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity
-                            CenterCutting TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
-                            MaximumRampAngle TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
-                            CoolantNozzle TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
-                            NumberOfToolTeeth TopSolid.Kernel.DB.Parameters.PublishingIntegerParameterEntity
-                            LeftHand TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
-                            CuttingToolMaterialCategory TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
-                            CuttingLength TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
-                            CuttingDiameter TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity'''
-                        
+                            Fraise 2 tailles
+                                Function Use TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                                CuttingEdgeOrigin TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity
+                                CenterCutting TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                                MaximumRampAngle TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                CoolantNozzle TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                                NumberOfToolTeeth TopSolid.Kernel.DB.Parameters.PublishingIntegerParameterEntity
+                                LeftHand TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                                CuttingToolMaterialCategory TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                                CuttingLength TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                CuttingDiameter TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+
+                            Attachement cylindrique outil
+                                Function Use TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                                MaximalDistance TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                MinimalDistance TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                InitialDistance TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                ShankDiameter TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                                ToolingSystemFrame TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity
+                            
+                            Profil de révolution pour l'analyse de collision
+                                Function Use TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                                Revolute Section TopSolid.Kernel.DB.D3.Sections.PublishingSectionEntity
+                     
+                        if str(p_name) == "Function Use":
+                            id = self.ts.Parameters.GetEnumerationPublishingDefinition(pub)
+                            print("id :: ", id, id.Value)
+                            id.Value = 3
+                            #IParameters.SetEnumerationPublishingDefinition Method
+                            self.ts.Parameters.SetEnumerationPublishingDefinition(pub, id)
+                        '''
+
                         if p_name == "CuttingDiameter":
                             #IParameters.SetRealPublishingDefinition Method
-                            self.ts.Parameters.SetRealPublishingDefinition(pub, self.auto.SmartReal(self.auto.UnitType.Length, tool.D1/1000))
-                        if p_name == "CuttingEdgeOrigin":
+                            if  tool.D1 is not None:
+                                self.ts.Parameters.SetRealPublishingDefinition(pub, self.auto.SmartReal(self.auto.UnitType.Length, tool.D1))
+                        elif p_name == "CuttingLength":
+                            #IParameters.SetRealPublishingDefinition Method
+                            if  tool.L1 is not None:
+                                self.ts.Parameters.SetRealPublishingDefinition(pub, self.auto.SmartReal(self.auto.UnitType.Length, tool.L1))
+                        elif p_name == "CuttingEdgeOrigin":
                             #IParameters.SetFramePublishingDefinition Method
                             self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.CIP_tip)
+                        elif p_name == "ToolingSystemFrame":
+                            #IParameters.SetFramePublishingDefinition Method
+                            self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.MCS)
+                        elif p_name == "Revolute Section":                                                        
+                            for sketch in sketches:
+                                sketch_name = self.get_name(sketch)                                
+                                if  sketch_name == "nocut":
+                                    print("INFO :: sketch found :: ", sketch_name)
+                                    #public SmartSection3D(ElementId inElementId)
+                                    sect = self.auto.SmartSection3D(sketch)
+                                    #print("sect :: ", sect, self.get_name(sect))
+                                    #void SetSectionPublishingDefinition(ElementId inElementId,SmartSection3D inDefinition)
+                                    self.ts.Geometries3D.SetSectionPublishingDefinition(pub, sect)
+                                    break
 
-                        print("INFO :: function found :: ", self.get_name(pub), self.get_type(pub))
-
+                        elif p_name == "Revolution Section":
+                            for sketch in sketches:
+                                sketch_name = self.get_name(sketch)
+                                if  sketch_name == "cut":
+                                    print("INFO :: sketch found :: ", sketch_name)
+                                    #public SmartSection3D(ElementId inElementId)
+                                    sect = self.auto.SmartSection3D(sketch)
+                                    #print("sect :: ", sect, self.get_name(sect))
+                                    #void SetSectionPublishingDefinition(ElementId inElementId,SmartSection3D inDefinition)
+                                    self.ts.Geometries3D.SetSectionPublishingDefinition(pub, sect)                                
+                                    break
+                 
 
             else: 
                 print("INFO :: add holder functions")
@@ -977,7 +1022,7 @@ class TopSolidAPI:
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Profil de révolution pour l'analyse de collision")
                 print("ts_func :: ", ts_func, len(ts_func))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
-                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Profil def collision")
+                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "CollisionAnalysisRevolutionShape_1")
                 
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Système de fixation outil")
                 print("ts_func :: ", ts_func, len(ts_func))
@@ -1107,7 +1152,13 @@ class TopSolidAPI:
             raise
 
 
-
+    def provide_tool_function(self,doc, func_proj, function):
+        '''need funtion to add tool functions'''
+        ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, function)
+        print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
+        func_doc = self.ts.Documents.GetDocument(ts_func[0])
+        prov_func = self.ts.Entities.ProvideFunction(doc, func_doc, function)
+        
 
     def read_functions(self, file):
         '''read function from file'''
