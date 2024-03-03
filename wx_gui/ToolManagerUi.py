@@ -42,6 +42,9 @@ class ToolManagerUI(wx.Frame):
         no_resize = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         wx.Frame.__init__(self, parent, title=title, style=no_resize)
 
+        super(ToolManagerUI, self).__init__(parent, title=title, size=(400, 300))
+
+
         self.ts = TopSolidAPI()
         
         self.selected_tooltype_name = "all"

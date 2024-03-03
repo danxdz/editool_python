@@ -1,6 +1,6 @@
 import wx
-from ts import copy_holder 
-from ts import initFolders
+#from ts import copy_holder 
+#from ts import initFolders
 
 
 custom_tools_project_name = "Tool Lib"
@@ -24,10 +24,10 @@ class HoldersSetupPanel(wx.Dialog):
         self.elemTool = wx.ComboBox(self, style=wx.CB_READONLY)
         self.elemTool.Bind(wx.EVT_COMBOBOX, self.on_tool_type)
         
-        elements = initFolders()
-        print("elements :: ", elements)
+        #elements = initFolders()
+        #print("elements :: ", elements)
 
-        self.elemTool.SetItems(elements)
+        #self.elemTool.SetItems(elements)
         #self.elemTool.SetSelection(0)
 
         self.main_sizer.Add(self.elemTool, 0, wx.ALL, 5)
@@ -59,8 +59,8 @@ class HoldersSetupPanel(wx.Dialog):
 
     def get_folders(self):
         print("get folders")
-        title = initFolders()
-        print("title :: " , title)
+        #title = initFolders()
+        #print("title :: " , title)
 
     def on_save(self, event):
         print("updating tool ", self.tool.Name, " in database")

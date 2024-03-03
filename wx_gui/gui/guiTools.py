@@ -9,6 +9,7 @@ from gui.menus_inter import MenusInter
 
 from databaseTools import load_tools_from_database
 
+
 class GenericMessageBox(wx.Dialog):
     def __init__(self, parent, text, title = ''):
         wx.Dialog.__init__(self, parent, -1, title = title, size = (360,140), style = wx.DEFAULT_DIALOG_STYLE)
@@ -22,13 +23,24 @@ class GenericMessageBox(wx.Dialog):
         bt2 = wx.Button(buttons_panel, wx.ID_YES, "update", pos = (120, 15))
         bt_cancel = wx.Button(buttons_panel, wx.ID_CANCEL, "cancel", pos = (250, 15))
 
+        # disable the update button for now
+        bt2.Enable(False)
+
         btn.SetDefault()
-        sz.Add(btn, 0, wx.ALL, 5)
-        sz.Add(bt2, 0, wx.ALL, 5)
+
+        # bind the buttons to the event
+        self.Bind(wx.EVT_BUTTON, self.on_update, bt2)
 
         buttons_panel.SetSizer(sz)
         self.Center()
+    
+    def on_update(self, event):
+        id = event.GetId()
+        print("2 id :: ", id)
+        self.Close()
 
+
+        
 toolData = ToolsCustomData()
 toolDefData = ToolsDefaultsData()
 

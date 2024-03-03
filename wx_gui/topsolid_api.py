@@ -3,6 +3,8 @@ import os
 import clr
 import wx
 import logging
+from math import pi
+
 
 clr.AddReference("System.Collections")
 
@@ -12,6 +14,13 @@ from System.Collections.Generic import List
 from step_file_viewer import StepFileViewer
 
 from tool import Tool
+from tool import ToolsDefaultsData
+from tool import ToolsCustomData
+
+from databaseTools import update_tool, saveTool
+
+from gui.guiTools import load_masks, GenericMessageBox
+
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
@@ -22,6 +31,8 @@ class use_frames:
     PCS = None
     WCS = None
     CSW = None
+    CIP = None
+    CIP_tip = None
 
 class TopSolidAPI:
     def __enter__(self):
@@ -165,26 +176,18 @@ class TopSolidAPI:
 
     def get_default_tools_lib(self):
         '''get tools library'''
-        # chech if connected
-        if self.ts is None:
-            # Handle error
-            return None
-        
 
-        #PdmObjectIdType = type(self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")) #cheat to get type
-        #PdmObjectIdType = self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")
-        PdmObjectIdType = self.auto.PdmObjectId(self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools"))
+        # SearchProjectByName -> System.Collections.Generic.List`1[TopSolid.Kernel.Automating.PdmObjectId]
+        proj_list = type(self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")) #cheat to get type
+        proj_list = self.ts.Pdm.SearchProjectByName("TopSolid Machining User Tools")
 
-
-        for i in PdmObjectIdType:
-            name = self.ts.Pdm.GetName(i)
-            #print("name: ", name)
+        # get the id and name of the default tools library
+        for lib in proj_list:
+            name = self.ts.Pdm.GetName(lib)
             if name == "Outils d'usinage utilisateur TopSolid" or name == "TopSolid Machining User Tools":
-                PdmObjectIdType.Clear()
-                PdmObjectIdType.Add(i)
-                break
+                pdmId = lib
+                return pdmId, name
 
-        return PdmObjectIdType, name
     
     def get_language(self):
         '''get TopSolid language'''
@@ -398,13 +401,13 @@ class TopSolidAPI:
     
     def is_assenbly(self, file):
         '''check if file is assembly'''
-        return self.ts.Assemblies.IsAssembly(file)
+        return self.ts_d.Assemblies.IsAssembly(file)
     
 
     def open_file(self, file):
         '''open file in TopSolid'''
         try:
-            #docId = self.ts_ext.Documents.GetDocument(file)
+            #docId = self.self.ts.Documents.GetDocument(file)
             res = self.ts.Documents.Open(file)
             print(f"file opened {res}")
         except Exception as ex:
@@ -460,7 +463,7 @@ class TopSolidAPI:
             num = len(tmp)
             #print(f"number of open files : {num}")
             if tmp is not None:
-                if tmp.Count > 1:
+                if tmp.Count > 0:
                     for i in tmp:
                         docId.append(i)
                     return docId
@@ -538,6 +541,10 @@ class TopSolidAPI:
             use_frames.WCS = frame
         elif name == "CSW":
             use_frames.CSW = frame
+        elif name == "CIP" or name == "CIP_SCHNEIDE":
+            use_frames.CIP = frame
+        elif name == "CIP_tip":
+            use_frames.CIP_tip = frame
 
         use_frames.named_frames.append(name)
         
@@ -602,6 +609,55 @@ class TopSolidAPI:
         '''
 
 
+    def create_frames_from_step(self, step_viewer, newdoc, found_elements):
+        print("INFO :: frames < found_elements")
+                
+            # Get the absolute frame of the document #ElementId GetAbsoluteFrame(DocumentId inDocumentId)
+            #abs_smartFrame = self.ts.Geometries3D.GetAbsoluteFrame(newdoc[0])
+
+            # cycle through the found elements of the step file and create frames if they don't exist
+        for name, placement in found_elements.items():
+            #check if the frame already exists
+            if name not in use_frames.named_frames or name == "CIP" or name == "CIP_SCHNEIDE":
+                print("frame not  exists")
+                
+                print(f"Found {name} :: {placement.name} : {placement.coord} : {placement.dir_z} : {placement.dir_x}")
+
+                # Get the direction and 3d coords origin of the frame from the step file
+                direction_z = self.auto.Direction3D(placement.dir_z.x, placement.dir_z.y, placement.dir_z.z)
+                direction_x = self.auto.Direction3D(placement.dir_x.x, placement.dir_x.y, placement.dir_x.z)                        
+                p3d = self.auto.Point3D(placement.coord.x, placement.coord.y, placement.coord.z)
+                
+                sdir = self.auto.SmartDirection3D(direction_z, p3d)
+                
+            
+                #need to calculate the the direction_y
+                #public static Vector3D operator ^(Direction3D inDirection1,Direction3D inDirection2)
+                vector_y = (direction_z  ^ direction_x)
+
+                #vector 2 direction
+                #public static explicit operator Direction3D (Vector3D inVector)
+                direction_y = self.auto.Direction3D(vector_y.X, vector_y.Y, vector_y.Z)
+
+                new_frame = self.auto.Frame3D(p3d, direction_x,  direction_y, direction_z) 
+                new_name = f"{name}"
+
+                #create a new frame with the same name if not exists
+                if name == "CIP" or name == "CIP_SCHNEIDE" and self.tool:
+                    print("INFO :: tool frame rotation")
+                    # inverted -direction_y and direction_z to get the right orientation
+                    # Frame3D Frame3D(Point3D inOrigin,Direction3D inXDirection,Direction3D inZDirection,Direction3D inYDirection)
+                    new_frame = self.auto.Frame3D(p3d, direction_x,  direction_z, -direction_y)     
+                    new_name = f"{name}_tip"
+
+                created_frame = self.ts.Geometries3D.CreateFrame(newdoc, new_frame)
+                print("created_frame :: ", created_frame)
+                # SetName(ElementId inElementId,string inName)
+                f_name = self.ts.Elements.GetFriendlyName(created_frame)
+                self.ts.Elements.SetName(created_frame, new_name)
+                print("f_name :: ", f_name, name)
+                self.setFrame(created_frame)
+
 
     def Import_file_w_conv(self, inImporterIx, inFullName, inOwnerId):
         '''import file with conversion'''
@@ -658,253 +714,204 @@ class TopSolidAPI:
                         
             self.start_modif("frame", False)
 
-            if len(frames) :#<= 1:
-                
-                # Get the absolute frame of the document #ElementId GetAbsoluteFrame(DocumentId inDocumentId)
-                abs_smartFrame = self.ts.Geometries3D.GetAbsoluteFrame(newdoc[0])
+            print("INFO :: frames :: ", len(frames), use_frames.named_frames)
 
-                # cycle through the found elements of the step file and create frames if they don't exist
-                for name, placement in found_elements.items():
-                    #check if the frame already exists
-                    if name not in use_frames.named_frames or name == "CIP" or name == "CIP_SCHNEIDE":
-                        print("frame not  exists")
-                        
-                        print(f"Found {name} :: {placement.name} : {placement.coord} : {placement.dir_z} : {placement.dir_x}")
-
-                        # Get the direction and 3d coords origin of the frame from the step file
-                        direction_z = self.auto.Direction3D(placement.dir_z.x, placement.dir_z.y, placement.dir_z.z)
-                        direction_x = self.auto.Direction3D(placement.dir_x.x, placement.dir_x.y, placement.dir_x.z)                        
-                        p3d = self.auto.Point3D(placement.coord.x, placement.coord.y, placement.coord.z)
-                        
-                        sdir = self.auto.SmartDirection3D(direction_z, p3d)
-                        
-                        #ItemLabel(byte inType,int inId,string inMoniker,string inName)
-                        label = self.auto.ItemLabel(0, 0, f"{name}_tip", f"{name}_tip")
-
-                        #need to calculate the the direction_y
-                        #public static Vector3D operator ^(Direction3D inDirection1,Direction3D inDirection2)
-                        vector_y = (direction_z  ^ direction_x)
-
-                        #vector 2 direction
-                        #public static explicit operator Direction3D (Vector3D inVector)
-                        direction_y = self.auto.Direction3D(vector_y.X, vector_y.Y, vector_y.Z)
-
-
-                        #create a new frame with the same name if not exists
-                        if name == "CIP" or name == "CIP_SCHNEIDE":
-                            # inverted -direction_y and direction_z to get the right orientation
-                            # Frame3D Frame3D(Point3D inOrigin,Direction3D inXDirection,Direction3D inZDirection,Direction3D inYDirection)
-                            new_frame = self.auto.Frame3D(p3d, direction_x,  direction_z, -direction_y)     
-                        else:
-                            # to create the frame as the same orientation as the step file
-                            new_frame = self.auto.Frame3D(p3d, direction_x,  direction_y, direction_z) 
-
-                        created_frame = self.ts.Geometries3D.CreateFrame(newdoc[0], new_frame)
-                        # SetName(ElementId inElementId,string inName)
-                        f_name = self.ts.Elements.GetFriendlyName(created_frame)
-                        print("f_name :: ", f_name, name)
-                        self.ts.Elements.SetName(created_frame, f"{name}_tip")
-                        self.setFrame(created_frame)
+            #if len(frames) < len(found_elements):
+            self.create_frames_from_step(step_viewer, newdoc[0], found_elements)
                               
 
-                # Read shapes in the file
-                    
-                #List<ElementId> GetShapes(DocumentId inDocumentId)                    
-                shapes = self.ts.Shapes.GetShapes(newdoc[0])
-                print("***************************************************************")
-                print("shapes :: ", shapes, len(shapes))
-                if len(shapes) > 1:
-                    for shape in shapes:
-                        shape_name = self.get_name(shape)
-                        shape_type = self.get_type(shape)
-                        print(shape_name, shape_type, self.ts.Shapes.GetShapeType(shape))
-                        
-                        if str(shape_name) == "CUT":
-                            self.tool = True
-                            tool = Tool()
-                            print("INFO :: n of faces :: ", self.ts.Shapes.GetFaceCount(shape))
-
-                            faces = self.ts.Shapes.GetFaces(shape)
-                            for face in faces:
-                                face_type = self.ts.Shapes.GetFaceSurfaceType(face)
-                                print(f"{face} :: {face_type} :: {len(faces)}")
-                                #List<ElementItemId> GetFaceConnectedFaces(ElementItemId inFaceId)
-                                connected_faces = self.ts.Shapes.GetFaceConnectedFaces(face)
-                                print("connected_faces :: ", connected_faces, len(connected_faces))
-                                face_range = self.ts.Shapes.GetFaceRange(face)
-                                print("face_range :: ", face_range)
-
-                                #List<ElementItemId> GetFaceEdges(ElementItemId inFaceId)
-                                edges = self.ts.Shapes.GetFaceEdges(face)
-                                print("edges :: ", edges, len(edges))
-                                for edge in edges:
-                                    # CurveType GetEdgeCurveType(ElementItemId inEdgeId)
-                                    c_type = self.ts.Shapes.GetEdgeCurveType(edge)
-                                    print(edge, c_type )
-                                    if str(c_type) == "Circle":
-                                        # void GetEdgeCircleCurve(ElementItemId inEdgeId,out Plane3D outPlane,out double outRadius)
-                                        circle , c_radius = self.ts.Shapes.GetEdgeCircleCurve(edge)
-                                        print("circle :: ", circle, c_radius)
-                                        tool.D1 = c_radius * 2 * 1000
-
-                                '''
-                                #Function GetFaceSurfaceParameters ( 
-                                                inFaceId As ElementItemId,
-                                                inPoint As Point3D,
-                                                <OutAttribute> ByRef outU As Double,
-                                                <OutAttribute> ByRef outV As Double
-                                            ) As Point3D
-
-                                            Dim instance As IShapes
-                                            Dim inFaceId As ElementItemId
-                                            Dim inPoint As Point3D
-                                            Dim outU As Double
-                                            Dim outV As Double
-                                            Dim returnValue As Point3D
-
-                                            returnValue = instance.GetFaceSurfaceParameters(inFaceId, 
-                                                inPoint, outU, outV)
-                                                '''
-                                outU = 0.0
-                                outV = 0.0
-
-
-                                if str(face_type) == "Cylinder":
-                                    '''void GetFaceRange(
-                                                            ElementItemId inFaceId,
-                                                            out double outUMin,
-                                                            out double outUMax,
-                                                            out double outVMin,
-                                                            out double outVMax)
-                                                        '''
-                                    
-
-
-                                    for cf in connected_faces:                                        
-                                        cf_type = self.ts.Shapes.GetFaceSurfaceType(cf)
-                                        print(cf_type)
-
-                                        #void GetFaceCylinderSurface(ElementItemId inFaceId,out Frame3D outFrame,out double outRadius)
-                                        if str(cf_type) == "Cylinder":
-                                            print(cf)
-
-                                            cyl_face = self.ts.Shapes.GetFaceCylinderSurface(face)
-                                            print("cyl_face :: ", cyl_face)
-                                            for c in cyl_face:
-                                                print(c)
-                                                #double GetFaceCylinderRadius(ElementItemId inFaceId)
-                                                #diam = self.ts.Shapes.GetFaceCylinderRadius(c)
-                                                #print("diam :: ", diam)
-
-
-
-                                x_min = 0.0
-                                x_max = 0
-                                y_min = 0
-                                y_max = 0
-                                z_min = 0
-                                z_max = 0
-
-                            '''
-                                self.ts.Shapes.GetFaceEnclosingCoordinates(face, x_min, x_max, y_min, y_max, z_min, z_max)
-                                print(f"face {face} :: {x_min} :: {x_max} :: {y_min} :: {y_max} :: {z_min} :: {z_max}")'''
-                            
-
-                            print("INFO :: n of edges :: ", self.ts.Shapes.GetEdgeCount(shape))
-                            edges = self.ts.Shapes.GetEdges(shape)
-                            for edge in edges:
-                                print(edge)
-                            print("INFO :: n of vertices :: ", self.ts.Shapes.GetVertexCount(shape))
-                            vertices = self.ts.Shapes.GetVertices(shape)
-                            for vertex in vertices:
-                                print(vertex)
-
-                            '''
-                            void GetFaceEnclosingCoordinates(
-                                                                ElementItemId inFaceId,
-                                                                out double outXmin,
-                                                                out double outXmax,
-                                                                out double outYmin,
-                                                                out double outYmax,
-                                                                out double outZmin,
-                                                                out double outZmax
-                                                                )'''
-                        
-                            #public ElementItemId(ElementId inElementId,ItemLabel inItemLabel)
-
-                            eii = self.auto.ElementItemId(shape, self.auto.ItemLabel(0, 0, "CUT", "CUT"))
-
-                            print("eii :: ", eii)
-
-                            
-                            print("Multiple shapes found, and 'CUT' shape, is a tool :: D1 :: ", tool.D1)
-                            
-                    if self.tool == False:
-                        print("Multiple shapes found, no 'CUT' shape, is a holder")
+            # Read shapes in the file
                 
-                else:
-                    print("One shape found, no tool found, is a holder")
-                    self.tool = False
+            #List<ElementId> GetShapes(DocumentId inDocumentId)                    
+            shapes = self.ts.Shapes.GetShapes(newdoc[0])
+            print("***************************************************************")
+            print("shapes :: ", shapes, len(shapes))
+            if len(shapes) > 1:
+                for shape in shapes:
+                    shape_name = self.get_name(shape)
+                    shape_type = self.get_type(shape)
+                    print(shape_name, shape_type, self.ts.Shapes.GetShapeType(shape))
+                    
+                    if str(shape_name) == "CUT":
+                        self.tool = True
+                        tool = Tool()
+                        print("INFO :: n of faces :: ", self.ts.Shapes.GetFaceCount(shape))
 
-                #**************************************************************
-                # need to check if is a tool or holder before begin the process
-                #**************************************************************
-                # if tool need 2 shapes, so 2 revolved sketches
-                # if holder need 1 shape, so 1 revolved sketch
+                        faces = self.ts.Shapes.GetFaces(shape)
+                        for face in faces:
+                            face_type = self.ts.Shapes.GetFaceSurfaceType(face)
+                            print(f"{face} :: {face_type} :: {len(faces)}")
+                            #List<ElementItemId> GetFaceConnectedFaces(ElementItemId inFaceId)
+                            connected_faces = self.ts.Shapes.GetFaceConnectedFaces(face)
+                            print("connected_faces :: ", connected_faces, len(connected_faces))
+                            face_range = self.ts.Shapes.GetFaceRange(face)
+                            print("face_range :: ", face_range)
 
-                print("is tool? :: ", self.tool)
+                            #List<ElementItemId> GetFaceEdges(ElementItemId inFaceId)
+                            edges = self.ts.Shapes.GetFaceEdges(face)
+                            print("edges :: ", edges, len(edges))
+                            for edge in edges:
+                                # CurveType GetEdgeCurveType(ElementItemId inEdgeId)
+                                c_type = self.ts.Shapes.GetEdgeCurveType(edge)
+                                print(edge, c_type )
+                                if str(c_type) == "Circle":
+                                    # void GetEdgeCircleCurve(ElementItemId inEdgeId,out Plane3D outPlane,out double outRadius)
+                                    circle , c_radius = self.ts.Shapes.GetEdgeCircleCurve(edge)
+                                    print("circle :: ", circle, c_radius)
+                                    tool.D1 = c_radius * 2 * 1000
 
-                axis = self.ts.Geometries3D.GetAxes(newdoc[0])
-                print("axis :: ", len(axis))
+                            '''
+                            #Function GetFaceSurfaceParameters ( 
+                                            inFaceId As ElementItemId,
+                                            inPoint As Point3D,
+                                            <OutAttribute> ByRef outU As Double,
+                                            <OutAttribute> ByRef outV As Double
+                                        ) As Point3D
 
+                                        Dim instance As IShapes
+                                        Dim inFaceId As ElementItemId
+                                        Dim inPoint As Point3D
+                                        Dim outU As Double
+                                        Dim outV As Double
+                                        Dim returnValue As Point3D
+
+                                        returnValue = instance.GetFaceSurfaceParameters(inFaceId, 
+                                            inPoint, outU, outV)
+                                            '''
+                            outU = 0.0
+                            outV = 0.0
+
+
+                            if str(face_type) == "Cylinder":
+                                '''void GetFaceRange(
+                                                        ElementItemId inFaceId,
+                                                        out double outUMin,
+                                                        out double outUMax,
+                                                        out double outVMin,
+                                                        out double outVMax)
+                                                    '''
+                                
+
+
+                                for cf in connected_faces:                                        
+                                    cf_type = self.ts.Shapes.GetFaceSurfaceType(cf)
+                                    print(cf_type)
+
+                                    #void GetFaceCylinderSurface(ElementItemId inFaceId,out Frame3D outFrame,out double outRadius)
+                                    if str(cf_type) == "Cylinder":
+                                        print(cf)
+
+                                        cyl_face = self.ts.Shapes.GetFaceCylinderSurface(face)
+                                        print("cyl_face :: ", cyl_face)
+                                        for c in cyl_face:
+                                            print(c)
+                                            #double GetFaceCylinderRadius(ElementItemId inFaceId)
+                                            #diam = self.ts.Shapes.GetFaceCylinderRadius(c)
+                                            #print("diam :: ", diam)
+
+
+
+                            x_min = 0.0
+                            x_max = 0
+                            y_min = 0
+                            y_max = 0
+                            z_min = 0
+                            z_max = 0
+
+                        '''
+                            self.ts.Shapes.GetFaceEnclosingCoordinates(face, x_min, x_max, y_min, y_max, z_min, z_max)
+                            print(f"face {face} :: {x_min} :: {x_max} :: {y_min} :: {y_max} :: {z_min} :: {z_max}")'''
+                        
+
+                        print("INFO :: n of edges :: ", self.ts.Shapes.GetEdgeCount(shape))
+                        edges = self.ts.Shapes.GetEdges(shape)
+                        for edge in edges:
+                            print(edge)
+                        print("INFO :: n of vertices :: ", self.ts.Shapes.GetVertexCount(shape))
+                        vertices = self.ts.Shapes.GetVertices(shape)
+                        for vertex in vertices:
+                            print(vertex)
+
+                        '''
+                        void GetFaceEnclosingCoordinates(
+                                                            ElementItemId inFaceId,
+                                                            out double outXmin,
+                                                            out double outXmax,
+                                                            out double outYmin,
+                                                            out double outYmax,
+                                                            out double outZmin,
+                                                            out double outZmax
+                                                            )'''
+                    
+                        #public ElementItemId(ElementId inElementId,ItemLabel inItemLabel)
+
+                        #eii = self.auto.ElementItemId(shape, self.auto.ItemLabel(0, 0, "CUT", "CUT"))
+                        
+                        print("Multiple shapes found, 'CUT' shape found, is a tool :: D1 :: ", tool.D1)
+                        
+                if self.tool == False:
+                    print("Multiple shapes found, no 'CUT' shape, is a holder")
+            
+            else:
+                print("One shape found, no tool found, is a holder")
+                self.tool = False
+
+            #**************************************************************
+            # need to check if is a tool or holder before begin the process
+            #**************************************************************
+            # if tool need 2 shapes, so 2 revolved sketches
+            # if holder need 1 shape, so 1 revolved sketch
+
+            print("is tool? :: ", self.tool)
+
+            axis = self.ts.Geometries3D.GetAxes(newdoc[0])
+            print("axis :: ", len(axis))
+
+            '''
+            for ax in axis:
+                print(self.get_name(ax))
+
+            output:
+            $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXAxis
+            $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteYAxis
+            $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteZAxis
+            '''
+            #get Z axis
+            newAxis = self.auto.SmartAxis3D(axis[2],  False)
+
+            #print("newAxis :: ", newAxis, self.get_name(newAxis))
+
+            #get the shape to revolve
+            for shape in shapes:
+                shape = self.auto.SmartShape(shape)
+                #print("shape :: ", shape, self.get_name(shapes[0]))
+
+                planes = self.ts.Geometries3D.GetPlanes(newdoc[0])
                 '''
-                for ax in axis:
-                    print(self.get_name(ax))
+                for plane3d in planes:
+                    print(self.get_name(plane3d))
 
                 output:
-                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXAxis
-                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteYAxis
-                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteZAxis
+                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXYPlane
+                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXZPlane
+                $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteYZPlane
                 '''
-                #get Z axis
-                newAxis = self.auto.SmartAxis3D(axis[2],  False)
+                #get the absolute XZ plane
+                plane = self.ts.Geometries3D.GetAbsoluteXZPlane(newdoc[0])
 
-                #print("newAxis :: ", newAxis, self.get_name(newAxis))
+                #need a SmartPlane3D to use in the CreateSketchIn3D method
+                splane = self.auto.SmartPlane3D(plane, False)
 
-                #get the shape to revolve
-                for shape in shapes:
-                    shape = self.auto.SmartShape(shape)
-                    #print("shape :: ", shape, self.get_name(shapes[0]))
+                # ElementId CreateSketchIn3D( DocumentId inDocumentId, SmartPlane3D inPlane, SmartPoint3D inOrigin, bool inDefinesXDirection, SmartDirection3D inDirection )
+                sketch = self.ts.Sketches2D.CreateSketchIn3D(newdoc[0], splane,  self.auto.SmartPoint3D(self.auto.Point3D(0, 0, 1)), True, self.auto.SmartDirection3D(self.auto.Direction3D(1, 0,0), self.auto.Point3D(1, 0, 0)))
+                
+                self.ts.Sketches2D.StartModification(sketch)
 
-                    planes = self.ts.Geometries3D.GetPlanes(newdoc[0])
-                    '''
-                    for plane3d in planes:
-                        print(self.get_name(plane3d))
+                #ElementId CreateRevolvedSilhouette(SmartShape inShape,SmartAxis3D inAxis,bool inMerge)
+                revolved = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
+                print("revolved :: ", revolved)
 
-                    output:
-                    $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXYPlane
-                    $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteXZPlane
-                    $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteYZPlane
-                    '''
-                    #get the absolute XZ plane
-                    plane = self.ts.Geometries3D.GetAbsoluteXZPlane(newdoc[0])
-
-                    #need a SmartPlane3D to use in the CreateSketchIn3D method
-                    splane = self.auto.SmartPlane3D(plane, False)
-
-                    # ElementId CreateSketchIn3D( DocumentId inDocumentId, SmartPlane3D inPlane, SmartPoint3D inOrigin, bool inDefinesXDirection, SmartDirection3D inDirection )
-                    sketch = self.ts.Sketches2D.CreateSketchIn3D(newdoc[0], splane,  self.auto.SmartPoint3D(self.auto.Point3D(0, 0, 1)), True, self.auto.SmartDirection3D(self.auto.Direction3D(1, 0,0), self.auto.Point3D(1, 0, 0)))
-                    
-                    self.ts.Sketches2D.StartModification(sketch)
-
-                    #ElementId CreateRevolvedSilhouette(SmartShape inShape,SmartAxis3D inAxis,bool inMerge)
-                    revolved = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
-                    print("revolved :: ", revolved)
-
-                    self.ts.Sketches2D.EndModification()
-
-        
-            
+                self.ts.Sketches2D.EndModification()
 
             #SearchProjectByName(string inProjectName)
             func_proj =  self.ts.Pdm.SearchProjectByName("TopSolid Machining")
@@ -921,7 +928,36 @@ class TopSolidAPI:
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Fraise 2 tailles")
                 print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
-                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Fraise 2 tailles")     
+                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Fraise 2 tailles")
+                functions = self.ts.Entities.GetFunctions(newdoc[0])
+                print("functions :: ", functions, len(functions))
+                for f in functions:
+                    # List<ElementId> GetFunctionPublishings(ElementId inElementId)
+                    func_pubs = self.ts.Entities.GetFunctionPublishings(f)
+                    print("func_pubs :: ", func_pubs, len(func_pubs))
+                    for pub in func_pubs:
+                        p_name = self.get_name(pub)
+                        '''
+                            Function Use TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                            CuttingEdgeOrigin TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity
+                            CenterCutting TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                            MaximumRampAngle TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                            CoolantNozzle TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                            NumberOfToolTeeth TopSolid.Kernel.DB.Parameters.PublishingIntegerParameterEntity
+                            LeftHand TopSolid.Kernel.DB.Parameters.PublishingBooleanParameterEntity
+                            CuttingToolMaterialCategory TopSolid.Kernel.DB.Parameters.PublishingEnumerationParameterEntity
+                            CuttingLength TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity
+                            CuttingDiameter TopSolid.Kernel.DB.Parameters.PublishingRealParameterEntity'''
+                        
+                        if p_name == "CuttingDiameter":
+                            #IParameters.SetRealPublishingDefinition Method
+                            self.ts.Parameters.SetRealPublishingDefinition(pub, self.auto.SmartReal(self.auto.UnitType.Length, tool.D1/1000))
+                        if p_name == "CuttingEdgeOrigin":
+                            #IParameters.SetFramePublishingDefinition Method
+                            self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.CIP_tip)
+
+                        print("INFO :: function found :: ", self.get_name(pub), self.get_type(pub))
+
 
             else: 
                 print("INFO :: add holder functions")
@@ -932,8 +968,8 @@ class TopSolidAPI:
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])         
                 #ElementId ProvideFunction( DocumentId inDocumentId,DocumentId inFunctionId,string inOccurrenceName)                
                
-                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique porte outil")
-                #prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique pour l'outil")
+                #prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Attachement cylindrique porte outil")
+                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "CylindricalToolingHolder_1")
 
                 # IGeometries3D - void SetFramePublishingDefinition( inElementId,SmartFrame3D inDefinition)
                         #self.design.Geometries3D.SetFramePublishingDefinition(prov_func, use_frames.CSW)
@@ -947,7 +983,7 @@ class TopSolidAPI:
                 print("ts_func :: ", ts_func, len(ts_func))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
                 #prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Système de fixation vers la machine")
-                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Système de fixation outil")
+                prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "ToolingShank_1")
                 
                 #List<ElementId> GetFunctions( DocumentId inDocumentId )                
                 functions = self.ts.Entities.GetFunctions(newdoc[0])
@@ -1012,8 +1048,10 @@ class TopSolidAPI:
                             self.ts.Parameters.SetTextPublishingDefinition(pub, pub_name)
                         elif self.get_name(pub) == "Revolute Section":
                             #List<ElementId> GetSketches( DocumentId inDocumentId )
+                            print("INFO :: revolute section found :: ", len(newdoc))
                             sketches = self.ts.Sketches2D.GetSketches(newdoc[0])
-                            #print("sketches :: ", self.get_name(sketches[0]), len(sketches))
+                            #
+                            print("sketches :: ", self.get_name(sketches[0]), len(sketches))
                             #public SmartSection3D(ElementId inElementId)
                             sect = self.auto.SmartSection3D(sketches[0])
                             #print("sect :: ", sect, self.get_name(sect))
@@ -1129,8 +1167,8 @@ class TopSolidAPI:
 
 
     def searchHolder(self, file):
-        '''search holder in file'''
-        holder_found = 0
+        '''search holder in open files'''
+        holders = []
         for holder in file:
             print("check holder: ", holder.PdmDocumentId)
             #check if it not an assembly, because holder is one part
@@ -1146,15 +1184,17 @@ class TopSolidAPI:
                                 print(f"GetName: {self.ts.Elements.GetName(i)} GetFriendlyName:  {function}")
                                 #if function == "Système de fixation porte-outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <CylindricalToolingHolder_1>" or function == "Attachement cylindrique porte outil <ToolingHolder_1>" or function == "Attachement cylindrique porte outil <Attachement cylindrique pour l'outil>" or function == "Tooling Shank <Système de fixation outil>": #TODO: check if exist a better way to identify holder
                                 #check if function is a holder by get first words "Tooling Shank"
-                                if function.startswith("Tooling Shank") or function.startswith("Attachement cylindrique porte outil") or function.startswith("Système de fixation porte-outil") or function.startswith("Attachement cylindrique pour l'outil") or function.startswith("Attachement cylindrique porte outil  <ToolingHolder_1>"):
+                                #if function.startswith("Tooling Shank") or function.startswith("Attachement cylindrique porte outil") or function.startswith("Système de fixation porte-outil") or function.startswith("Attachement cylindrique pour l'outil") or function.startswith("Attachement cylindrique porte outil  <ToolingHolder_1>"):
+                                if function.startswith("Attachement cylindrique porte outil") or function.startswith("Système de fixation porte-outil"):
+
                                     print(f"found : {function}")
-                                    holder_found += 1
+                                    holders.append(holder)
                                     #create_tool_w_holder(api.ts ,api.ts_d , output_lib, tool, holder)
                                     break
                                 elif function == "Compensation outil <TO>":
                                     print(f"not an holder : {function} is one tool")
                                     break
-        return holder_found
+        return holders
 
     def insert_into_holder(self, tool):
         '''insert tool into holder'''        
@@ -1162,20 +1202,27 @@ class TopSolidAPI:
             proj = self.get_current_project()
             #get open files
             open_files = self.get_open_files()
-            print("current project :: ", proj[1] , len(open_files))
+            print(f"INFO :: current project :: {proj[1]} :: open files ::  {len(open_files)}")
+            
 
             if len(open_files) == 0:
                 #msg box theres no open holder in TS
                 output_msg = wx.MessageBox('no files open on TS, try to open an holder and retry', 'Warning', wx.OK | wx.CANCEL | wx.ICON_QUESTION)                      
             
             #check if any holder is open in TS
-            holder_found = self.searchHolder(open_files)
+            holders = self.searchHolder(open_files)
             
-            if holder_found == 0:
+            if len(holders) > 0:
+                for holder in holders:
+                    self.add_tool_to_holder(proj[0], tool, holder)
+                return True
+            else:
                 noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
                 if noTool == wx.OK:
-                    self.copy_holder(self, tool)
-                print("noTool: ", noTool)                 
+                    self.insert_into_holder(tool)
+                print("noTool: ", noTool)
+                return False
+
 
         except Exception as ex:
             # msg box error copying tool
@@ -1183,5 +1230,473 @@ class TopSolidAPI:
 
             print("Error copying tool: " + str(ex))
             self.end_modif(True, False)
+            return False
 
-        return False
+
+    def add_tool_to_holder(self, output_lib, tool, holder): #holder = true or false
+        '''add tool to holder'''
+        
+
+        from TopSolid.Kernel.Automating import DocumentId
+
+
+        print(f"INFO :: include {tool.name} into {self.get_name(holder)} ::  {tool.TSid}")                                                  
+
+        
+        elemModelId = []
+        elemModelId.append(holder)
+
+        #get the assembly model
+        print("output_lib: ", output_lib.Id)
+        
+        assemblyModelId = self.ts.Pdm.SearchDocumentByName(output_lib, "FR + PO") #TODO: make it editable
+
+        print("tset: ", assemblyModelId, len(assemblyModelId))
+        if len(assemblyModelId) == 0:
+            print("assembly not found. need to import/create it?")
+            #TODO: add a dialog to select to create or not
+            resp = wx.MessageBox('assembly not found. need to import/create it?', 'Warning', wx.YES_NO | wx.ICON_QUESTION)
+            return
+        
+        else:
+            print("assemblyModelId: ", assemblyModelId[0].Id)
+                            
+            elemModelId.append(DocumentId(tool.TSid))  
+
+            print("elemModelId",elemModelId, len(elemModelId))
+            for i in elemModelId:
+                print("elemModelId: ", i)
+
+            # need a list of PdmObjectId to CopySeveral, but we need to copy only the first tool
+            firstTool = assemblyModelId[0]
+            assemblyModelId.Clear()
+            assemblyModelId.Add(firstTool)
+
+            #PdmObjectId CreateDocument(PdmObjectId inOwnerId,string inExtension,bool inUseDefaultTemplate)
+            new_assembly = self.ts.Pdm.CreateDocument(assemblyModelId[0], ".TopAsm", True)
+
+            newTool =  self.ts.Pdm.CopySeveral(assemblyModelId, output_lib)
+
+            print(f"Tool copied successfully!", newTool[0].Id)
+            
+            newToolDocId = self.ts.Documents.GetDocument(newTool[0])
+
+            self.ts.Documents.Open(newToolDocId)
+
+            self.ts.Application.StartModification("tmp", True)
+                            
+            dirt =  self.ts.Documents.EnsureIsDirty(newToolDocId)
+
+            print(f"dirt:: {dirt.PdmDocumentId} :: {newToolDocId.PdmDocumentId}")
+
+            ops =  self.ts.Operations.GetOperations(dirt)
+
+            print("ops", ops, len(ops))
+            i = 0
+           
+            for o in ops:
+                if i > 1:
+                    break      
+
+                Name = self.ts.Elements.GetName(o)
+                #check if it's an inclusion : 3 first letters of name = "Inc"
+                if Name:
+                    elemType = self.get_type(o)
+                    print("elemType: ", elemType)
+                    if elemType == "TopSolid.Cad.Design.DB.Inclusion.InclusionOperation":
+                        print("name::: ",Name)
+                        print("child: ", o.DocumentId)
+                        
+                        IsInclusion = self.ts_d.Assemblies.IsInclusion(o)
+                        print("child: ", IsInclusion, o.DocumentId)
+
+                        if IsInclusion == True:
+
+                            newTool = elemModelId[i]  #self.ts.Documents.GetDocument(elemModelId[i])
+                            i = i + 1
+                            print("newTool: ", newTool.PdmDocumentId)
+                            
+                            print("child: ", o.DocumentId)
+                            print("child: ", newTool.PdmDocumentId)
+                            
+                            self.start_modif("inc", False)
+                            self.ts_d.Assemblies.RedirectInclusion(o, newTool)
+                            self.end_modif(True, False)
+                            
+            try:
+                name = f"{tool.name} + {self.get_name(holder)}"
+                print("*************** new assembly name: ", name)
+                self.start_modif("name", False)
+                self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(dirt, "$TopSolid.Kernel.TX.Properties.Name"), name)
+                self.end_modif(True, False)
+            except Exception as ex:
+                print("Error setting name: ", ex)
+
+
+            self.ts.Documents.Save(newToolDocId)
+
+
+    def check_existing_tool(self, window, tool):        
+        #check if tool is created
+        if tool.TSid == "" or tool.TSid == None :
+            print("INFO :: check_existing_tool :: ", tool.name," not created in ts")
+            return True
+        else:        
+            #answer = wx.MessageBox('tool already created, duplicate tool?', 'Warning', wx.YES_NO)
+            #answer = wx.MessageBox('tool already created, update TSid? or clone tool?', 'Warning', wx.YES_NO)  #TODO: add a dialog to select if recreate or not
+            #get the response
+            box = GenericMessageBox(window, "tool already created, duplicate tool? or update TSid?", "Tool already created")
+            answer = box.ShowModal()
+            print("answer: ", answer)
+            if answer == wx.ID_OK:
+                print("duplicate tool (db and ts): ", tool.TSid)
+                #duplicate tool in database and create a new tool in TS
+                tool.id = 0 #set id to 0 to create a new tool
+                saveTool(tool, window.toolData.tool_types_list)
+                return True
+            elif answer == wx.ID_YES:
+                # create new tool in TS, update TSid in database and keep the same id
+                print("update TSid: ", tool.TSid)
+                return True
+            else:
+                print("canceled")
+                return False
+        
+                
+    def copy_tool(self, window , tool, holder, clone): #holder = true or false
+        '''create a new tool in TS -> copy tool model and set tool parameters'''
+        exists = self.check_existing_tool(window, tool)
+        if not exists and clone == False:
+            return
+        else:
+            #create a new tool in TS and update TSid in database
+            print("INFO :: update tool TSid: ", tool.TSid)	    
+            update_tool(tool)
+
+        #load default data
+        toolDefaultData = ToolsDefaultsData()
+
+        toolData = ToolsCustomData()
+        toolData = toolData.get_custom_ts_models()
+
+        #uncomment to prevent get TS blocked, may output an error "No modification to end."
+        #EndModif(self.ts, True, False)
+
+        try:
+            #search for editool project for custom tools models and tool assembly templates
+            output_lib = self.ts.Pdm.SearchProjectByName("editool")
+
+            if not output_lib:
+                #if not found, use current project to create tools
+                #alert user to import editool project to use all features
+                print("editool project not found")
+                alert = wx.MessageBox('editool project not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
+                
+                #TODO :: show a dialog to create editool project
+                output_lib = self.ts.Pdm.GetCurrentProject()
+
+            output_lib = output_lib[0]
+            print("output_lib: ", output_lib.Id)
+            if output_lib:
+                
+                # open it to create tool
+                self.ts.Pdm.OpenProject(output_lib)
+                                
+                # get custom tool model name
+                customToolModel = toolData.ts_models[tool.toolType]
+
+                # if custom model exist
+                if customToolModel:
+                    print("custom model: ", customToolModel)
+                    modelLib = output_lib
+                    toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, customToolModel)
+                else:
+                    print("custom model not found")
+                    # or get ts default model 
+                    modelLib = self.get_default_tools_lib() # TODO make it connect only one time if we create multiple tools
+                    modelLib = modelLib[0]
+                    tsDefaultModel = toolDefaultData.ts_models[tool.toolType]
+
+                    print("tsDefaultModel: ", tsDefaultModel, modelLib)
+                    toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, tsDefaultModel)
+            else:
+                # if not editool project :: use current project to create tools
+                output_lib = self.ts.Pdm.GetCurrentProject()
+                print("GetCurrentProject :: ", output_lib.Id)
+
+            print(f"*** copy tool ***  {toolDefaultData.tool_types[tool.toolType]} :: from: {self.ts.Pdm.GetName(modelLib)} :: model : {self.ts.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {self.ts.Pdm.GetName(output_lib)}")
+            
+            
+            #for i in toolModelId:
+            #    print("toolModelId: ", i.Id)
+
+            # need a list of PdmObjectId to CopySeveral, with only one tool model
+            firstTool = toolToCopy_ModelId[0]
+            toolToCopy_ModelId.Clear()
+            toolToCopy_ModelId.Add(firstTool)
+
+
+            #print("GetCurrentProject :: ", output_lib.Id)
+
+            # find model tool to copy from default lib
+            #print("toolModelId: ", len(toolModelId))
+
+
+            savedTool = self.ts.Pdm.CopySeveral(toolToCopy_ModelId, output_lib)
+
+            if savedTool:
+                #print(f"Tool copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
+                print(f"tool model copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
+
+            savedToolDocId = self.ts.Documents.GetDocument(savedTool[0])
+
+            modif = self.ts.Application.StartModification("saveTool", True)
+            #print("Start modif: ", modif, savedToolDocId.PdmDocumentId)
+
+            savedToolModif = self.ts.Documents.EnsureIsDirty(savedToolDocId)
+
+            #print("dirt savedToolModif: ", savedToolModif.PdmDocumentId)
+
+            
+            #Debug -> get elements param list
+            """
+            sys_pard = self.ts.Elements.GetElements(savedToolModif)
+            print("sys_pard: ", sys_pard)
+            for i in range(len(sys_pard)):
+                print("sys_pard: ", sys_pard[i])
+                print("sys_pard: ", self.ts.Elements.GetName(sys_pard[i]))            
+                if self.ts.Elements.GetName(sys_pard[i]) == "":
+                    print("sys_pard: ", self.ts.Elements.GetDescription(sys_pard[i]))
+            
+            exit()
+            """
+            #get name mask
+            print("tool type: ", tool.toolType, len(toolData.tool_names_mask))
+            for mask in toolData.tool_names_mask:
+                print("mask: ", mask)
+            toolData.tool_names_mask = load_masks()
+            #need to strip last char from mask _n??
+            mask = toolData.tool_names_mask[tool.toolType]
+
+            print("mask: ", mask)
+
+            self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), str(mask))
+
+            #self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.name)
+            #TODO: add tool parameters config
+            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), str(tool.name))
+            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), str(tool.mfr))
+            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), str(tool.codeBar))
+            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.code))
+            self.ts.Parameters.SetBooleanValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
+
+            print("tool: ", tool.name, tool.mfr, tool.codeBar, tool.code)
+
+            d1 = 0
+            d2 = 0
+            d3 = 0
+            l1 = 0
+            l2 = 0
+            l3 = 0
+            r = 0
+            chamfer = 0
+            z = 0
+            threadPitch = 0.0
+            threadTolerance = ""
+            print("tool type: ", tool.toolType)
+
+
+            if tool.toolType == 8:#tap
+
+                if tool.threadTolerance and tool.threadTolerance != "None" and tool.threadTolerance != "":
+                    self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Type"), threadTolerance)
+                else:
+                    self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Norm"), threadTolerance)
+
+            if tool.threadPitch and int(float(tool.threadPitch != 0)):
+                print("thread pitch : ", tool.threadPitch)
+                threadPitch = float(tool.threadPitch / 1000).__round__(5)
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
+
+            if tool.z:
+                z = int(float(tool.z)) #dont work with float
+                self.ts.Parameters.SetIntegerValue(self.ts.Elements.SearchByName(savedToolModif, "NoTT"), int(z))
+                print("z: ", z)
+
+            if tool.D1:
+                if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
+                    d1 = float(tool.D1 / 1000).__round__(5)
+                
+            if tool.D2: #Fix for D2 = "None"
+                if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
+                    d2 = float(tool.D2 / 1000).__round__(5)
+            else:
+                if tool.toolType == 7:
+                    d2 = float(d1-threadPitch-0.2).__round__(5)
+                d2 = float(d1-(0.2/1000)).__round__(5)
+
+            if tool.D3:
+                if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
+                    d3 = float(tool.D3 / 1000).__round__(5)
+            
+            if tool.L1:
+                l1 = float(tool.L1 / 1000).__round__(5) if tool.L1 is not None and tool.L1 != 0 else 0
+
+            if tool.L2:
+                l2 = float(tool.L2 / 1000).__round__(5) if tool.L2 is not None and tool.L2 != 0 else 0
+
+            if tool.L3:
+                l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0
+            
+            if tool.cornerRadius:
+                print("cornerRadius: ", tool.cornerRadius, tool.toolType  )
+                if tool.cornerRadius != None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
+                    r = float(tool.cornerRadius / 1000).__round__(5)
+                    if tool.toolType == 1:#radius mill
+                        self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"r"), r)  
+                
+            
+            print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
+
+
+
+            #set tool parameters
+
+
+            if tool.toolType == 6:#center drill
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D1"), d3)    
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D2"), d1)    
+                
+                #need to convert angle from deg to rad
+                print("AngleDeg: ", tool.neckAngle, "chamfer: ", tool.chamfer)
+                angle = float(tool.neckAngle) * 1
+                chamfer = float(tool.chamfer) * 1
+
+                chamfer = float(chamfer * pi / 180).__round__(5)
+                angle = float(angle * pi / 180).__round__(5)
+
+                self.setRealParameter(self.ts, savedToolModif,"A_T", chamfer)
+                                                                    
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), angle)
+                print("AngleRad: ", angle, "chamfer: ", chamfer)      
+        
+            else:
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D"), d1)                
+
+
+
+            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"SD"), d3)                
+            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l1)                
+            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"OL"), l3)
+
+            print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
+
+
+
+            #if drill
+            if tool.toolType == 7:#drill
+                if not tool.neckAngle:
+                    tool.neckAngle = 140
+                print("AngleDeg: ", tool.neckAngle)
+                tmpAngleRad = int(tool.neckAngle) * pi / 180
+                print("tmpAngleRad: ", tmpAngleRad)
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
+            
+            #thread mill
+            elif tool.toolType == 9:
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"LH"), l2)
+
+            
+
+                getSketchs = self.ts.Sketches2D.GetSketches(savedToolModif)
+                print("getSketch: ", getSketchs, len(getSketchs))
+                for sketch in getSketchs:
+                    sketchName = self.ts.Elements.GetName(sketch)
+                    if sketchName == "ShankSketch":
+                            print("childName: ", sketchName, sketch.GetType())
+                            consts = self.ts.Elements.GetConstituents(sketch)
+                            print("consts: ", consts,len(consts))
+                            props = self.ts.Elements.GetProperties(sketch)   
+                            print("props: ", props,len(props))
+            
+                            for p in props:
+                                print("prop: ",p)
+
+                            for i in consts:
+                                constName = self.ts.Elements.GetName(i)
+                                if constName == "Dimension 3" or constName == "Dimension 4":
+                                    print("consts: ", constName, i.GetType())
+                                    value = self.ts.Elements.GetTypeFullName(i)
+                                    modif = self.ts.Elements.IsModifiable(i)
+                                    delet = self.ts.Elements.IsDeletable(i)
+
+
+                                    print("value: ", value, modif, delet )
+                                
+                                    #propType = self.ts.Elements.Delete(i)
+                                    #print("propType: ", propType)
+                                    
+                                        
+
+            
+            #if spot drill
+            elif tool.toolType == 6:#spot drill
+                    print("spot drill: ", l2)
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l2)
+            
+            else:
+                    
+                if l2 > 0 and tool.toolType != 8 and tool.toolType != 9 and tool.toolType != 7:
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+        
+                    
+            from TopSolid.Kernel.Automating import SmartText
+
+            smartTextType = SmartText(self.ts.Parameters.GetDescriptionParameter(savedToolModif))
+        
+            self.ts.Parameters.PublishText(savedToolModif, "FR", smartTextType)
+
+            self.end_modif(True, False)
+            
+            self.ts.Documents.Save(savedToolModif)
+            self.ts.Documents.Open(savedToolModif)
+
+
+            print("Created tool with id: ", savedToolModif.PdmDocumentId)
+            tool.TSid = savedToolModif.PdmDocumentId
+            
+            #update tool in database
+
+            update_tool(tool)
+
+            if holder:
+                self.add_tool_to_holder(output_lib, tool, holder)
+        
+        except Exception as ex:
+            self.end_modif(True, False)
+            print("Error copying tool: " + str(ex))
+
+        # Disconnect TopSolid and end the modification
+        #self.ts.Disconnect()
+
+    def setRealParameter(ts_ext, doc, paramName, value):
+        #setRealParameter(savedToolModif,"A_T", chamfer)
+
+        from TopSolid.Kernel.Automating import SmartReal
+        from TopSolid.Kernel.Automating import UnitType
+
+        SmartRealNewParam = SmartReal(UnitType(2),value) # 2 :: UnitType - Angle - 2 - Plane angle.                            
+
+        getOps = ts_ext.Operations.GetOperations (doc)
+        for op in getOps:
+            children = ts_ext.Operations.GetChildren(op)
+            for child in children:
+                childName = ts_ext.Elements.GetName(child)
+                if childName == paramName:
+                    print("childName: ", childName, child.GetType())                
+                    #smartRealParam = ts_ext.Parameters.GetSmartRealParameterCreation(op) 
+                    setParam = ts_ext.Parameters.SetSmartRealParameterCreation(op, SmartRealNewParam)
+                    print(f"set {paramName} : {SmartRealNewParam} : {value} : {setParam}")
+

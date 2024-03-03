@@ -8,17 +8,17 @@ from gui.toolPreview import OnPaint
 
 from databaseTools import delete_selected_item , load_tools_from_database
 
-from ts import copy_tool, copy_holder
 
 from ObjectListView import ObjectListView, ColumnDefn
 
 from gui.menus_inter import MenusInter
 
 
+
 class ToolList(wx.Panel):    
     def __init__(self, parent):
-        super().__init__(parent=parent)
-
+        super().__init__(parent)
+            
         self.font_10 = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_tool_params_12 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Courier 10 Pitch')
@@ -189,7 +189,7 @@ class ToolList(wx.Panel):
             print("floatMenu :: Create")      
             #create tool :: false = no holder 
             print("create tool :: ", tool.name)
-            copy_tool(self, tool, False, False)
+            self.ts.copy_tool(self, tool, False, False)
                 
         if id == 1:                
             print("floatMenu ::  Create with holder")     
@@ -197,7 +197,7 @@ class ToolList(wx.Panel):
             print("create holder for :: ", tool.name)
             #id = ts.get_tool_TSid(tool)
             #copy_holder(self, tool)
-            print (self.ts.insert_into_holder(tool))
+            self.ts.insert_into_holder(tool)
 
         elif id == 2:
             print("floatMenu :: Edit :: ", tool.name )
@@ -214,7 +214,7 @@ class ToolList(wx.Panel):
 
         elif id == 5:
             print("floatMenu :: Duplicate")
-            copy_tool(self, tool, False, True)
+            #copy_tool(self, tool, False, True)
         
         self.toolData.full_tools_list, existent_tooltypes = load_tools_from_database(self.toolData.selected_toolType, self.lang)
         refreshToolList(self, self.toolData )
