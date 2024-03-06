@@ -1,0 +1,13 @@
+NIST STEP File Analyzer and Viewer 5.07 (Tue Mar 05 22:45:46 CET 2024)
+
+Generating View
+ Writing Viewer file to: G:\works\2023\git clone\editool_python\wx_gui\dist\tool examples\step\_cad_iso_hol_8343001269_QU1-sfa.html
+ **  Copying Viewer software for part geometry (stp2x3d-part.exe) to C:\Users\user\AppData\Local\Temp\SFA
+ Processing STEP part geometry
+ Processing X3D output
+Processing time: 1.7 seconds
+
+Opening Viewer file: _cad_iso_hol_8343001269_QU1-sfa.html (193 KB)
+
+Saving Log file to:
+ G:\works\2023\git clone\editool_python\wx_gui\dist\tool examples\step\_cad_iso_hol_8343001269_QU1-sfa.log

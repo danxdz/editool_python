@@ -119,7 +119,7 @@ def OnPaint(self, dc, tool):
             #print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
             draw_rectangle(p1_x, axis_line, scaled_values['L1']+1, p1_y)
             draw_rectangle(p2_x, axis_line, scaled_values['L1']-corner_rad+1, p2_y)
-            print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
+            #print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
             
 
         elif tool.toolType == 2: # ball

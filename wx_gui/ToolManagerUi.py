@@ -1,8 +1,6 @@
 import wx
-import os
 import sys
 import logging
-
 
 from gui.menus_inter import MenusInter
 
@@ -44,9 +42,7 @@ class ToolManagerUI(wx.Frame):
 
         super(ToolManagerUI, self).__init__(parent, title=title, size=(400, 300))
 
-
         self.ts = TopSolidAPI()
-        
         self.selected_tooltype_name = "all"
         self.selected_toolType = -1
         self.icons_bar_widget = None
@@ -61,8 +57,7 @@ class ToolManagerUI(wx.Frame):
         self.SetAcceleratorTable(accel_tbl)
 
     def setupUI(self):
-        '''Setup the gUI'''
-                
+        '''Setup the gUI'''                
         logging.info('loading gUI')
 
         self.SetBackgroundColour(self.BACKGROUND_COLOUR)
@@ -169,8 +164,6 @@ class ToolManagerUI(wx.Frame):
         self.main_sizer.Layout()
         self.Refresh()
 
-
-
     #menu bar functions
     def on_open_xml(self, event):
         '''open a xml file and convert it to a tool'''
@@ -181,15 +174,13 @@ class ToolManagerUI(wx.Frame):
         tools = import_xml_wx.open_file(self, title, wcard)
         #print("tools :: ", tools, len(tools))
 
-
         for tool in tools:
             validateToolDialog(self.panel, tool, True).ShowModal()
 
         if len(tools) > 0:
             #self.toolData.full_tools_list = refreshToolList(self.panel, tools[len(tools)-1].toolType)
             self.statusBar.SetStatusText(self.getLoadedTools())
-            refreshToolList(self.panel, self.toolData)
-            
+            refreshToolList(self.panel, self.toolData)            
         else:
             print("no tools loaded")
             self.statusBar.SetStatusText("no tools loaded")
@@ -199,7 +190,8 @@ class ToolManagerUI(wx.Frame):
         '''import a step file and convert it to a tool'''
 
         title = "Import Step file"
-        wcard ="Step files (*.stp)|*.stp"
+        #add step or stp file import
+        wcard ="Step files (*.step)|*.step|STP files (*.stp)|*.stp"
         if not self.ts or not self.ts.connected:
             self.ts = TopSolidAPI()
         
@@ -207,10 +199,6 @@ class ToolManagerUI(wx.Frame):
         if dlg.ShowModal() == wx.ID_OK:
             file_path = dlg.GetPath()
             dlg.Destroy()
-
-            owner_id = 1
-
-            document_name = os.path.basename(file_path)
 
             lib, name = self.ts.get_current_project()
 

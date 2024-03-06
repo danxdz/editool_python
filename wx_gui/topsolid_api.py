@@ -662,7 +662,7 @@ class TopSolidAPI:
     def Import_file_w_conv(self, inImporterIx, inFullName, inOwnerId):
         '''import file with conversion'''
 
-        print("INFO :: import file with conversion :: ", inImporterIx, inFullName)
+        print("INFO :: import file with conversion :: type :: ", inImporterIx, " :: name :: " , inFullName)
         
         outLog = []
         outBadDocumentIds = [self.auto.DocumentId]
@@ -673,10 +673,7 @@ class TopSolidAPI:
             print("INFO :: file loaded :: ", inFullName)
             step_viewer.loadStepFile(inFullName)
 
-            # AXIS2_PLACEMENT_3D names to search for
-            holder_placement_names = ['MCS', 'CWS', 'PCS', 'WCS', 'CSW']
-            tool_placement_names = ['MCS', 'CWS', 'PCS', 'WCS', 'CSW',"CIP","CIP_SCHNEIDE"]
-
+            # search for the axis2 elements in the step file
             found_elements = step_viewer.findPlacementElements()
 
             #check if there are any elements found, and if its an holder or tool
