@@ -144,7 +144,6 @@ def refreshToolList(panel, toolData):
     selected = panel.olvSimple.GetSelectedObject()
     if selected:
         print("selected :: ", selected.name)
-        logging.info(f"selected :: {selected.name}")
     
     tool_type = toolData.selected_toolType
     tools = toolData.full_tools_list
@@ -165,6 +164,9 @@ def refreshToolList(panel, toolData):
         print(f"INFO :: no tools loaded :: type : {new_tool_type_text}")
     
     panel.Refresh()
+    panel.Update()
+    panel.Layout()
+    panel.olvSimple.Refresh()
 
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)

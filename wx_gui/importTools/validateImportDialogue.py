@@ -4,8 +4,6 @@ import wx
 #from gui.guiTools import getToolTypesNumber
 from gui.guiTools import refreshToolList
 
-#from ts import copy_tool
-
 from databaseTools import saveTool, update_tool, load_tools_from_database
 
 #from share.save_supabase import readTools
@@ -20,6 +18,7 @@ class validateToolDialog(wx.Dialog):
         self.parent = parent
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.tool = tool
+        self.ts = parent.ts
 
         self.isNew = isNew
 
@@ -187,7 +186,7 @@ class validateToolDialog(wx.Dialog):
 
         saveTool(self.tool,self.toolData.tool_types_list)
         
-        #copy_tool(self, self.tool, False, False)
+        self.ts.copy_tool(self, self.tool, False, False)
 
         self.Destroy()  # Close the dialog after create tool    
 

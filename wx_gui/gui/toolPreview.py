@@ -32,7 +32,6 @@ def OnPaint(self, dc, tool):
         axis_line = 160
         scale_width = (tool_max_width-40) / tool.L3
 
-
         # Scale tool attributes
         scaled_values = {
             'D1': int((tool.D1 * scale_width)/2),
@@ -48,10 +47,8 @@ def OnPaint(self, dc, tool):
         rad = int(scaled_values['D1']) 
         corner_rad = int((scale_width*float(tool.cornerRadius)))
 
-
         #for key, value in scaled_values.items():
         #    print(key, value)
-
         
         cut_len_border_color = wx.Colour("#6C3B12")
         cut_len_fill_color = wx.Colour("#C87A46")
@@ -63,9 +60,7 @@ def OnPaint(self, dc, tool):
         nocut_len_border_pen = wx.Pen(nocut_len_border_color, 1, wx.PENSTYLE_SOLID)
         nocut_len_fill_brush = wx.Brush(nocut_len_fill_color, wx.BRUSHSTYLE_SOLID)
 
-
         # Draw rectangles
-
         dc.SetPen(nocut_len_border_pen)
         dc.SetBrush(nocut_len_fill_brush)
         # Need to center the tool neck, by find the dif between d1 and d2 and divide by 2
@@ -86,19 +81,20 @@ def OnPaint(self, dc, tool):
             draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2']+dif)
             # draw tool corps
             draw_rectangle(scaled_values['L2']-1, axis_line, scaled_values['L3']-scaled_values['L2']+1, -scaled_values['D3'])
-        
-        
+                
         dc.SetPen(cut_len_border_pen)
         dc.SetBrush(cut_len_fill_brush)
+
+        # get string type of the tool
+        tt = self.toolData.tool_types_list[tool.toolType]
+        print(f'INFO : Drawing {tt}')
+
         # Draw tool sections
         # cut section
         if tool.toolType == 0: # endmill
-            print('INFO : Drawing endmill')
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
             #print("scaled_values['L1']", scaled_values['L1'], "scaled_values['D1']", scaled_values['D1'])
-        elif tool.toolType == 1: # radius
-            print('INFO : Drawing radiusMill')
-                
+        elif tool.toolType == 1: # radius                
             dc.SetPen(cut_len_fill_pen)
             dc.SetBrush(cut_len_fill_brush)
 
@@ -113,17 +109,13 @@ def OnPaint(self, dc, tool):
             p2_x = corner_rad
             p2_y = int(-scaled_values['D1'])
 
-
-
             dc.DrawArc(p2_x, axis_line + p2_y, p1_x, axis_line + p1_y, p2_x, axis_line + p1_y)
             #print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
             draw_rectangle(p1_x, axis_line, scaled_values['L1']+1, p1_y)
             draw_rectangle(p2_x, axis_line, scaled_values['L1']-corner_rad+1, p2_y)
             #print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y)
             
-
-        elif tool.toolType == 2: # ball
-            print('INFO : Drawing ballMill')
+        elif tool.toolType == 2: # ballmill
             draw_rectangle(rad, axis_line, scaled_values['L1']-rad, -scaled_values['D1'])
             dc.DrawArc(rad, axis_line-rad,0, axis_line, rad, axis_line)
             #print("rad", rad, "scaled_values['L1']", scaled_values['L1'], "scaled_values['D1']", scaled_values['D1'])
@@ -131,11 +123,7 @@ def OnPaint(self, dc, tool):
             r_w, r_h = dc.GetTextExtent(str("r "))
             #dc.DrawText(str(tool.cornerRadius), int(text_spacer_w+r_w+5), int(axis_line-(scaled_values['D1']*2)))
 
-
-
-
         elif tool.toolType == 3 or tool.toolType == 7 : # chamfer
-            print('INFO : Drawing chamferMill')
 
             #draw the chamfer line, that start at 0,0 and end at d1, and calc the angle
             len = int((scaled_values['D1']) / (math.tan(((float(tool.neckAngle)/2) * math.pi) / 180)))
@@ -150,16 +138,13 @@ def OnPaint(self, dc, tool):
             print("p1_x", p1_x, "p1_y", p1_y, "p2_x", p2_x, "p2_y", p2_y, "p3_x", p3_x, "p3_y", p3_y)
 
         elif tool.toolType == 4: # tslot
-            print('INFO : Drawing tslotMill')
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
             draw_rectangle(scaled_values['L1']-1, axis_line, scaled_values['L2']-scaled_values['L1']+1, -scaled_values['D2'])
 
 
         elif tool.toolType == 8: # threadMill
-            print('INFO : Drawing threadMill')
             draw_rectangle(0, axis_line, scaled_values['L1']+1, -scaled_values['D1'])
             
-
         #find the middle of the tool l3, so we can draw the text in the middle of tool corps
         m_l1 = int((scaled_values['L1'])/2)
         m_l2 = int((scaled_values['L2'] - (scaled_values['L2']/2))+scaled_values['L1'])
@@ -199,10 +184,8 @@ def OnPaint(self, dc, tool):
             dc.DrawText(str(tool.D2), int(x_dl2+text_spacer_w), axis_line - int(scaled_values['D2'] + d2_h + text_spacer_h))
             dc.DrawText(str(tool.L2), int(x_dl2+text_spacer_w), axis_line + int(scaled_values['D2']/2))
 
-
         dc.DrawText(str(tool.D3), int(m_l3-(d3_w/2)+text_spacer_w), axis_line - int(scaled_values['D3'] + d3_h + text_spacer_h))
         dc.DrawText(str(tool.L3), int(m_l3-(d3_w/2)+text_spacer_w), axis_line + int(scaled_values['D3']/2))
-
         
         # Draw axis line
         dc.SetPen(wx.Pen(wx.Colour("red"), 3, wx.DOT_DASH))

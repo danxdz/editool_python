@@ -105,7 +105,7 @@ class ToolList(wx.Panel):
             self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
             self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
             self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
-            self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
+            #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
             self.popup_menu.Append(3, f"{menu.get_menu('delete').capitalize()}")
             self.popup_menu.AppendSeparator()
             #self.popup_menu.Append(4, "Export")
@@ -204,6 +204,7 @@ class ToolList(wx.Panel):
             validateToolDialog(self, tool, False).ShowModal()
         elif id == 3:
             print("floatMenu :: Delete")
+            self.olvSimple.RemoveObject(tool)
             delete_selected_item(self.GetParent(),tool)
         elif id == 4:
             msg = "not implemented yet"

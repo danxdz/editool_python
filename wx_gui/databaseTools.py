@@ -1,6 +1,7 @@
 import sqlite3
 from tool import Tool
 from gui.menus_inter import MenusInter
+import logging
 
 def sqlConn():
     # Connect to the SQLite database
@@ -60,11 +61,9 @@ def deleteTool(tool):
 
 
 def delete_selected_item(self, tool):
-    self.panel.olvSimple.RemoveObject(tool)
     
     #delete tool from database
     deleteTool(tool)
-    #delete tool from ovlsimple
 
 
 
@@ -142,6 +141,8 @@ def update_tool(tool):
     cursor.execute(tmp)
     conn.commit()
 
-    print('Tool updated in database.', tool.name , "tool changed: ", conn.total_changes)
+    logging.info(f'Tool updated in database. {tool.name} tools changed: {conn.total_changes}')
+    #print('Tool updated in database.', tool.name , "tool changed: ", conn.total_changes)
+    
     conn.close()
 

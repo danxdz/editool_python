@@ -1,9 +1,6 @@
+import logging
 import wx
 import xml.etree.ElementTree as ET
-
-import csv
-
-#from gui.guiTools import getToolTypesNumber
 
 from tool import Tool, ToolsDefaultsData
 
@@ -14,15 +11,35 @@ def parse_hyper_xml_data(root):
     
     # Obtém os dados da ferramenta
     tool = root.find('.//tool')
-    #dbout("TOOL",tool)
+
     # Find the tecset with type="milling"
     milling_tecset = tool.find(".//tecset")
+    milling_tecsets = tool.find(".//tecsets")
+    ''' example of tecset
+    <tecsets>
+        <tecset type="milling">
+            <param name="material" value="Titanium alloy &gt; 300 HB" />
+            <param name="purpose" value="Finishing HSC, contour-parallel" />
+            <param name="lengthOfUnit" value="mm" />
+            <param name="spindleSpeed" value="11015" />
+            <param name="cuttingSpeed" value="150" />
+            <param name="coolants" value="1" />
+            <param name="cuttingDirection" value="upAndDown" />
+            <param name="feedratePerEdge" value="0.045" />
+            <param name="cuttingWidth" value="0.12" />
+            <param name="cuttingLength" value="0.12" />
+            <param name="plungeAngle" value="0" />
+            <param name="planeFeedrateFormula" value="fZ" />
+            <param name="zFeedrateFormula" value="feedrateAxial" />
+            <param name="reducedFeedrateFormula" value="feedrateReduced" />
+        </tecset>
+    </tecsets>
+    '''
+    material = milling_tecsets.find(".//param[@name='material']")
 
     # Extract the value of the 'coolants' parameter from the milling_tecset
     coolants_value = milling_tecset.find(".//param[@name='coolants']").attrib['value']
     #print("Coolants value: ", coolants_value)
-
-    #print(tool.attrib['name'])
     
     coolantType = coolants_value
     #print("coolant: ", coolantType)
@@ -33,7 +50,6 @@ def parse_hyper_xml_data(root):
     #print("Tool type hyper: ")
     #print(toolType)
 
-
     #check if toolType is valid
     if not toolType:
         toolType == 0
@@ -41,8 +57,7 @@ def parse_hyper_xml_data(root):
         print("teset: ", toolType)
         #tooltype where is a string, like "endmill", need to enumerate from tools_defaults.tool_types
         if toolType in tools_defaults.tool_types:
-            toolType = tools_defaults.tool_types.index(toolType)
-           
+            toolType = tools_defaults.tool_types.index(toolType)           
         
     name = tool.attrib['name']
     #print("name: ", name)
@@ -50,7 +65,7 @@ def parse_hyper_xml_data(root):
     #print("GroupMat: ", groupMat)
     d1 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])
     #print("D1: ", d1)
-    d2 = float(tool.find('param[@name="toolDiameter"]').attrib['value'])-0.2
+    d2 = d1-0.2 #TODO: check if we can get d2 from xml
     #print("D2: ", d2)
     d3 = tool.find('param[@name="toolShaftDiameter"]').attrib['value']
     if d3:
@@ -94,6 +109,8 @@ def parse_hyper_xml_data(root):
         
     tool_data = {
         # Adicione essa linha para obter o atributo 'name' do XML
+        'cuttingMaterial': material.attrib['value'],
+        'toolMaterial': cutMat,
         'name': name,
         'toolType': toolType,
         'D1': d1,
@@ -109,7 +126,6 @@ def parse_hyper_xml_data(root):
         'coolantType': coolantType,
         'threadPitch': 0,
         'threadTolerance': "",
-        'cuttingMaterial': cutMat,
         'mfr': mfr,
         'mfrRef': tool.find('param[@name="orderingCode"]').attrib['value'],
         'mfrSecRef': "",
@@ -124,7 +140,8 @@ def parse_hyper_xml_data(root):
     for key, value in newTool.getAttributes().items():
         print(key, value)
 
-    newTool.toolType = fix_toolType(newTool)
+    if toolType not in tools_defaults.tool_types:
+        newTool.toolType = fix_toolType(newTool)
 
     return newTool
 
@@ -242,9 +259,8 @@ def parse_new_xml_data(tool):
                 """DIN4000-80-4 - Forming taps with reinforced shank"""
                 #print(f"{readType} - toolType is Tap")
                 newTool.toolType = 8
-
-
-    if readDin == "DIN4000-81": #DIN4000-81 - Drills and countersinking tools with non-indexable cutting edges
+    
+    elif readDin == "DIN4000-81": #DIN4000-81 - Drills and countersinking tools with non-indexable cutting edges
         #switch readType
         match readType:
             case "1":
@@ -265,8 +281,7 @@ def parse_new_xml_data(tool):
                 newTool.L3 = get_property_value(tool, "B5")
                 newTool.chamfer = get_property_value(tool, "E4_2")
 
-
-    if readDin == "DIN4000-82": #DIN4000-82 - End mills with non-indexable cutting edges
+    elif readDin == "DIN4000-82": #DIN4000-82 - End mills with non-indexable cutting edges
         #switch readType
         match readType:
             case "1":
@@ -325,7 +340,6 @@ def parse_new_xml_data(tool):
         print(f"toolType detected: {readDin}-{readType} :: {tools_defaults.tool_types[newTool.toolType]}")
 
 
-
     # Extract the properties using a function to handle missing properties
     if readDin == "DIN4000-82" or readDin == "DIN4000-80":
         newTool.D1 = get_property_value(tool, "A1") or get_property_value(tool, "A11")
@@ -339,25 +353,26 @@ def parse_new_xml_data(tool):
             newTool.threadTolerance = get_property_value(tool, "A5")
             
 
-
+    
+    print("tool type: ", newTool.toolType, newTool)
     if not newTool.D1 and not newTool.toolType:
         print("no d1")
         newTool.D1 = get_property_value(tool, "A2")  or  get_property_value(tool, "A11")      
         
     if not newTool.D2:
-        newTool.D2 = get_float_property(tool, "A5")
+        newTool.D2 = get_float_property(tool, "A5")    
+
+    if not newTool.D3:
+        newTool.D3 = get_float_property(tool, "C3")
     
     if not newTool.L1:
         newTool.L1 = get_property_value(tool, "B2") or get_property_value(tool, "B4") or get_property_value(tool, "B3") #b2 fraisa
     if not newTool.L2:
         newTool.L2 = get_property_value(tool, "B9") #fraisa
 
-
-    if not newTool.D3:
-        newTool.D3 = get_float_property(tool, "C3")
     
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
-    newTool.z = int(get_property_value(tool, "F21")) or int(get_property_value(tool, "D1"))
+    newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
     newTool.cornerRadius = get_float_property(tool, "G1")
 
     #print("D1: ", newTool.D1, "D2: ", newTool.D2, "D3: ", newTool.D3, "L1: ", newTool.L1, "L2: ", newTool.L2, "L3: ", newTool.L3, "z: ", newTool.z, "cornerRadius: ", newTool.cornerRadius, "chamfer: ", newTool.chamfer)
@@ -434,12 +449,9 @@ def parse_new_xml_data(tool):
         newTool.mfr = "JONGEN" 
     
     if newTool.toolType == "":
-       newTool.toolType = get_property_value(tool, "J22")
-       #print("new toolType: J22  ", newTool.toolType)
-    
-    if not newTool.toolType:
-        newTool.toolType = 0 #TODO: find way to get tool type from xml 
+        newTool.toolType = get_property_value(tool, "J22")
         newTool.tooltype = fix_toolType(newTool)
+        print("new toolType: J22  ", newTool.toolType)
 
     #print("tool_data: ",newTool.mfr, newTool.name, newTool.toolType, newTool.cuttingMaterial, newTool.neckAngle, newTool.centerCut, newTool.coolantType, newTool.threadTolerance, newTool.threadPitch, newTool.mfr, newTool.mfrRef, newTool.mfrSecRef, newTool.code, newTool.codeBar, newTool.comment)
 
@@ -451,6 +463,7 @@ def parse_new_xml_data(tool):
     return newTool
 
 def fix_toolType(newTool):
+    print("fix_toolType: ", newTool.toolType)
     
     if newTool.toolType == "Diabolo VHM-Fräser" or newTool.toolType == "Vollhartmetallwerkzeuge. Stahl-. Edelstahl- und Ti":
         newTool.toolType = 0
@@ -461,7 +474,6 @@ def fix_toolType(newTool):
     #change tslootcutter to tslotMill
     if newTool.toolType == "tslotcutter" or newTool.toolType == "Tslotcutter":
         newTool.toolType = 4
-
 
     if newTool.toolType == "NC-Anbohrer":
         newTool.toolType = 5
@@ -476,7 +488,6 @@ def fix_toolType(newTool):
     
 
 def open_file(self,title,wCard):
-
        
     dlg = wx.FileDialog(self, title, 
                        wildcard=wCard, 
@@ -501,7 +512,6 @@ def open_file(self,title,wCard):
 
         toolData = ToolsDefaultsData()       
 
-
         for path in xml_file_path:
             #print('File selected: ', path)
             
@@ -520,50 +530,13 @@ def open_file(self,title,wCard):
                     tool = parse_hyper_xml_data(root)
 
                 print("Import xml", path ,"finished")
+                logging.info('Import xml %s finished', tool.name, tool.toolType)
                 print("tool: ", tool.name, tool.toolType, tool.toolMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
                 toolsList.append(tool)
 
-
-
-                '''                # Caminho do arquivo CSV
-                                csv_file_path = "ferramentas.csv"
-
-
-                                add_tools_to_csv(toolsList, csv_file_path)
-
-                                # Lê as ferramentas do arquivo CSV
-                                loaded_tools = read_tools_from_csv(csv_file_path)
-
-                                # Exibir ferramentas carregadas
-                                for tool in loaded_tools:
-                                    print(tool)
-'''
-                                        
-                        
-                        
             except Exception as e:
                 print("Error: ", e)
                 print("rest :: ", tool)
 
         print("toolsList :: ", len(toolsList))
         return toolsList
-
-
-
-# Adiciona ferramentas ao arquivo CSV sem cabeçalho
-def add_tools_to_csv(tools, file_path):
-    with open(file_path, mode="a", newline="", encoding="utf-8") as file:
-        writer = csv.writer(file, delimiter=";", quotechar='"', quoting=csv.QUOTE_MINIMAL)
-        # Adiciona as ferramentas sem verificar o cabeçalho
-        for tool in tools:
-            writer.writerow(tool.getAttributes().values())
-
-# Lê as ferramentas do arquivo CSV
-def read_tools_from_csv(file_path):
-    loaded_tools = []
-    with open(file_path, mode="r", encoding="utf-8") as file:
-        reader = csv.DictReader(file)
-        for row in reader:
-            loaded_tools.append(row)
-    return loaded_tools
-

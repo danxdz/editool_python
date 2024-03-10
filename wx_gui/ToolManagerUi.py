@@ -191,7 +191,7 @@ class ToolManagerUI(wx.Frame):
 
         title = "Import Step file"
         #add step or stp file import
-        wcard ="Step files (*.step)|*.step|STP files (*.stp)|*.stp"
+        wcard ="Step files (STP files (*.stp)|*.stp|*.step)|*.step"
         if not self.ts or not self.ts.connected:
             self.ts = TopSolidAPI()
         
@@ -200,10 +200,10 @@ class ToolManagerUI(wx.Frame):
             file_path = dlg.GetPath()
             dlg.Destroy()
 
-            lib, name = self.ts.get_current_project()
+            self.ts.get_current_project()
 
         try:
-            imported_documents, log, bad_document_ids = self.ts.Import_file_w_conv(10, file_path, lib)
+            imported_documents, log, bad_document_ids = self.ts.Import_file_w_conv(10, file_path, self.ts.current_project)
             
             if imported_documents:
                 print(f"Documents imported successfully. Document IDs: {len(imported_documents)}", "Success", wx.OK | wx.ICON_INFORMATION)
