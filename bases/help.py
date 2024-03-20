@@ -23,9 +23,10 @@ class MyFrame(wx.Frame):
         self.Show()
 
     def get_html_file_path(self):
-        # get the directory where the executable is located
-        exe_dir = os.path.dirname(sys.executable)
+        # get the directory where the python file is located
+        exe_dir = os.path.dirname(sys.argv[0])
         # make the help file path
+        print(exe_dir)
         html_file_path = os.path.join(exe_dir, "help.html")
         return html_file_path
 

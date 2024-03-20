@@ -28,6 +28,7 @@ from tool import ToolsCustomData
 
 from topsolid_api import TopSolidAPI
 
+
 #from share.save_supabase import read_menu
 
 
@@ -36,13 +37,13 @@ class ToolManagerUI(wx.Frame):
     TOOL_TYPE_ALL = "all"
     PANEL_POSITION = (0, 0)
 
-    def __init__(self, parent, id, title):
+    def __init__(self, parent, title):
         no_resize = wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX)
         wx.Frame.__init__(self, parent, title=title, style=no_resize)
 
-        super(ToolManagerUI, self).__init__(parent, title=title, size=(400, 300))
+        super(ToolManagerUI, self).__init__(parent, title=title)
 
-        self.ts = TopSolidAPI()
+        self.ts = None#TopSolidAPI()
         self.selected_tooltype_name = "all"
         self.selected_toolType = -1
         self.icons_bar_widget = None
@@ -55,6 +56,9 @@ class ToolManagerUI(wx.Frame):
         self.Bind(wx.EVT_ENTER_WINDOW, self.help, id=f1_id)
         accel_tbl = wx.AcceleratorTable([(wx.ACCEL_NORMAL, wx.WXK_F1, f1_id )])
         self.SetAcceleratorTable(accel_tbl)
+
+
+
 
     def setupUI(self):
         '''Setup the gUI'''                

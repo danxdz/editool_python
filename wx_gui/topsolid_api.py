@@ -247,7 +247,7 @@ class TopSolidAPI:
             files.append(file)
             
         for dir in folder_const[0]:
-            print ("folder path ::", self.get_name(dir))
+            #print ("folder path ::", self.get_name(dir))
 
             iFiles = self.get_constituents(dir, printInfo)
             for i in iFiles:
@@ -527,12 +527,14 @@ class TopSolidAPI:
             #print(f"option {key} changed to {value}")
         return opt
     
-    def get_importer_options(self, inImporterIx): #inImporterIx = type of file to import #10 for .step file
+    def get_importer_options(self, inImporterIx, debug = False): 
+        #inImporterIx = type of file to import #10 for .step file
         '''get file importer options'''
         
         opt = self.ts.Application.GetImporterOptions(inImporterIx)
         # debug importer options
-        #print("opt :: ", opt, len(opt))
+        if debug:
+            print(f"opt :: {opt} :: {len(opt)}")
 
         # Create a copy of the list by iterating over it
         opt_copy = [item for item in opt]

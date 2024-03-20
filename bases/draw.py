@@ -1,17 +1,101 @@
+#!/usr/bin/env python3
+
+import os
+import wx
+import numpy as np
 import wxgl
 
-# Define a directional light source with specific properties
-light = wxgl.SunLight(direction=(0.5, -0.5, -1.0), diffuse=0.7, specular=0.98, shiny=100, pellucid=0.9)
+class MainFrame(wx.Frame):
+    """桌面程序主窗口类"""
+ 
+    def __init__(self):
+        """构造函数"""
+ 
+        wx.Frame.__init__(self, None, -1, '在WxPython中使用WxGL', size=(640,480), style=wx.DEFAULT_FRAME_STYLE)
+        self.Center()
+        self.SetBackgroundColour((224, 224, 224))
 
-# Create an application for the 3D scene with a light gray background and a field of view angle of 40 degrees
-app = wxgl.App(bg='#f0f0f0', fovy=40)
+        self.scene = wxgl.wxscene.WxScene(self, self.draw(), fovy=40)
+        self.visible = True
 
-# Add five spheres to the scene with specific positions, sizes, colors, and the previously defined light source
-app.sphere((-2, 0, 0), 0.35, color='#d8d8d8', light=light)
-app.sphere((0, 0, 0), 0.35, color='#d8d8d8', light=light)
-app.sphere((2, 0, 0), 0.35, color='#d8d8d8', light=light)
-app.sphere((-1, -1, 0), 0.35, color='#d8d8d8', light=light)
-app.sphere((1, -1, 0), 0.35, color='#d8d8d8', light=light)
+        btn_home = wx.Button(self, -1, '复位', size=(100, -1))
+        btn_animate = wx.Button(self, -1, '启动/停止', size=(100, -1))
+        btn_visible = wx.Button(self, -1, '隐藏/显示', size=(100, -1))
+        btn_save = wx.Button(self, -1, '保存', size=(100, -1))
 
-# Display the 3D scene
-app.show()
+        sizer_btn = wx.BoxSizer(wx.VERTICAL)
+        sizer_btn.Add(btn_home, 0, wx.TOP|wx.BOTTOM, 20)
+        sizer_btn.Add(btn_animate, 0, wx.TOP|wx.BOTTOM, 20)
+        sizer_btn.Add(btn_visible, 0, wx.TOP|wx.BOTTOM, 20)
+        sizer_btn.Add(btn_save, 0, wx.TOP|wx.BOTTOM, 20)
+
+        sizer_max = wx.BoxSizer()
+        sizer_max.Add(self.scene, 1, wx.EXPAND|wx.LEFT|wx.TOP|wx.BOTTOM, 5)
+        sizer_max.Add(sizer_btn, 0, wx.ALL, 20)
+        
+        self.SetAutoLayout(True)
+        self.SetSizer(sizer_max)
+        self.Layout()
+
+        self.Bind(wx.EVT_BUTTON, self.on_home, btn_home)
+        self.Bind(wx.EVT_BUTTON, self.on_animate, btn_animate)
+        self.Bind(wx.EVT_BUTTON, self.on_visible, btn_visible)
+        self.Bind(wx.EVT_BUTTON, self.on_save, btn_save)
+
+    def draw(self):
+        """绘制网格球和圆柱的组合体"""
+
+        tf = lambda t : ((0, 1, 0, (0.03*t)%360), )
+        sch = wxgl.Scheme()
+        sch.sphere((0,0,0), 1, fill=False)
+        sch.cylinder((-1.2,0,0), (1.2,0,0), 0.3, color='cyan', transform=tf, name='cudgel')
+        sch.circle((-1.2,0,0), 0.3, vec=(-1,0,0), color='cyan', transform=tf, name='cudgel')
+        sch.circle((1.2,0,0), 0.3, vec=(1,0,0), color='cyan', transform=tf, name='cudgel')
+        sch.axes()
+        
+        return sch
+
+    def on_home(self, evt):
+        """点击复位按钮"""
+
+        self.scene.home()
+
+    def on_animate(self, evt):
+        """点击启动/停止按钮"""
+
+        self.scene.pause()
+
+    def on_visible(self, evt):
+        """点击隐藏/显示按钮"""
+
+        self.visible = not self.visible
+        self.scene.set_visible('cudgel', self.visible)
+
+    def on_save(self, evt):
+        """点击保存按钮"""
+
+        im = self.scene.get_buffer()
+
+        wildcard = 'PNG files (*.png)|*.png|JPEG file (*.jpg)|*.jpg'
+        dlg = wx.FileDialog(self, message='保存为文件', wildcard=wildcard, style=wx.FD_SAVE|wx.FD_OVERWRITE_PROMPT)
+        dlg.SetFilterIndex(0)
+ 
+        if dlg.ShowModal() == wx.ID_OK:
+            fn = dlg.GetPath()
+            name, ext = os.path.splitext(fn)
+            
+            if ext != '.png' and ext != '.jpg':
+                ext = ['.png', '.jpg'][dlg.GetFilterIndex()]
+
+            if ext == '.jpg':
+                im.convert('RGB').save('%s%s'%(name, ext))
+            else:
+                im.save('%s%s'%(name, ext))
+        
+        dlg.Destroy()
+
+if __name__ == '__main__':
+    app = wx.App()
+    frame = MainFrame()
+    frame.Show()
+    app.MainLoop()

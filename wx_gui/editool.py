@@ -21,6 +21,6 @@ if __name__ == "__main__":
     logging.info('Starting ediTool')
     
     app = wx.App()
-    frame = ToolManagerUI(None, wx.ID_ANY, title='ediTool')
+    frame = ToolManagerUI(None, title='ediTool')
     frame.Show()
     app.MainLoop()

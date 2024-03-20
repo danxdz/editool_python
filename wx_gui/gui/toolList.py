@@ -8,11 +8,13 @@ from gui.toolPreview import OnPaint
 
 from databaseTools import delete_selected_item , load_tools_from_database
 
-
 from ObjectListView import ObjectListView, ColumnDefn
 
 from gui.menus_inter import MenusInter
 
+import wxgl
+
+from gui.viewer3d import OpenGLCanvas
 
 
 class ToolList(wx.Panel):    
@@ -25,7 +27,6 @@ class ToolList(wx.Panel):
             
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.ts = parent.ts
-       
 
         #get the menu text from the dictionary
         menu = MenusInter(self.lang)
@@ -37,33 +38,37 @@ class ToolList(wx.Panel):
         #initialize the tool list
         self.tool_labels = {}
 
-
         #create the sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
         #this is the list control that will hold the tools list
-        screenWidth, screenHeight = wx.GetDisplaySize()
+        self.screenWidth, self.screenHeight = wx.GetDisplaySize()
 
         #get the columns for the list control from tool class
-
-        self.imageListSmall = wx.ImageList(40, 20)
+        self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
+        self.olvSimple.SetEmptyListMsg("No tools found")
+        self.olvSimple.SetEmptyListMsgFont(self.font_10)
+        
+        '''        self.imageListSmall = wx.ImageList(20, 10)
         
         self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
 
-        musicImageIndex = self.olvSimple.AddNamedImages('endMill', "icons/endMill.png")
         self.olvSimple.AddNamedImages('ballMill', "icons/ballMill.png")
         self.olvSimple.AddNamedImages('radiusMill', "icons/radiusMill.png")
         self.olvSimple.AddNamedImages('chamferMill', "icons/chamferMill.png")
         self.olvSimple.AddNamedImages('tslotMill', "icons/tslotMill.png")
+        self.olvSimple.AddNamedImages('endMill', "icons/endMill.png")
+
+        self.olvSimple.SetImageList(self.imageListSmall, wx.IMAGE_LIST_SMALL)'''
+
+        print("toolData :: ", self.olvSimple.GetObjects(), len(self.toolData.full_tools_list))
 
         if self.toolData.full_tools_list != []:
             #add the images to the list control
-            self.olvSimple.SetImageList(self.imageListSmall, wx.IMAGE_LIST_SMALL)
-            #set the 1st column to be the image column
 
             simpleColumns = [
-                ColumnDefn("TS", "center", 50, musicImageIndex),
+                ColumnDefn("TS", "center", 50, self.olvSimple),
 
                 ColumnDefn("Name", "left", 100, "name"),
                 ColumnDefn("D1", "left", 50, "D1"),
@@ -81,7 +86,6 @@ class ToolList(wx.Panel):
             #self.olvSimple.CreateCheckStateColumn(0)
             self.olvSimple.SetObjects(self.toolData.full_tools_list)
 
-
             #self.olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
             
             self.sizer.Add(self.olvSimple, 1, wx.ALL|wx.EXPAND, 5)
@@ -93,13 +97,6 @@ class ToolList(wx.Panel):
             #double left click event
             self.olvSimple.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.olvSimple)
 
-            self.toolView = wx.Panel(self, size=(int(screenWidth/3), int(screenHeight/5)))
-            self.sizer.Add(self.toolView, 0, wx.ALL | wx.CENTER, 5)
-            #need to bind the paint event to the panel
-            self.toolView.Bind(wx.EVT_PAINT, self.OnPaint)
-
-            refreshToolList(self, self.toolData)
-
             #create popup menu
             self.popup_menu = wx.Menu()
             self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
@@ -110,6 +107,31 @@ class ToolList(wx.Panel):
             self.popup_menu.AppendSeparator()
             #self.popup_menu.Append(4, "Export")
             self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
+            
+            self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
+            # need to bind the paint event to the panel
+            # create a sizer for the panel
+            self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
+            self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
+
+            #add scene to the panel
+            #self.setScene()
+
+            canvas = OpenGLCanvas(self)
+            self.sizer.Add(canvas, 1, wx.EXPAND)
+            
+            refreshToolList(self, self.toolData)
+
+
+    def _OnPaint(self, event):
+        #check if there is a any tool
+        if len(self.toolData.full_tools_list) > 0:
+            tool = self.selected_tool
+
+            dc = wx.PaintDC(self.toolView)
+
+            if tool:
+                OnPaint(self, dc, tool)
 
     def getTsImage(self, tool):
         #print("getTsImage :: ", tool.name)
@@ -125,17 +147,6 @@ class ToolList(wx.Panel):
             return "tslotMill"
         
 
-    def OnPaint(self, event):   
-        #check if there is a any tool
-        if len(self.toolData.full_tools_list) > 0:
-            tool = self.selected_tool
-            #print("OnPaint :: ", tool)
-            #print("OnPaint", tool.name)
-            dc = wx.PaintDC(self.toolView)
-            if tool:
-                OnPaint(self, dc, tool)
-
-
     def toolSelected(self, event):
         #get the selected tool or tools if multiple selected, get the first one
         tool  = self.olvSimple.GetSelectedObject() or self.olvSimple.GetSelectedObjects()[0]
@@ -144,7 +155,7 @@ class ToolList(wx.Panel):
             self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tool.toolType}")
             self.parent.toolData.selected_tool = tool
             self.selected_tool = tool
-            self.Refresh() 
+            self.Refresh()
                 
 
     def db_click(self, event):
@@ -169,8 +180,6 @@ class ToolList(wx.Panel):
         count = self.olvSimple.GetSelectedItemCount()      
         ind = self.olvSimple.GetFirstSelected()
 
-
-    
         if count > 1:
             print("multiple items selected")
             tools = self.olvSimple.GetSelectedObjects()
