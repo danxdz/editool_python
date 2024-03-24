@@ -4,6 +4,8 @@ from OpenGL.GLUT import *
 from wx import *
 from wx.glcanvas import *
 
+import wxgl
+
 import math  
 
 class OpenGLCanvas(GLCanvas):
@@ -155,6 +157,7 @@ class OpenGLCanvas(GLCanvas):
         glViewport(0, 0, w, h)
 
         glMatrixMode(GL_PROJECTION)
+    
         glLoadIdentity()
         gluPerspective(45., float(w)/float(h), 1., 200.)
 
@@ -164,6 +167,7 @@ class OpenGLCanvas(GLCanvas):
         key = event.GetUnicodeKey()
         if key == 27:
             exit()
+
 
     def draw_cylinder(self, radius, height, slices=100):
         glBegin(GL_QUAD_STRIP)

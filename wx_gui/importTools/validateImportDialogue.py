@@ -1,5 +1,5 @@
 import wx
-#import ts as ts
+
 
 #from gui.guiTools import getToolTypesNumber
 from gui.guiTools import refreshToolList
@@ -8,6 +8,7 @@ from databaseTools import saveTool, update_tool, load_tools_from_database
 
 #from share.save_supabase import readTools
 
+from topsolid_api import TopSolidAPI
 
 
 class validateToolDialog(wx.Dialog):
@@ -18,7 +19,7 @@ class validateToolDialog(wx.Dialog):
         self.parent = parent
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.tool = tool
-        self.ts = parent.ts
+        self.ts = parent.Parent.ts
 
         self.isNew = isNew
 
@@ -185,6 +186,10 @@ class validateToolDialog(wx.Dialog):
         print("create " , self.tool.name, self.tool.toolType)
 
         saveTool(self.tool,self.toolData.tool_types_list)
+
+        
+        if not self.ts or not self.ts.connected:
+                    self.ts = TopSolidAPI()
         
         self.ts.copy_tool(self, self.tool, False, False)
 

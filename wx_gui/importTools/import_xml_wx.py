@@ -4,11 +4,14 @@ import xml.etree.ElementTree as ET
 
 from tool import Tool, ToolsDefaultsData
 
+from gui.guiTools import FileDialogHandler
+
 tools_defaults = ToolsDefaultsData()
 
-def parse_hyper_xml_data(root):
+def parse_hp_xml_data(root):
     print(":: import from XML hp fraisa type")
-    
+    logging.info('Parsing XML data')
+        
     # Obtém os dados da ferramenta
     tool = root.find('.//tool')
 
@@ -54,7 +57,7 @@ def parse_hyper_xml_data(root):
     if not toolType:
         toolType == 0
     else:
-        print("teset: ", toolType)
+        ##print("teset: ", toolType)
         #tooltype where is a string, like "endmill", need to enumerate from tools_defaults.tool_types
         if toolType in tools_defaults.tool_types:
             toolType = tools_defaults.tool_types.index(toolType)           
@@ -98,7 +101,7 @@ def parse_hyper_xml_data(root):
 
 
     mfr = tool.find('param[@name="manufacturer"]').attrib['value']
-    print("mfr: ", mfr)
+    ##print("mfr: ", mfr)
 
     codeBar = tool.find('param[@name="orderingCode"]').attrib['value']
     #print("CodeBar: ", codeBar)
@@ -134,17 +137,15 @@ def parse_hyper_xml_data(root):
         'comment': comment,
     }
 
+    newTool = Tool(**tool_data)
 
-
-    newTool = Tool(**tool_data) 
-    for key, value in newTool.getAttributes().items():
-        print(key, value)
+    ##for key, value in newTool.getAttributes().items():
+        ##print(key, value)
 
     if toolType not in tools_defaults.tool_types:
         newTool.toolType = fix_toolType(newTool)
 
     return newTool
-
 
 
 def get_category_value(tool, catProp,  prop_name, default_value=''):
@@ -224,9 +225,9 @@ def get_float_property(tool, property_name, default_value="0.0"):
     except ValueError:
         return 0.0
 
-def parse_new_xml_data(tool):
+def din4000_xml_parser(tool):
 
-    print(":: import from XML")
+    print(":: import from XML din4000")
     
     #print each element's tag and text
     #for elem in tool.iter():
@@ -337,8 +338,7 @@ def parse_new_xml_data(tool):
                 '''DIN4000-82-12 - Drill thread milling cutters'''
                 newTool.toolType = 9
 
-        print(f"toolType detected: {readDin}-{readType} :: {tools_defaults.tool_types[newTool.toolType]}")
-
+        print(f"toolType detected: {readDin} - {readType} :: {tools_defaults.tool_types[newTool.toolType]}")
 
     # Extract the properties using a function to handle missing properties
     if readDin == "DIN4000-82" or readDin == "DIN4000-80":
@@ -352,8 +352,6 @@ def parse_new_xml_data(tool):
             newTool.threadPitch = get_property_value(tool, "A3")
             newTool.threadTolerance = get_property_value(tool, "A5")
             
-
-    
     print("tool type: ", newTool.toolType, newTool)
     if not newTool.D1 and not newTool.toolType:
         print("no d1")
@@ -370,7 +368,6 @@ def parse_new_xml_data(tool):
     if not newTool.L2:
         newTool.L2 = get_property_value(tool, "B9") #fraisa
 
-    
     newTool.L3 = get_property_value(tool, "B5") or get_property_value(tool, "B3")
     newTool.z = get_property_value(tool, "F21") or get_property_value(tool, "D1")
     newTool.cornerRadius = get_float_property(tool, "G1")
@@ -387,7 +384,6 @@ def parse_new_xml_data(tool):
             newTool.coolantType = 1
     else:
         newTool.coolantType = 0
-
 
     newTool.toolMaterial = get_property_value(tool, "J3")   
     newTool.mfrSecRef = get_property_value(tool, "H5")
@@ -417,15 +413,12 @@ def parse_new_xml_data(tool):
             #print("no toolType")
             if int(newTool.neckAngle) > 91 or int(newTool.neckAngle) < 181 and not newTool.toolType:
                 newTool.toolType = 7#drill
-        
-
     try:
         newTool.mfr = tool.find('.//Main-Data/Manufacturer').text.strip()
         #print("mfr: ", newTool.mfr)
         newTool.name = tool.find('.//Main-Data/PrimaryId').text.strip()
     except  Exception as e:
         print("*****name error: ", e)
-
 
     if not newTool.name:
         newTool.name = tool.find('.//Main-Data/ID21002').text.strip()
@@ -487,56 +480,45 @@ def fix_toolType(newTool):
     return newTool.toolType
     
 
-def open_file(self,title,wCard):
-       
-    dlg = wx.FileDialog(self, title, 
-                       wildcard=wCard, 
-                       style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST)
+def import_xml_file(self,xml_file_path=None):
+
+    if not xml_file_path:
+        title="Import Tool XML file"
+        wCard="XML files (*.xml)|*.xml"
+        xml_file_path = FileDialogHandler.open_file_dialog(self, title, wCard)
+
+    toolsList = []
     
-    if dlg.ShowModal() == wx.ID_OK:
-        xml_file_path = dlg.GetPaths()
-        print("PATH", xml_file_path)
-        dlg.Destroy()
-
-        if len(xml_file_path) > 1:
-            print("More than one file selected")
-            #exit()
-
-        if not xml_file_path:
-            print('No file seleted.')
-            return None
-            #exit()
-
-
-        toolsList = []
-
-        toolData = ToolsDefaultsData()       
-
+    if type(xml_file_path) == list:
         for path in xml_file_path:
-            #print('File selected: ', path)
-            
-            tree = ET.parse(path)
-            #dbout(tree)
-            root = tree.getroot()
-            #dbout("ROOT",root.tag)
-            
-            # Try to obtain the 'Tool' element to check XML type
-            try:
-                tool = root.find('.//Tool')
-                #dbout("TOOL",tool)
-                if tool:
-                    tool = parse_new_xml_data(tool)
-                else:
-                    tool = parse_hyper_xml_data(root)
+            tool = select_xml_type(self, path)
+            print("Import xml", path ,"finished")
+            logging.info('Import xml %s - %s finished', tool.name, tool.toolType)
+            print("tool: ", tool.name, tool.toolType, tool.toolMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
+            toolsList.append(tool)
+    else:
+        tool = select_xml_type(self, xml_file_path)
+        logging.info('Import xml %s - %s finished', tool.name, tool.toolType)
+        toolsList.append(tool)
 
-                print("Import xml", path ,"finished")
-                logging.info('Import xml %s finished', tool.name, tool.toolType)
-                print("tool: ", tool.name, tool.toolType, tool.toolMaterial, tool.D1, tool.D2, tool.D3, tool.L1, tool.L2, tool.L3, tool.z, tool.cornerRadius, tool.chamfer, tool.centerCut, tool.coolantType, tool.threadPitch, tool.mfr, tool.mfrRef, tool.mfrSecRef, tool.code, tool.codeBar, tool.comment)
-                toolsList.append(tool)
 
-            except Exception as e:
-                print("Error: ", e)
-                print("rest :: ", tool)
+    print("toolsList :: ", len(toolsList))
+    return toolsList
 
-        print("toolsList :: ", len(toolsList))
-        return toolsList
+def select_xml_type(self, xml_file_path):
+    tree = ET.parse(xml_file_path)
+    root = tree.getroot()
+    # Try to obtain the 'Tool' element to check XML type
+    try:
+        tool = root.find('.//Tool')
+        #dbout("TOOL",tool)
+        if tool:
+            tool = din4000_xml_parser(tool)
+        else:
+            tool = parse_hp_xml_data(root)
+        
+        return tool
+
+    except Exception as e:
+        print("Error: ", e)
+        print("rest :: ", tool)

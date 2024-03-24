@@ -1,4 +1,3 @@
-
 import wx
 
 from importTools.validateImportDialogue import validateToolDialog
@@ -12,9 +11,7 @@ from ObjectListView import ObjectListView, ColumnDefn
 
 from gui.menus_inter import MenusInter
 
-import wxgl
-
-from gui.viewer3d import OpenGLCanvas
+import logging
 
 
 class ToolList(wx.Panel):    
@@ -64,63 +61,65 @@ class ToolList(wx.Panel):
 
         print("toolData :: ", self.olvSimple.GetObjects(), len(self.toolData.full_tools_list))
 
+        
+        simpleColumns = [
+            ColumnDefn("TS", "center", 50, self.olvSimple),
+
+            ColumnDefn("Name", "left", 100, "name"),
+            ColumnDefn("D1", "left", 50, "D1"),
+            ColumnDefn("D2", "left", 50, "D2"),
+            ColumnDefn("D3", "left", 50, "D3"),
+            ColumnDefn("L1", "left", 50, "L1"),
+            ColumnDefn("L2", "left", 50, "L2"),
+            ColumnDefn("L3", "left", 50, "L3"),
+            ColumnDefn("Z", "left", 50, "z"),
+            ColumnDefn("Corner Radius", "left", 50, "cornerRadius"),
+            ColumnDefn("Holder", "left", 50, "holder"),
+            ColumnDefn("TSid", "left", 50, "TSid"),
+        ]
+        self.olvSimple.SetColumns(simpleColumns)
+
+        #self.olvSimple.CreateCheckStateColumn(0)
+
         if self.toolData.full_tools_list != []:
-            #add the images to the list control
-
-            simpleColumns = [
-                ColumnDefn("TS", "center", 50, self.olvSimple),
-
-                ColumnDefn("Name", "left", 100, "name"),
-                ColumnDefn("D1", "left", 50, "D1"),
-                ColumnDefn("D2", "left", 50, "D2"),
-                ColumnDefn("D3", "left", 50, "D3"),
-                ColumnDefn("L1", "left", 50, "L1"),
-                ColumnDefn("L2", "left", 50, "L2"),
-                ColumnDefn("L3", "left", 50, "L3"),
-                ColumnDefn("Z", "left", 50, "z"),
-                ColumnDefn("Corner Radius", "left", 50, "cornerRadius"),
-                ColumnDefn("Holder", "left", 50, "holder"),
-                ColumnDefn("TSid", "left", 50, "TSid"),
-            ]
-            self.olvSimple.SetColumns(simpleColumns)
-            #self.olvSimple.CreateCheckStateColumn(0)
+            
             self.olvSimple.SetObjects(self.toolData.full_tools_list)
 
             #self.olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
             
-            self.sizer.Add(self.olvSimple, 1, wx.ALL|wx.EXPAND, 5)
+        self.sizer.Add(self.olvSimple, 1, wx.ALL|wx.EXPAND, 5)
 
-            #bind the events to the list control
-            self.olvSimple.Bind(wx.EVT_LIST_ITEM_SELECTED, self.toolSelected, self.olvSimple, id=wx.ID_ANY)
-            #right click event
-            self.olvSimple.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.olvSimple)
-            #double left click event
-            self.olvSimple.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.olvSimple)
+        #bind the events to the list control
+        self.olvSimple.Bind(wx.EVT_LIST_ITEM_SELECTED, self.toolSelected, self.olvSimple, id=wx.ID_ANY)
+        #right click event
+        self.olvSimple.Bind(wx.EVT_RIGHT_DOWN, self.right_click, self.olvSimple)
+        #double left click event
+        self.olvSimple.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.olvSimple)
 
-            #create popup menu
-            self.popup_menu = wx.Menu()
-            self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
-            self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
-            self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
-            #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
-            self.popup_menu.Append(3, f"{menu.get_menu('delete').capitalize()}")
-            self.popup_menu.AppendSeparator()
-            #self.popup_menu.Append(4, "Export")
-            self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
-            
-            self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
-            # need to bind the paint event to the panel
-            # create a sizer for the panel
-            self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
-            self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
+        #create popup menu
+        self.popup_menu = wx.Menu()
+        self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
+        self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
+        self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
+        #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
+        self.popup_menu.Append(3, f"{menu.get_menu('delete').capitalize()}")
+        self.popup_menu.AppendSeparator()
+        #self.popup_menu.Append(4, "Export")
+        self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
+        
+        self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
+        # need to bind the paint event to the panel
+        # create a sizer for the panel
+        self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
+        self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
 
-            #add scene to the panel
-            #self.setScene()
+        #add scene to the panel
+        #self.setScene()
 
-            canvas = OpenGLCanvas(self)
-            self.sizer.Add(canvas, 1, wx.EXPAND)
-            
-            refreshToolList(self, self.toolData)
+        #canvas = OpenGLCanvas(self)
+        #self.sizer.Add(canvas, 1, wx.EXPAND)
+        
+        refreshToolList(self, self.toolData)
 
 
     def _OnPaint(self, event):
@@ -201,9 +200,10 @@ class ToolList(wx.Panel):
             self.ts.copy_tool(self, tool, False, False)
                 
         if id == 1:                
-            print("floatMenu ::  Create with holder")     
+            print("floatMenu ::  Insert into holder")     
             #create tool :: true = holder
-            print("create holder for :: ", tool.name)
+            print("insert into holder for :: ", tool.name)
+            logging.info("insert into holder for :: %s", tool.name)
             #id = ts.get_tool_TSid(tool)
             #copy_holder(self, tool)
             self.ts.insert_into_holder(tool)

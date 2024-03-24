@@ -1,11 +1,12 @@
 import wx
+# import TopSolidAPI from root folder
 from topsolid_api import TopSolidAPI
 
 class TopSolidGUI(wx.Frame):
     def __init__(self, parent, title):
         super(TopSolidGUI, self).__init__(parent, title=title, size=(400, 300))
 
-        self.topSolid = None  # Manter uma instância da classe TopSolidAPI
+        self.ts = None  # Manter uma instância da classe TopSolidAPI
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.Bind(wx.EVT_CLOSE, self.on_close)
@@ -39,44 +40,48 @@ class TopSolidGUI(wx.Frame):
     def on_execute(self, event):
         selected_function = self.function_combo.GetValue()
 
-        if not self.topSolid or not self.topSolid.connected:
-            self.topSolid = TopSolidAPI()
+        if not self.ts or not self.ts.connected:
+            self.ts = TopSolidAPI()
 
-        with self.topSolid:
+        with self.ts:
             if selected_function == "Test connection to TopSolid":
-                wx.MessageBox("Connected to TopSolid", "Success", wx.OK | wx.ICON_INFORMATION)
+                if self.ts.connected:
+                    wx.MessageBox("Already connected to TopSolid", "Success", wx.OK | wx.ICON_INFORMATION)
+                else:
+                    wx.MessageBox("Not connected to TopSolid", "Error", wx.OK | wx.ICON_ERROR)
+
             elif selected_function == "Get Current Project":
-                lib, name = self.topSolid.get_current_project()
+                lib, name = self.ts.get_current_project()
                 wx.MessageBox(f"Current Project: {name}", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Get Constituents of Current Project":
                 
-                lib_const = self.topSolid.get_constituents(None, True)
+                lib_const = self.ts.get_constituents(None, True)
                 wx.MessageBox(f"Constituents: {len(lib_const)}", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Start Modification":
-                self.topSolid.start_modif("op", "ot")
+                self.ts.start_modif("op", "ot")
                 wx.MessageBox("Start Modification", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "End Modification":
-                self.topSolid.end_modif("op", "ot")
+                self.ts.end_modif(False,False)
                 wx.MessageBox("End Modification", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Open File":
                 # Adicione aqui a lógica para abrir um arquivo
                 wx.MessageBox("File Opened", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Check In All Files":
-                self.topSolid.check_in_all(lib_const)
+                self.ts.check_in_all(lib_const)
                 wx.MessageBox("Checked In All Files", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Ask Plan":
                 # Adicione aqui a lógica para perguntar pelo plano
                 wx.MessageBox("Asked Plan", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Get Open Files":
-                files = self.topSolid.get_open_files()
+                files = self.ts.get_open_files()
                 wx.MessageBox(f"Open Files: {files}", "Success", wx.OK | wx.ICON_INFORMATION)
             
             elif selected_function == "Export all to pdfs":
 
-                lib, name = self.topSolid.get_current_project()
+                lib, name = self.ts.get_current_project()
                 print(lib, name)
 
-                lib_const = self.topSolid.get_constituents(None, True)
+                lib_const = self.ts.get_constituents(None, True)
                 print(lib_const)
 
                 #get path to save pdfs
@@ -93,7 +98,7 @@ class TopSolidGUI(wx.Frame):
                 if not os.path.exists(path):
                     os.makedirs(path)
 
-                self.topSolid.export_all_pdfs(path)  
+                self.ts.export_all_pdfs(path)  
 
 
 

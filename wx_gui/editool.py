@@ -3,10 +3,8 @@ import wx
 #add lib to create log file
 import logging
 
-
 #import gui
 from ToolManagerUi import ToolManagerUI
-
 
 if __name__ == "__main__":
     #create log file and delete the previous one
@@ -16,7 +14,8 @@ if __name__ == "__main__":
         filename='editool.log', 
         level=logging.DEBUG,
         format='%(asctime)s %(levelname)-2s %(message)s',
-        datefmt='%Y-%m-%d %H:%M:%S')
+        datefmt='%Y-%m-%d %H:%M:%S',
+        encoding='utf-8')
     
     logging.info('Starting ediTool')
     

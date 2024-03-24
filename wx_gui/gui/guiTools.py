@@ -9,6 +9,20 @@ from gui.menus_inter import MenusInter
 
 from databaseTools import load_tools_from_database
 
+class FileDialogHandler:
+    def __init__(self):
+        pass
+
+    def open_file_dialog(self, title, wCard):
+        dlg = wx.FileDialog(self, title, 
+                       wildcard=wCard, 
+                       style=wx.FD_OPEN | wx.FD_MULTIPLE | wx.FD_FILE_MUST_EXIST)
+        if dlg.ShowModal() == wx.ID_OK:
+            file_path = dlg.GetPaths()
+            dlg.Destroy()
+            return file_path
+        return None
+    
 
 class GenericMessageBox(wx.Dialog):
     def __init__(self, parent, text, title = ''):
@@ -161,6 +175,8 @@ def refreshToolList(panel, toolData):
         print("INFO :: refreshToolList :: ", panel.olvSimple.GetItemCount(), " :: ", len(tools))
 
     else:
+        panel.olvSimple.SetObjects(tools)
+
         print(f"INFO :: no tools loaded :: type : {new_tool_type_text}")
     
     panel.Refresh()
@@ -240,6 +256,8 @@ def get_custom_settings(self):
 
 def build_menus(self):
 
+    #update the language of the menus
+    self.lang = MenusInter.GetCustomLanguage()
     #get the menu text from the dictionary
     self.menu = MenusInter(self.lang)
 

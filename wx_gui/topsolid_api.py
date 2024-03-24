@@ -38,7 +38,8 @@ class TopSolidAPI:
     def __exit__(self, exc_type, exc_value, traceback):
         '''disconnect from TopSolid when exiting context manager and end all modifications'''
         #self.ts.Application.EndModification(True, False)
-        self.end_modif(True, False)
+        if self.editing == True:
+            self.end_modif(True, False)
         self.disconnect_topsolid()
 
 
@@ -46,6 +47,7 @@ class TopSolidAPI:
         '''initialize TopSolid API'''
         self.ts = None
         self.connected = False
+        self.editing = None
         self.current_project = None
 
         
@@ -54,7 +56,88 @@ class TopSolidAPI:
 
         self._initialize_topsolid()
 
+
+
+
+    def _initialize_kernel(self, top_solid_path):
+        try:
+            top_solid_kernel_sx_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.SX.dll")
+            clr.AddReference(top_solid_kernel_sx_path)
+
+            top_solid_kernel_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
+            clr.AddReference(top_solid_kernel_path)
+
+            clr.setPreload(True)
+
+            import TopSolid.Kernel.Automating as Automating
+
+            self.auto = Automating
+            top_solid_kernel_type = Automating.TopSolidHostInstance
+            self.ts = clr.System.Activator.CreateInstance(top_solid_kernel_type)
+
+            self.ts.Connect()
+
+            if self.ts.IsConnected:
+                ts_version = str(self.ts.Version)[:3]
+                logging.info(f"TopSolid {ts_version} connected successfully!")
+                return True
+        except Exception as ex:
+            print("Error initializing TopSolid Kernel:", ex)
+            return False
+
+    def _initialize_design(self, top_solid_path):
+        try:
+            top_solid_design_path = os.path.join(top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
+            clr.AddReference(top_solid_design_path)
+            clr.setPreload(True)
+            import TopSolid.Cad.Design.Automating as Automating
+            self.ts_d = Automating.TopSolidDesignHostInstance(self.ts)
+            self.ts_d.Connect()
+
+            if self.ts_d.IsConnected:
+                return True
+        except Exception as ex:
+            print("Error initializing TopSolid Design:", ex)
+            return False
+
+    def _initialize_cam(self, top_solid_path):
+        try:
+            top_solid_cam = os.path.join(top_solid_path, "bin", "TopSolid.Cam.NC.Kernel.Automating.dll")
+            clr.AddReference(top_solid_cam)
+            clr.setPreload(True)
+            import TopSolid.Cam.NC.Kernel.Automating as Automating
+            self.ts_cam = Automating.TopSolidCamHostInstance(self.ts)
+            self.ts_cam.Connect()
+
+            if self.ts_cam.IsConnected:
+                return True
+        except Exception as ex:
+            print("Error initializing TopSolid Cam:", ex)
+            return False
+
     def _initialize_topsolid(self):
+        key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
+
+        try:
+            sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
+            sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
+            top_solid_version = winreg.EnumKey(sub_keys, sub_keys_count - 1)
+            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
+            value = winreg.QueryValueEx(key, "InstallDir")
+
+            top_solid_path = value[0]
+
+            kernel_initialized = self._initialize_kernel(top_solid_path)
+            if kernel_initialized:
+                design_initialized = self._initialize_design(top_solid_path)
+                cam_initialized = self._initialize_cam(top_solid_path)
+                if design_initialized and cam_initialized:
+                    self.connected = True
+        except Exception as ex:
+            print("Error initializing TopSolid:", ex)
+            self.connected = False
+
+    def initialize_topsolid(self):
         '''
         * ts - TopSolidHostInstance 
         * ts_d - TopSolidDesignHostInstance
@@ -176,20 +259,27 @@ class TopSolidAPI:
     def start_modif(self, op, ot):
         try:
             self.ts.Application.StartModification(op, ot)
-            print("Start modifications")
+            self.editing = True
+            logging.info("Start modifications")
         except Exception as ex:
-            print(str(ex))
+            logging.error(str(ex))
         finally:
-            print("Modifications started")
+            logging.info("All modifications started")
 
     def end_modif(self, op, ot):
         try:
-            self.ts.Application.EndModification(True, False)
-            print("End modifications")
+            #check if modifications are started
+            if self.editing or self.editing is None:
+                self.ts.Application.EndModification(True, False)
+                logging.info("End modifications")
+                self.editing = False
+            else:  
+                logging.info("No modifications to end")
+
         except Exception as ex:
-            print(str(ex))
+            logging.error(str(ex))
         finally:
-            print("All modifications ended")
+            logging.info("All modifications ended")
 
 
     def get_tools(self, doc_id, used = False):
@@ -207,7 +297,7 @@ class TopSolidAPI:
             #List<ElementId> GetConstituents(	ElementId inElementId )
 
 
-    def init_folders(self):
+    def initFolders(self):
         try:
             # Get Topsolid types
             current_project = self.ts.Pdm.GetCurrentProject()
@@ -941,7 +1031,7 @@ class TopSolidAPI:
                             for sketch in sketches:
                                 sketch_name = self.get_name(sketch)                                
                                 if  sketch_name == "nocut":
-                                    print("INFO :: sketch found :: ", sketch_name)
+                                    ##print("INFO :: sketch found :: ", sketch_name)
                                     #public SmartSection3D(ElementId inElementId)
                                     sect = self.auto.SmartSection3D(sketch)
                                     #print("sect :: ", sect, self.get_name(sect))
@@ -953,7 +1043,7 @@ class TopSolidAPI:
                             for sketch in sketches:
                                 sketch_name = self.get_name(sketch)
                                 if  sketch_name == "cut":
-                                    print("INFO :: sketch found :: ", sketch_name)
+                                    ##print("INFO :: sketch found :: ", sketch_name)
                                     #public SmartSection3D(ElementId inElementId)
                                     sect = self.auto.SmartSection3D(sketch)
                                     #print("sect :: ", sect, self.get_name(sect))
@@ -962,10 +1052,10 @@ class TopSolidAPI:
                                     break
 
             else: 
-                print("INFO :: add holder functions")
+                ##print("INFO :: add holder functions")
                 #get function PdmDocumentId by Name
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Attachement cylindrique porte outil")              
-                print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
+                ##print("ts_func :: ", ts_func, len(ts_func), self.get_name(ts_func[0]))
                 #Get DocumentId by PdmObjectId
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])         
                 #ElementId ProvideFunction( DocumentId inDocumentId,DocumentId inFunctionId,string inOccurrenceName)                
@@ -977,12 +1067,12 @@ class TopSolidAPI:
                         #self.design.Geometries3D.SetFramePublishingDefinition(prov_func, use_frames.CSW)
                 
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Profil de révolution pour l'analyse de collision")
-                print("ts_func :: ", ts_func, len(ts_func))
+                ##print("ts_func :: ", ts_func, len(ts_func))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
                 prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "CollisionAnalysisRevolutionShape_1")
                 
                 ts_func = self.ts.Pdm.SearchDocumentByName(func_proj, "Système de fixation outil")
-                print("ts_func :: ", ts_func, len(ts_func))
+                ##print("ts_func :: ", ts_func, len(ts_func))
                 func_doc = self.ts.Documents.GetDocument(ts_func[0])
                 #prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "Système de fixation vers la machine")
                 prov_func = self.ts.Entities.ProvideFunction(newdoc[0], func_doc, "ToolingShank_1")
@@ -990,25 +1080,25 @@ class TopSolidAPI:
                 #List<ElementId> GetFunctions( DocumentId inDocumentId )                
                 functions = self.ts.Entities.GetFunctions(newdoc[0])
                 
-                print("functions :: ", functions, len(functions))
+                ##print("functions :: ", functions, len(functions))
                 for func in functions:
-                    print(self.get_name(func))
+                    ##print(self.get_name(func))
                     #GetFunctionDefinition(	ElementId inElementId)
                     func_def = self.ts.Entities.GetFunctionDefinition(func)
-                    print("func_def :: ", func_def, self.get_name(func_def))
+                    ##print("func_def :: ", func_def, self.get_name(func_def))
 
                     #GetFunctionOccurrenceName(	ElementId inElementId ) as String
                     func_occ = self.ts.Entities.GetFunctionOccurrenceName(func)
-                    print("func_occ :: ", func_occ)
+                    ##print("func_occ :: ", func_occ)
 
                     #GetFunctionPublishings(ElementId inElementId) as List<ElementId>
                     func_pubs = self.ts.Entities.GetFunctionPublishings(func)
-                    print("func_pubs :: ", func_pubs, len(func_pubs))
+                    ##print("func_pubs :: ", func_pubs, len(func_pubs))
 
                     #self.start_modif("func", False)
 
                     for pub in func_pubs:
-                        print("INFO :: function found :: ", self.get_name(pub), self.get_type(pub))
+                        ##print("INFO :: function found :: ", self.get_name(pub), self.get_type(pub))
                         '''
                         ToolingSystemFrame -> Frame PCS ( tool side )
                         ToolingSystemName -> Frame or Text - machine side ( link to machine )
@@ -1096,7 +1186,6 @@ class TopSolidAPI:
 
             return result, outLog_python, outBadDocumentIds_python
         except Exception as e:
-            # Trate a exceção conforme necessário
             print(f"Error importing documents: {e}")
             self.end_modif(True, False)
             raise
@@ -1145,23 +1234,7 @@ class TopSolidAPI:
             print(str(ex))
 
 
-    '''********************                     file explorer functions'''
-
-    def open_file_explorer(self):
-        '''open file with wxpython dialogue'''
-        try:
-            dlg = wx.FileDialog(self, "Choose a file", self.dirname, "", "*.*", wx.OPEN)
-            if dlg.ShowModal() == wx.ID_OK:
-                self.filename = dlg.GetFilename()
-                self.dirname = dlg.GetDirectory()
-                self.control.SetValue(f"{self.dirname}/{self.filename}")
-                self.open_file(self.control.GetValue())
-                print("file opened")
-            dlg.Destroy()
-        except Exception as ex:
-            print(str(ex))
-        finally:
-            print("All modifications ended")
+   
 
 
     def searchHolder(self, file):
@@ -1200,7 +1273,7 @@ class TopSolidAPI:
             proj = self.get_current_project()
             #get open files
             open_files = self.get_open_files()
-            print(f"INFO :: current project :: {proj[1]} :: open files ::  {len(open_files)}")
+            print(f"INFO :: current project :: {self.current_proj_name} :: open files ::  {len(open_files)}")
             
             if len(open_files) == 0:
                 #msg box theres no open holder in TS
@@ -1211,7 +1284,7 @@ class TopSolidAPI:
             
             if len(holders) > 0:
                 for holder in holders:
-                    self.add_tool_to_holder(proj[0], tool, holder)
+                    self.add_tool_to_holder(self.current_project, tool, holder)
                 return True
             else:
                 noTool = wx.MessageBox('holder not open on TS, try to open and retry', 'Warning', wx.OK |wx .CANCEL | wx.ICON_QUESTION)
@@ -1437,9 +1510,9 @@ class TopSolidAPI:
 
             savedToolDocId = self.ts.Documents.GetDocument(savedTool[0])
 
-            modif = self.ts.Application.StartModification("saveTool", True)
+            #modif = self.ts.Application.StartModification("saveTool", True)
             #print("Start modif: ", modif, savedToolDocId.PdmDocumentId)
-
+            self.start_modif("saveTool", False)
             savedToolModif = self.ts.Documents.EnsureIsDirty(savedToolDocId)
 
             #print("dirt savedToolModif: ", savedToolModif.PdmDocumentId)
@@ -1510,8 +1583,7 @@ class TopSolidAPI:
 
             if tool.D1:
                 if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
-                    d1 = float(tool.D1 / 1000).__round__(5)
-                
+                    d1 = float(tool.D1 / 1000).__round__(5)                
             if tool.D2: #Fix for D2 = "None"
                 if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
                     d2 = float(tool.D2 / 1000).__round__(5)
@@ -1519,20 +1591,15 @@ class TopSolidAPI:
                 if tool.toolType == 7:
                     d2 = float(d1-threadPitch-0.2).__round__(5)
                 d2 = float(d1-(0.2/1000)).__round__(5)
-
             if tool.D3:
                 if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
-                    d3 = float(tool.D3 / 1000).__round__(5)
-            
+                    d3 = float(tool.D3 / 1000).__round__(5)            
             if tool.L1:
                 l1 = float(tool.L1 / 1000).__round__(5) if tool.L1 is not None and tool.L1 != 0 else 0
-
             if tool.L2:
                 l2 = float(tool.L2 / 1000).__round__(5) if tool.L2 is not None and tool.L2 != 0 else 0
-
             if tool.L3:
-                l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0
-            
+                l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0            
             if tool.cornerRadius:
                 #print("cornerRadius: ", tool.cornerRadius, tool.toolType  )
                 if tool.cornerRadius != None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
@@ -1559,8 +1626,7 @@ class TopSolidAPI:
                 self.setRealParameter(savedToolModif,"A_T", chamfer)
                                                                     
                 self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), angle)
-                #print("AngleRad: ", angle, "chamfer: ", chamfer)      
-        
+                #print("AngleRad: ", angle, "chamfer: ", chamfer)        
             else:
                 self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D"), d1)                
 
@@ -1592,9 +1658,9 @@ class TopSolidAPI:
                             #print("childName: ", sketchName, sketch.GetType())
                             consts = self.ts.Elements.GetConstituents(sketch)
                             #print("consts: ", consts,len(consts))
-                            props = self.ts.Elements.GetProperties(sketch)   
+                            props = self.ts.Elements.GetProperties(sketch)
                             #print("props: ", props,len(props))
-            
+
                             #for p in props:
                                 #print("prop: ",p)
 
@@ -1606,10 +1672,9 @@ class TopSolidAPI:
                                     modif = self.ts.Elements.IsModifiable(i)
                                     delet = self.ts.Elements.IsDeletable(i)
 
-                                    #print("value: ", value, modif, delet )                                
+                                    #print("value: ", value, modif, delet )
                                     #propType = self.ts.Elements.Delete(i)
                                     #print("propType: ", propType)
-            
             #if spot drill
             elif tool.toolType == 6:#spot drill
                     #print("spot drill: ", l2)
@@ -1637,7 +1702,6 @@ class TopSolidAPI:
             tool.TSid = savedToolModif.PdmDocumentId
             
             #update tool in database
-
             update_tool(tool)
 
             if holder:
@@ -1668,4 +1732,3 @@ class TopSolidAPI:
                     #smartRealParam = ts_ext.Parameters.GetSmartRealParameterCreation(op) 
                     setParam = self.ts.Parameters.SetSmartRealParameterCreation(op, SmartRealNewParam)
                     print(f"set {paramName} : {SmartRealNewParam} : {value} : {setParam}")
-

@@ -19,6 +19,21 @@ class MenusInter:
         self.menus = {}
         self.load_menu()
 
+    def GetCustomLanguage():
+        '''Get the language of the menus'''
+        #read the config file to get the language
+        data = []
+        config_exists = os.path.isfile('config.txt')
+        if config_exists:
+            with open('config.txt', 'r', encoding='utf-8') as file:
+                data = file.readlines()
+                lang = data[0].split(';')[1].strip()
+        else:
+            with open('config.txt', 'w', encoding='utf-8') as file:
+                file.write(f"lang;{self.lang}" + '\n')
+
+        return lang
+
     def set_lang(self, lang):
         '''Set the language of the menus'''
         data = []

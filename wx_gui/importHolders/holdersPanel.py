@@ -1,6 +1,5 @@
 import wx
-#from ts import copy_holder 
-#from ts import initFolders
+#from topsolid_api import copy_holder 
 
 
 custom_tools_project_name = "Tool Lib"
@@ -24,8 +23,8 @@ class HoldersSetupPanel(wx.Dialog):
         self.elemTool = wx.ComboBox(self, style=wx.CB_READONLY)
         self.elemTool.Bind(wx.EVT_COMBOBOX, self.on_tool_type)
         
-        #elements = initFolders()
-        #print("elements :: ", elements)
+        elements = self.ts.init_folders()
+        print("elements :: ", elements)
 
         #self.elemTool.SetItems(elements)
         #self.elemTool.SetSelection(0)
