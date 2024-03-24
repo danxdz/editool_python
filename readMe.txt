@@ -1,9 +1,20 @@
+Basic installation:
+
+Clone repo and run main script:
+/wx_python/editool.py
+
+zip and exe:
+
+/wx_python/dist/
+
+
+
 * News
-- new feature - import tools from .step ( testing, only endMill ) - https://www.youtube.com/watch?v=tcrMvjARivo
-- import holders from .step files - https://www.youtube.com/watch?v=WugiCcJBAqc
-- put your saved tools into tool assembly - https://www.youtube.com/watch?v=gAXpcI4HdC8
-- import from dxf ( testing )
-- import from "copy/paste" iso13999 data
+    - import tools from .step ( testing, only endMill ) - https://www.youtube.com/watch?v=tcrMvjARivo
+    - import holders from .step files - https://www.youtube.com/watch?v=WugiCcJBAqc
+    - put your saved tools into tool assembly - https://www.youtube.com/watch?v=gAXpcI4HdC8
+    - import from dxf ( testing )
+    - import from "copy/paste" iso13999 data
 
 Tools types:
 https://www.youtube.com/watch?v=EHkpP05kN3U
