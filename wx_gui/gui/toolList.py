@@ -13,6 +13,8 @@ from gui.menus_inter import MenusInter
 
 import logging
 
+from gui.viewer3d import OpenGLCanvas
+
 
 class ToolList(wx.Panel):    
     def __init__(self, parent):

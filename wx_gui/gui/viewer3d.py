@@ -4,8 +4,6 @@ from OpenGL.GLUT import *
 from wx import *
 from wx.glcanvas import *
 
-import wxgl
-
 import math  
 
 class OpenGLCanvas(GLCanvas):
