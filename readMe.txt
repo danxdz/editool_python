@@ -7,6 +7,8 @@ zip and exe:
 
 /wx_python/dist/
 
+https://github.com/danxdz/editool_python/raw/main/wx_gui/dist/editool.zip
+
 
 
 * News
