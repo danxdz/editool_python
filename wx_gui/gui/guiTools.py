@@ -247,6 +247,7 @@ def get_custom_settings(self):
         logging.warning('config file not exist')
         lang = self.ts.get_language()
         logging.info(f"ts current language :: {lang}")
+        lang = lang.split('-')[0]
         MenusInter.set_lang(self,lang)
         
     logging.info(f"saved language :: {lang}")
@@ -257,7 +258,7 @@ def get_custom_settings(self):
 def build_menus(self):
 
     #update the language of the menus
-    self.lang = MenusInter.GetCustomLanguage()
+    self.lang = MenusInter.GetCustomLanguage(self.ts_lang)
     #get the menu text from the dictionary
     self.menu = MenusInter(self.lang)
 

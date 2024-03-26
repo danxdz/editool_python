@@ -16,6 +16,8 @@ import logging
 from gui.viewer3d import OpenGLCanvas
 
 
+
+
 class ToolList(wx.Panel):    
     def __init__(self, parent):
         super().__init__(parent)
@@ -117,7 +119,7 @@ class ToolList(wx.Panel):
 
         #add scene to the panel
         #self.setScene()
-
+        
         #canvas = OpenGLCanvas(self)
         #self.sizer.Add(canvas, 1, wx.EXPAND)
         

@@ -2,8 +2,7 @@
 
 import os
 import wx
-import numpy as np
-import wxgl
+
 
 class MainFrame(wx.Frame):
     """桌面程序主窗口类"""

@@ -650,7 +650,7 @@ class TopSolidAPI:
                         
         result = self.ts.Documents.ImportWithOptions(inImporterIx, set_opt ,  inFullName,  inOwnerId)
 
-        print(f"Import result: {len(result)}")
+        print(f"Import result: {len(result)} - {result[0].DocumentId} -- {result[1]} -- {result[2].DocumentId}")
 
         return result
     
@@ -733,7 +733,7 @@ class TopSolidAPI:
             step_viewer.loadStepFile(inFullName)
 
             # search for the axis2 elements in the step file
-            found_elements = step_viewer.findPlacementElements()
+            found_elements , brep_name = step_viewer.findPlacementElements()
 
             #check if there are any elements found, and if its an holder or tool
             if len(found_elements) > 0:

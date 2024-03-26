@@ -27,7 +27,7 @@ undo;undo;annuler;desfazer
 redo;redo;refaire;refazer
 exit;exit;quitter;sair
 create;create;créer;criar
-createToolWithHolder;add tool to holder;ajouter outil au porte-outil;adicionar ferramenta ao suporte
+createToolWithHolder;into to holder;dans le porte-outil;no suporte
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
 importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml
@@ -87,3 +87,31 @@ unitVolume;unit volume;volume unitaire;volume unitário
 unitTime;unit time;temps unitaire;tempo unitário
 TSid;TopSolid id;id TopSolid;id TopSolid
 tools_readed_db;Tools readed from database;Outils lus depuis la base de données;Ferramentas lidas da base de dados
+sideMill;Side Mill;Fraise;Fresa
+endMill;End Mill;Fraise;Fresa de topo
+radiusMill;Radius Mill;Fraise à rayon;Fresa de raio
+ballNoseMill;Ball Nose Mill;Fraise hemisphérique;Fresa esférica
+chamferMill;Chamfer Mill;Fraise à chanfreiner;Fresa de chanfro
+tSlotMill;T Slot Mill;Fraise à T;Fresa em T
+dovetailMill;Dovetail Mill;Fraise à queue d'aronde;Fresa de cunha
+spotDrill;Spotting Drill;Foret à pointer;Broca de pontear
+centerDrill;Center Drill;Foret à centrer;Broca de centrar
+twistedDrill;Twisted Drill;Foret hélicoïdal;Broca helicoidal
+tap;Tap;Taraud;Machos
+threadMill;Thread Mill;Fraise à fileter;Fresa de rosquear
+reamer;Reamer;Alésoir;Alargador
+drill;Drill;Foret;Broca
+insert;Insert;Plaquette;Pastilha
+holder;Holder;Porte-outil;Suporte
+toolHolder;Tool Holder;Porte-outil;Suporte de ferramenta
+toolHolderType;Tool Holder Type;Type de porte-outil;Tipo de suporte
+toolHolderRef;Tool Holder Reference;Référence porte-outil;Referência do suporte
+toolHolderName;Tool Holder Name;Nom porte-outil;Nome do suporte
+toolHolderDescription;Tool Holder Description;Description porte-outil;Descrição do suporte
+toolHolderManufacturer;Tool Holder Manufacturer;Fabricant porte-outil;Fabricante do suporte
+toolHolderManufacturerCode;Tool Holder Manufacturer Code;Code fabricant porte-outil;Código fabricante do suporte
+toolHolderManufacturerRef;Tool Holder Manufacturer Reference;Référence fabricant porte-outil;Referência fabricante do suporte
+toolHolderMaterial;Tool Holder Material;Matériau porte-outil;Material do suporte
+toolHolderMaterialClass;Tool Holder
+Material Class;Classe de matériau porte-outil;Classe de material do suporte
+toolHolderTSid;Tool Holder TopSolid id;id TopSolid porte-outil;id TopSolid do suporte

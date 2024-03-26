@@ -198,7 +198,7 @@ class StepFileViewer:
                    #print(f"Error parsing element content: {e}")
                     pass
 
-        return found_elements
+        return found_elements , brep_name
 
     def get_element_content(self, element_number):
         content = []

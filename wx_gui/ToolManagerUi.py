@@ -56,7 +56,10 @@ class ToolManagerUI(wx.Frame):
 
         self.mouse_pos = None
 
-        self.lang = MenusInter.GetCustomLanguage()
+        #get ts language
+        self.ts_lang = self.ts.get_language()
+
+        #self.lang = MenusInter.GetCustomLanguage(self.ts_lang)
 
         self.setupUI()
 
@@ -93,6 +96,14 @@ class ToolManagerUI(wx.Frame):
         #print(f"mouse click :: {event.GetPosition()}")
             
         '''
+
+    def on_quit(self, event):
+        self.canvas.stop_timer()
+        self.Close(True)
+
+    def on_show(self, event):
+        self.canvas.show()
+        event.Skip()
 
     def OnDropFile(self, path,  filename, file_extension):
         # Handle the dropped file here
@@ -337,7 +348,7 @@ class ToolManagerUI(wx.Frame):
 
     
     def about(self, event):
-        wx.MessageBox("ediTool - tools manager\n\nVersion 0.1\n2024", "About ediTool", wx.OK | wx.ICON_INFORMATION)
+        wx.MessageBox("ediTool - Fast, Precise, Automated Editing \n\nVersion 0.1\n2024", "About ediTool", wx.OK | wx.ICON_INFORMATION)
         
     def exit(self, event):
         print("exit")
