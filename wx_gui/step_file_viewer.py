@@ -105,10 +105,10 @@ class StepFileViewer:
                             print(f"Named Axis2Placement3D found: {element_number} {parts}")
 
 
-                        
-                            cart = element_content[0].replace("#", "")
-                            dir_z = element_content[1].replace("#", "")
-                            dir_x = element_content[2].replace("#", "")
+                            # strip the # , ; and spaces from the element content
+                            cart = element_content[0].replace("#", "").strip()
+                            dir_z = element_content[1].replace("#", "").strip()
+                            dir_x = element_content[2].replace("#", "").strip()
 
                             cart_content = self.get_element_content(cart)
                             dir_z_content = self.get_element_content(dir_z)
@@ -119,8 +119,14 @@ class StepFileViewer:
                             dir_x = Direction(float(dir_x_content[0]), float(dir_x_content[1]), float(dir_x_content[2]))
 
                             axis_placement = Axis2Placement3D(element_name, coord, dir_z, dir_x)
-                            found_elements[element_name] = axis_placement
-                    if element_type == "ADVANCED_BREP_SHAPE_REPRESENTATION":
+                            # to create all the Axis2Placement3D from step file
+                            #found_elements[f"{element_name.strip()}_{cart}"] = axis_placement
+                            found_elements[{element_name}] = axis_placement
+                    elif element_type.strip() == "PRODUCT":
+                        print(f"Product found: {element_number} {parts}")
+                        brep_name = parts[1].replace("'", "").strip()
+
+                    elif element_type == "ADVANCED_BREP_SHAPE_REPRESENTATION" and not brep_name:
                         #example:
                         #11 = AXIS2_PLACEMENT_3D('',#12,#13,#14);
                         #12 = CARTESIAN_POINT('',(0.,0.,0.));
@@ -186,7 +192,8 @@ class StepFileViewer:
 
 
                         # Get the element name
-                        brep_name = parts[1].replace("'", "")
+                        if not brep_name:
+                            brep_name = parts[1].replace("'", "")
                         # Get the element content
                         brep_content = parts[2:]
                         print(f"Advanced Brep Shape Representation found: {brep_name} {brep_content}")
@@ -195,7 +202,7 @@ class StepFileViewer:
                         
 
                 except Exception as e:
-                   #print(f"Error parsing element content: {e}")
+                    print(f"Error parsing element content: {e}")
                     pass
 
         return found_elements , brep_name

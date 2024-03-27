@@ -33,10 +33,10 @@ importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
 exportXml;export to Xml;exporter vers Xml;exportar Xml
 importJson;import from Json;importer depuis Json;importar Json
 exportJson;export to Json;exporter vers Json;exportar Json
-importCsv;import from Csv;importer depuis Csv;importar Csv
-exportCsv;export to Csv;exporter vers Csv;exportar Csv
-importXls;import from Xls;importer depuis Xls;importar Xls
-exportXls;export to Xls;exporter vers Xls;exportar Xls
+importCsv;import from CSV;importer depuis CSV;importar CSV
+exportCsv;export to CSV;exporter vers CSV;exportar CSV
+importXls;import from XLS;importer depuis XLS;importar XLS
+exportXls;export to XLS;exporter vers XLS;exportar XLS
 pasteISO;Paste tool ISO13999;Coller outil ISO13999;Colar ferramenta ISO13999
 tools;tools;outils;ferramentas
 tool;tool;outil;ferramenta

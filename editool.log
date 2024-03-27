@@ -1,3 +1,282 @@
-2024-03-26 23:51:24 INFO Starting ediTool
-2024-03-26 23:51:24 INFO TopSolid 718 connected successfully!
-2024-03-26 23:51:24 INFO saved language :: fr
+2024-03-27 23:29:26 INFO Starting ediTool
+2024-03-27 23:29:26 INFO TopSolid 718 connected successfully!
+2024-03-27 23:29:26 INFO saved language :: fr
+2024-03-27 23:29:33 INFO Dropped file: C:\Users\user\Downloads\tools step\OM31681.STEP
+2024-03-27 23:29:36 INFO Start modifications
+2024-03-27 23:29:36 INFO All modifications started
+2024-03-27 23:29:50 INFO End modifications
+2024-03-27 23:29:50 INFO All modifications ended
+2024-03-27 23:31:12 INFO Dropped file: C:\Users\user\Downloads\tools step\OM31681.STEP
+2024-03-27 23:31:15 INFO Start modifications
+2024-03-27 23:31:15 INFO All modifications started
+2024-03-27 23:31:31 INFO End modifications
+2024-03-27 23:31:31 INFO All modifications ended
+2024-03-27 23:36:35 INFO Start modifications
+2024-03-27 23:36:35 INFO All modifications started
+2024-03-27 23:36:35 INFO End modifications
+2024-03-27 23:36:35 INFO All modifications ended
+2024-03-27 23:36:36 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3600_10_1
+2024-03-27 23:36:36 INFO Tool updated in database. 15520501 tools changed: 1
+2024-03-27 23:36:45 INFO Tool updated in database. C5397501 tools changed: 1
+2024-03-27 23:36:51 INFO Tool updated in database. X7460300 tools changed: 1
+2024-03-27 23:36:56 INFO Tool updated in database. P8107220 tools changed: 1
+2024-03-27 23:37:09 INFO Tool updated in database. 15520501 tools changed: 1
+2024-03-27 23:37:23 INFO Tool updated in database. C15573612 tools changed: 1
+2024-03-27 23:37:54 INFO reloading gUI :: en
+2024-03-27 23:38:02 INFO reloading gUI :: pt
+2024-03-27 23:38:05 INFO reloading gUI :: fr
+2024-03-27 23:38:09 INFO import from xml file
+2024-03-27 23:38:17 INFO Parsing XML data
+2024-03-27 23:38:17 INFO Import xml X7460300 - 2 finished
+2024-03-27 23:38:36 INFO Dropped file: C:\Users\user\Downloads\tools step\_cad_iso_hol_8343001269_QU1.stp
+2024-03-27 23:38:37 INFO Start modifications
+2024-03-27 23:38:37 INFO All modifications started
+2024-03-27 23:38:38 INFO End modifications
+2024-03-27 23:38:38 INFO All modifications ended
+2024-03-27 23:39:04 INFO Start modifications
+2024-03-27 23:39:04 INFO All modifications started
+2024-03-27 23:39:04 INFO End modifications
+2024-03-27 23:39:04 INFO All modifications ended
+2024-03-27 23:39:05 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3602_20_1
+2024-03-27 23:39:05 INFO Tool updated in database. C15573612 tools changed: 1
+2024-03-27 23:39:09 INFO insert into holder for :: C15573612
+2024-03-27 23:39:11 INFO Start modifications
+2024-03-27 23:39:11 INFO All modifications started
+2024-03-27 23:39:11 INFO End modifications
+2024-03-27 23:39:11 INFO All modifications ended
+2024-03-27 23:39:11 INFO Start modifications
+2024-03-27 23:39:11 INFO All modifications started
+2024-03-27 23:39:11 INFO End modifications
+2024-03-27 23:39:11 INFO All modifications ended
+2024-03-27 23:39:11 INFO Start modifications
+2024-03-27 23:39:11 INFO All modifications started
+2024-03-27 23:39:12 INFO End modifications
+2024-03-27 23:39:12 INFO All modifications ended
+2024-03-27 23:40:24 INFO Dropped file: C:\Users\user\Downloads\tools step\15520501.xml
+2024-03-27 23:40:24 INFO Import xml 15520501 - 0 finished
+2024-03-27 23:40:27 INFO Dropped file: C:\Users\user\Downloads\tools step\C5397501.xml
+2024-03-27 23:40:27 INFO Parsing XML data
+2024-03-27 23:40:27 INFO Import xml C5397501 - 0 finished
+2024-03-27 23:40:28 INFO Dropped file: C:\Users\user\Downloads\tools step\C15573612.xml
+2024-03-27 23:40:28 INFO Parsing XML data
+2024-03-27 23:40:28 INFO Import xml C15573612 - 1 finished
+2024-03-27 23:40:28 INFO Dropped file: C:\Users\user\Downloads\tools step\P8107220.xml
+2024-03-27 23:40:28 INFO Parsing XML data
+2024-03-27 23:40:28 INFO Import xml P8107220 - 1 finished
+2024-03-27 23:40:29 INFO Dropped file: C:\Users\user\Downloads\tools step\X7460300.xml
+2024-03-27 23:40:29 INFO Parsing XML data
+2024-03-27 23:40:29 INFO Import xml X7460300 - 2 finished
+2024-03-27 23:40:37 INFO Dropped file: C:\Users\user\Downloads\tools step\OM31681.STEP
+2024-03-27 23:40:40 INFO Start modifications
+2024-03-27 23:40:40 INFO All modifications started
+2024-03-27 23:40:56 INFO End modifications
+2024-03-27 23:40:56 INFO All modifications ended
+2024-03-27 23:41:28 INFO Start modifications
+2024-03-27 23:41:28 INFO All modifications started
+2024-03-27 23:41:28 INFO End modifications
+2024-03-27 23:41:28 INFO All modifications ended
+2024-03-27 23:41:29 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3614_20_1
+2024-03-27 23:41:29 INFO Tool updated in database. P8107220 tools changed: 1
+2024-03-27 23:41:29 INFO Start modifications
+2024-03-27 23:41:29 INFO All modifications started
+2024-03-27 23:41:29 INFO End modifications
+2024-03-27 23:41:29 INFO All modifications ended
+2024-03-27 23:41:30 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3615_18_1
+2024-03-27 23:41:30 INFO Tool updated in database. X7460300 tools changed: 1
+2024-03-27 23:41:30 INFO Start modifications
+2024-03-27 23:41:30 INFO All modifications started
+2024-03-27 23:41:31 INFO End modifications
+2024-03-27 23:41:31 INFO All modifications ended
+2024-03-27 23:41:31 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3616_10_1
+2024-03-27 23:41:31 INFO Tool updated in database. 15520501 tools changed: 1
+2024-03-27 23:41:32 INFO Start modifications
+2024-03-27 23:41:32 INFO All modifications started
+2024-03-27 23:41:32 INFO End modifications
+2024-03-27 23:41:32 INFO All modifications ended
+2024-03-27 23:41:33 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3617_10_1
+2024-03-27 23:41:33 INFO Tool updated in database. C5397501 tools changed: 1
+2024-03-27 23:41:33 INFO Start modifications
+2024-03-27 23:41:33 INFO All modifications started
+2024-03-27 23:41:33 INFO End modifications
+2024-03-27 23:41:33 INFO All modifications ended
+2024-03-27 23:41:34 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3618_20_1
+2024-03-27 23:41:34 INFO Tool updated in database. C15573612 tools changed: 1
+2024-03-27 23:41:38 INFO insert into holder for :: P8107220
+2024-03-27 23:41:39 INFO Start modifications
+2024-03-27 23:41:39 INFO All modifications started
+2024-03-27 23:41:40 INFO End modifications
+2024-03-27 23:41:40 INFO All modifications ended
+2024-03-27 23:41:40 INFO Start modifications
+2024-03-27 23:41:40 INFO All modifications started
+2024-03-27 23:41:40 INFO End modifications
+2024-03-27 23:41:40 INFO All modifications ended
+2024-03-27 23:41:40 INFO Start modifications
+2024-03-27 23:41:40 INFO All modifications started
+2024-03-27 23:41:40 INFO End modifications
+2024-03-27 23:41:40 INFO All modifications ended
+2024-03-27 23:41:40 INFO insert into holder for :: X7460300
+2024-03-27 23:41:42 INFO Start modifications
+2024-03-27 23:41:42 INFO All modifications started
+2024-03-27 23:41:42 INFO End modifications
+2024-03-27 23:41:42 INFO All modifications ended
+2024-03-27 23:41:42 INFO Start modifications
+2024-03-27 23:41:42 INFO All modifications started
+2024-03-27 23:41:42 INFO End modifications
+2024-03-27 23:41:42 INFO All modifications ended
+2024-03-27 23:41:42 INFO Start modifications
+2024-03-27 23:41:42 INFO All modifications started
+2024-03-27 23:41:42 INFO End modifications
+2024-03-27 23:41:42 INFO All modifications ended
+2024-03-27 23:41:42 INFO insert into holder for :: 15520501
+2024-03-27 23:41:44 INFO Start modifications
+2024-03-27 23:41:44 INFO All modifications started
+2024-03-27 23:41:44 INFO End modifications
+2024-03-27 23:41:44 INFO All modifications ended
+2024-03-27 23:41:44 INFO Start modifications
+2024-03-27 23:41:44 INFO All modifications started
+2024-03-27 23:41:44 INFO End modifications
+2024-03-27 23:41:44 INFO All modifications ended
+2024-03-27 23:41:44 INFO Start modifications
+2024-03-27 23:41:44 INFO All modifications started
+2024-03-27 23:41:44 INFO End modifications
+2024-03-27 23:41:44 INFO All modifications ended
+2024-03-27 23:41:44 INFO insert into holder for :: C5397501
+2024-03-27 23:41:46 INFO Start modifications
+2024-03-27 23:41:46 INFO All modifications started
+2024-03-27 23:41:46 INFO End modifications
+2024-03-27 23:41:46 INFO All modifications ended
+2024-03-27 23:41:46 INFO Start modifications
+2024-03-27 23:41:46 INFO All modifications started
+2024-03-27 23:41:46 INFO End modifications
+2024-03-27 23:41:46 INFO All modifications ended
+2024-03-27 23:41:46 INFO Start modifications
+2024-03-27 23:41:46 INFO All modifications started
+2024-03-27 23:41:46 INFO End modifications
+2024-03-27 23:41:46 INFO All modifications ended
+2024-03-27 23:41:46 INFO insert into holder for :: C15573612
+2024-03-27 23:41:48 INFO Start modifications
+2024-03-27 23:41:48 INFO All modifications started
+2024-03-27 23:41:48 INFO End modifications
+2024-03-27 23:41:48 INFO All modifications ended
+2024-03-27 23:41:48 INFO Start modifications
+2024-03-27 23:41:48 INFO All modifications started
+2024-03-27 23:41:48 INFO End modifications
+2024-03-27 23:41:48 INFO All modifications ended
+2024-03-27 23:41:48 INFO Start modifications
+2024-03-27 23:41:48 INFO All modifications started
+2024-03-27 23:41:48 INFO End modifications
+2024-03-27 23:41:48 INFO All modifications ended
+2024-03-27 23:44:16 INFO Dropped file: C:\Users\user\Downloads\tools step\15520501.xml
+2024-03-27 23:44:16 INFO Import xml 15520501 - 0 finished
+2024-03-27 23:44:18 INFO Dropped file: C:\Users\user\Downloads\tools step\C5397501.xml
+2024-03-27 23:44:18 INFO Parsing XML data
+2024-03-27 23:44:18 INFO Import xml C5397501 - 0 finished
+2024-03-27 23:44:18 INFO Dropped file: C:\Users\user\Downloads\tools step\C15573612.xml
+2024-03-27 23:44:18 INFO Parsing XML data
+2024-03-27 23:44:18 INFO Import xml C15573612 - 1 finished
+2024-03-27 23:44:19 INFO Dropped file: C:\Users\user\Downloads\tools step\P8107220.xml
+2024-03-27 23:44:19 INFO Parsing XML data
+2024-03-27 23:44:19 INFO Import xml P8107220 - 1 finished
+2024-03-27 23:44:20 INFO Dropped file: C:\Users\user\Downloads\tools step\X7460300.xml
+2024-03-27 23:44:20 INFO Parsing XML data
+2024-03-27 23:44:20 INFO Import xml X7460300 - 2 finished
+2024-03-27 23:44:25 INFO Dropped file: C:\Users\user\Downloads\tools step\OM31681.STEP
+2024-03-27 23:44:27 INFO Start modifications
+2024-03-27 23:44:27 INFO All modifications started
+2024-03-27 23:44:44 INFO End modifications
+2024-03-27 23:44:44 INFO All modifications ended
+2024-03-27 23:45:20 INFO Start modifications
+2024-03-27 23:45:20 INFO All modifications started
+2024-03-27 23:45:20 INFO End modifications
+2024-03-27 23:45:20 INFO All modifications ended
+2024-03-27 23:45:21 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3687_20_1
+2024-03-27 23:45:21 INFO Tool updated in database. P8107220 tools changed: 1
+2024-03-27 23:45:21 INFO Start modifications
+2024-03-27 23:45:21 INFO All modifications started
+2024-03-27 23:45:22 INFO End modifications
+2024-03-27 23:45:22 INFO All modifications ended
+2024-03-27 23:45:22 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3688_18_1
+2024-03-27 23:45:22 INFO Tool updated in database. X7460300 tools changed: 1
+2024-03-27 23:45:23 INFO Start modifications
+2024-03-27 23:45:23 INFO All modifications started
+2024-03-27 23:45:23 INFO End modifications
+2024-03-27 23:45:23 INFO All modifications ended
+2024-03-27 23:45:24 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3689_10_1
+2024-03-27 23:45:24 INFO Tool updated in database. 15520501 tools changed: 1
+2024-03-27 23:45:24 INFO Start modifications
+2024-03-27 23:45:24 INFO All modifications started
+2024-03-27 23:45:25 INFO End modifications
+2024-03-27 23:45:25 INFO All modifications ended
+2024-03-27 23:45:25 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3690_10_1
+2024-03-27 23:45:25 INFO Tool updated in database. C5397501 tools changed: 1
+2024-03-27 23:45:26 INFO Start modifications
+2024-03-27 23:45:26 INFO All modifications started
+2024-03-27 23:45:26 INFO End modifications
+2024-03-27 23:45:26 INFO All modifications ended
+2024-03-27 23:45:27 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3691_20_1
+2024-03-27 23:45:27 INFO Tool updated in database. C15573612 tools changed: 1
+2024-03-27 23:45:30 INFO insert into holder for :: P8107220
+2024-03-27 23:45:32 INFO Start modifications
+2024-03-27 23:45:32 INFO All modifications started
+2024-03-27 23:45:32 INFO End modifications
+2024-03-27 23:45:32 INFO All modifications ended
+2024-03-27 23:45:32 INFO Start modifications
+2024-03-27 23:45:32 INFO All modifications started
+2024-03-27 23:45:32 INFO End modifications
+2024-03-27 23:45:32 INFO All modifications ended
+2024-03-27 23:45:32 INFO Start modifications
+2024-03-27 23:45:32 INFO All modifications started
+2024-03-27 23:45:32 INFO End modifications
+2024-03-27 23:45:32 INFO All modifications ended
+2024-03-27 23:45:32 INFO insert into holder for :: X7460300
+2024-03-27 23:45:34 INFO Start modifications
+2024-03-27 23:45:34 INFO All modifications started
+2024-03-27 23:45:34 INFO End modifications
+2024-03-27 23:45:34 INFO All modifications ended
+2024-03-27 23:45:34 INFO Start modifications
+2024-03-27 23:45:34 INFO All modifications started
+2024-03-27 23:45:34 INFO End modifications
+2024-03-27 23:45:34 INFO All modifications ended
+2024-03-27 23:45:34 INFO Start modifications
+2024-03-27 23:45:34 INFO All modifications started
+2024-03-27 23:45:34 INFO End modifications
+2024-03-27 23:45:34 INFO All modifications ended
+2024-03-27 23:45:34 INFO insert into holder for :: 15520501
+2024-03-27 23:45:36 INFO Start modifications
+2024-03-27 23:45:36 INFO All modifications started
+2024-03-27 23:45:36 INFO End modifications
+2024-03-27 23:45:36 INFO All modifications ended
+2024-03-27 23:45:36 INFO Start modifications
+2024-03-27 23:45:37 INFO All modifications started
+2024-03-27 23:45:37 INFO End modifications
+2024-03-27 23:45:37 INFO All modifications ended
+2024-03-27 23:45:37 INFO Start modifications
+2024-03-27 23:45:37 INFO All modifications started
+2024-03-27 23:45:37 INFO End modifications
+2024-03-27 23:45:37 INFO All modifications ended
+2024-03-27 23:45:37 INFO insert into holder for :: C5397501
+2024-03-27 23:45:39 INFO Start modifications
+2024-03-27 23:45:39 INFO All modifications started
+2024-03-27 23:45:39 INFO End modifications
+2024-03-27 23:45:39 INFO All modifications ended
+2024-03-27 23:45:39 INFO Start modifications
+2024-03-27 23:45:39 INFO All modifications started
+2024-03-27 23:45:39 INFO End modifications
+2024-03-27 23:45:39 INFO All modifications ended
+2024-03-27 23:45:39 INFO Start modifications
+2024-03-27 23:45:39 INFO All modifications started
+2024-03-27 23:45:39 INFO End modifications
+2024-03-27 23:45:39 INFO All modifications ended
+2024-03-27 23:45:39 INFO insert into holder for :: C15573612
+2024-03-27 23:45:41 INFO Start modifications
+2024-03-27 23:45:41 INFO All modifications started
+2024-03-27 23:45:41 INFO End modifications
+2024-03-27 23:45:41 INFO All modifications ended
+2024-03-27 23:45:41 INFO Start modifications
+2024-03-27 23:45:41 INFO All modifications started
+2024-03-27 23:45:41 INFO End modifications
+2024-03-27 23:45:41 INFO All modifications ended
+2024-03-27 23:45:41 INFO Start modifications
+2024-03-27 23:45:41 INFO All modifications started
+2024-03-27 23:45:41 INFO End modifications
+2024-03-27 23:45:41 INFO All modifications ended

@@ -513,6 +513,7 @@ class TopSolidAPI:
                 print(frame_elem_id)
                 frame_name = self.get_name(frame_elem_id)
                 print(frame_name)
+                return frame
 
         except Exception as ex:
             print(str(ex))
@@ -592,20 +593,20 @@ class TopSolidAPI:
         frame = self.auto.SmartFrame3D(frame, False)
         #print("setFrame :: ", name)
 
-        if name == "MCS":
+        if name == "MCS": # machine coordinate system
             use_frames.MCS = frame
-        elif name == "CWS":
+        elif name == "CWS": # cutting workpiece system
             use_frames.CWS = frame
-        elif name == "PCS":
+        elif name == "PCS": # part coordinate system
             use_frames.PCS = frame
-        elif name == "WCS" or name == "$TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteFrame":
+        elif name == "WCS" or name == "$TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteFrame": # world coordinate system
             use_frames.WCS = frame
-        elif name == "CSW":
-            use_frames.CSW = frame
-        elif name == "CIP" or name == "CIP_SCHNEIDE":
+        elif name == "CSW": # tool side holder frame
+            use_frames.CSW = frame 
+        elif name == "CIP" or name == "CIP_SCHNEIDE": # tool tip frame
             use_frames.CIP = frame
-        elif name == "CIP_tip":
-            use_frames.CIP_tip = frame
+        elif name == "CIP_tip": # tool tip frame
+            use_frames.CIP_tip = frame 
 
         use_frames.named_frames.append(name)
         
@@ -650,7 +651,7 @@ class TopSolidAPI:
                         
         result = self.ts.Documents.ImportWithOptions(inImporterIx, set_opt ,  inFullName,  inOwnerId)
 
-        print(f"Import result: {len(result)} - {result[0].DocumentId} -- {result[1]} -- {result[2].DocumentId}")
+        print(f"Import result: {len(result)} - {result[0]} -- {result[1]} -- {result[2]}")
 
         return result
     
@@ -772,8 +773,13 @@ class TopSolidAPI:
 
             print("INFO :: frames :: ", len(frames), use_frames.named_frames)
 
-            #if len(frames) < len(found_elements):
-            self.create_frames_from_step(step_viewer, newdoc[0], found_elements)
+            if len(found_elements) > 0:
+                self.create_frames_from_step(step_viewer, newdoc[0], found_elements)
+            elif len(frames) <= 1:
+                print("INFO :: frames > found_elements")
+                new_plan = self.ask_plan(newdoc[0])
+                use_frames.CSW = new_plan
+                
                               
             # Read shapes in the file
                 
@@ -889,7 +895,7 @@ class TopSolidAPI:
             $TopSolid.Kernel.DB.D3.Documents.ElementName.AbsoluteZAxis
             '''
             #get Z axis
-            newAxis = self.auto.SmartAxis3D(axis[2],  False)
+            newAxis = self.auto.SmartAxis3D(axis[2],  False) # x = 0, y = 1, z = 2
 
             #print("newAxis :: ", newAxis, self.get_name(newAxis))
 
@@ -1110,11 +1116,15 @@ class TopSolidAPI:
 
                         if self.get_name(pub) == "ToolingSystemFrame":
                             #SetFramePublishingDefinition( inElementId,SmartFrame3D inDefinition)
-                            self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.PCS)
+                            if use_frames.PCS is not None:
+                                self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.PCS)
+                            elif use_frames.WCS is not None:
+                                self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.WCS)
                         elif self.get_name(pub) == "ToolingSystemName":
                             pub_type = self.get_type(pub)
                             #print("pub_type :: ", pub_type)
                             if pub_type == "TopSolid.Kernel.DB.D3.Frames.PublishingFrameEntity":
+                                #if use_frames.CSW is not None:
                                 if use_frames.CSW is not None:
                                     self.ts.Geometries3D.SetFramePublishingDefinition(pub, use_frames.CSW)
                                 else:
