@@ -3,18 +3,26 @@ from OpenGL.GLU import *
 from OpenGL.GLUT import *
 from wx import *
 from wx.glcanvas import *
+import OpenGL.GL.shaders
 
 import math  
 
+
 class OpenGLCanvas(GLCanvas):
     def __init__(self, parent):
-        GLCanvas.__init__(self, parent, -1)
+        attribList = (wx.glcanvas.WX_GL_RGBA,  # RGBA
+                    wx.glcanvas.WX_GL_DOUBLEBUFFER,  # Double Buffered
+                    wx.glcanvas.WX_GL_DEPTH_SIZE, 24,  # 24 bit
+                    wx.glcanvas.WX_GL_STENCIL_SIZE, 8,  # 8 bit
+                    0)  # zero at end to terminate list
+
+        GLCanvas.__init__(self, parent, -1, attribList=attribList)
+        self.context = GLContext(self)
         
         self.init = False
-        self.context = GLContext(self)
         self.rotation_angle_x = 0.0
         self.rotation_angle_y = 0.0
-        self.camera_distance = 2.5  # Zoom mais próximo
+        self.camera_distance = 2.5  # more zoom
         self.pan_x = 0.0
         self.pan_y = 0.0
         self.last_mouse_pos = None
@@ -29,17 +37,44 @@ class OpenGLCanvas(GLCanvas):
         self.Bind(EVT_SIZE, self.OnResize)
         self.Bind(EVT_KEY_DOWN, self.handleKeypress)
 
+   
     def initRendering(self):
         glEnable(GL_DEPTH_TEST)
-        glEnable(GL_MULTISAMPLE)
         glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
 
-        glEnable(GL_LIGHTING)
-        glEnable(GL_LIGHT0)
         glEnable(GL_COLOR_MATERIAL)
         glShadeModel(GL_SMOOTH)
         glClearColor(0.95, 0.95, 0.95, 1.0)
         glMatrixMode(GL_MODELVIEW)
+        light_ambient = [0.2, 0.2, 0.2, 1.0]
+        light_diffuse = [1.0, 1.0, 1.0, 1.0]
+        light_specular = [1.0, 1.0, 1.0, 1.0]
+        light_position = [0.0, 50.0, 50.0, 1.0]
+
+        glLightfv(GL_LIGHT0, GL_AMBIENT, light_ambient)
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, light_diffuse)
+        glLightfv(GL_LIGHT0, GL_SPECULAR, light_specular)
+        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
+        glEnable(GL_LIGHT1)
+        light1_position = [-50.0, 50.0, 50.0, 1.0]
+        glLightfv(GL_LIGHT1, GL_AMBIENT, light_ambient)
+        glLightfv(GL_LIGHT1, GL_DIFFUSE, light_diffuse)
+        glLightfv(GL_LIGHT1, GL_SPECULAR, light_specular)
+        glLightfv(GL_LIGHT1, GL_POSITION, light1_position)
+        
+        material_ambient = [0.2, 0.2, 0.2, 1.0]
+        material_diffuse = [0.8, 0.8, 0.8, 1.0]
+        material_specular = [1.0, 1.0, 1.0, 1.0]
+        material_shininess = [50.0]
+
+        glMaterialfv(GL_FRONT, GL_AMBIENT, material_ambient)
+        glMaterialfv(GL_FRONT, GL_DIFFUSE, material_diffuse)
+        glMaterialfv(GL_FRONT, GL_SPECULAR, material_specular)
+        glMaterialfv(GL_FRONT, GL_SHININESS, material_shininess)
+        glEnable(GL_LINE_SMOOTH)
+        glHint(GL_LINE_SMOOTH_HINT, GL_NICEST)
+        glEnable(GL_POLYGON_SMOOTH)
+        glHint(GL_POLYGON_SMOOTH_HINT, GL_NICEST)
 
     def OnMouseWheel(self, event):
         delta = event.GetWheelRotation() / event.GetWheelDelta()
@@ -102,14 +137,7 @@ class OpenGLCanvas(GLCanvas):
         glMatrixMode(GL_MODELVIEW)
         glLoadIdentity()
 
-        ambient_light = [1, 1, 1, 0.5]  # Increase ambient light intensity
-        glLightModelfv(GL_LIGHT_MODEL_AMBIENT, ambient_light)
-
-        light_position = [0.0, 50.0, 50, 1.0]  # Adjusted light position
-        glLightfv(GL_LIGHT0, GL_POSITION, light_position)
-
-        material_color = [1, 0.8, 0.8, 0.5]
-        glMaterialfv(GL_FRONT, GL_AMBIENT_AND_DIFFUSE, material_color)
+        
 
         scale_width = (tool_max_width) / self.Parent.selected_tool.L3
         scaled_values = {
@@ -137,12 +165,13 @@ class OpenGLCanvas(GLCanvas):
         glTranslatef(0, 0, -center_of_rotation) # Move the object to the center of the screen
 
         glColor3f(1.0, 0.5, 0.0)
-        self.draw_cylinder(scaled_values["D1"], scaled_values["L1"], 100)
+        self.draw_cylinder(scaled_values["D1"], scaled_values["L1"], 50)
         glTranslatef(0.0, 0.0, scaled_values["L1"])
         glColor3f(0.5, 0.5, 0.5)
-        self.draw_cylinder(scaled_values["D2"], scaled_values["L2"] - scaled_values["L1"], 100)
+        self.draw_cylinder(scaled_values["D2"], scaled_values["L2"] - scaled_values["L1"], 50)
         glTranslatef(0.0, 0.0, scaled_values["L2"] - scaled_values["L1"])
-        self.draw_cylinder(scaled_values["D3"], scaled_values["L3"]-scaled_values["L2"], 100)
+        glColor3f(0.5, 0.5, 0.5) 
+        self.draw_cylinder(scaled_values["D3"], scaled_values["L3"]-scaled_values["L2"], 10)
 
         self.SwapBuffers()
 
@@ -163,12 +192,14 @@ class OpenGLCanvas(GLCanvas):
 
     def handleKeypress(self, event):
         key = event.GetUnicodeKey()
+        print(key)
         if key == 27:
             exit()
 
 
-    def draw_cylinder(self, radius, height, slices=100):
+    def draw_cylinder(self, radius, height, slices=1000):
         glBegin(GL_QUAD_STRIP)
+        
         for i in range(slices + 1):
             angle = 2 * math.pi * i / slices
             x = radius * math.cos(angle)
@@ -178,6 +209,7 @@ class OpenGLCanvas(GLCanvas):
             glVertex3f(x, y, height)
         glEnd()
 
+        # Draw bottom circle
         glBegin(GL_TRIANGLE_FAN)
         glVertex3f(0, 0, 0)
         for i in range(slices + 1):
@@ -187,6 +219,7 @@ class OpenGLCanvas(GLCanvas):
             glVertex3f(x, y, 0)
         glEnd()
 
+        # Draw top circle
         glBegin(GL_TRIANGLE_FAN)
         glVertex3f(0, 0, height)
         for i in range(slices + 1):
@@ -195,6 +228,26 @@ class OpenGLCanvas(GLCanvas):
             y = radius * math.sin(angle)
             glVertex3f(x, y, height)
         glEnd()
+
+        # Draw bottom circle outline
+        glColor3f(0, 0, 0)  # Change color to black
+        glBegin(GL_LINE_LOOP)
+        for i in range(slices + 1):
+            angle = 2 * math.pi * i / slices
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            glVertex3f(x, y, 0)
+        glEnd()
+
+        # Draw top circle outline
+        glBegin(GL_LINE_LOOP)
+        for i in range(slices + 1):
+            angle = 2 * math.pi * i / slices
+            x = radius * math.cos(angle)
+            y = radius * math.sin(angle)
+            glVertex3f(x, y, height)
+        glEnd()
+
 
 class test(wx.Frame):
     def __init__(self):

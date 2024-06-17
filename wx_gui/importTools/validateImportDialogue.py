@@ -8,7 +8,8 @@ from databaseTools import saveTool, update_tool, load_tools_from_database
 
 #from share.save_supabase import readTools
 
-from topsolid_api import TopSolidAPI
+
+from gui.menus_inter import MenusInter
 
 
 class validateToolDialog(wx.Dialog):
@@ -18,8 +19,21 @@ class validateToolDialog(wx.Dialog):
       
         self.parent = parent
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
+
+        self.lang = MenusInter.GetCustomLanguage()
+        #get the menu text from the dictionary
+        self.menu = MenusInter(self.lang)
+        # define the tooltype menu
+        self.m_tooltype = self.menu.get_menu("tooltype")
+        self.m_save = self.menu.get_menu("save").capitalize()
+        self.m_open = self.menu.get_menu("open").capitalize()
+        self.m_create = self.menu.get_menu("create").capitalize()
+        self.m_cancel = self.menu.get_menu("cancel").capitalize()
+        self.m_all = f"{self.menu.get_menu('createToolWithHolder').capitalize()}"
+
+
         self.tool = tool
-        self.ts = parent.Parent.ts
+        self.ts = parent.parent.ts
 
         self.isNew = isNew
 
@@ -74,21 +88,18 @@ class validateToolDialog(wx.Dialog):
         # Add buttons box       
         btn_sizer = wx.BoxSizer()
 
-        self.save_btn = wx.Button(self, label='Save')
+        self.save_btn = wx.Button(self, label=self.m_save)
         self.save_btn.Bind(wx.EVT_BUTTON, self.on_save)
         btn_sizer.Add(self.save_btn, 5, wx.ALL, 15)
         self.save_btn.Disable()
         
-        self.open = wx.Button(self, label='Open in TS')
-        self.open.Bind(wx.EVT_BUTTON, self.on_save)
+        self.open = wx.Button(self, label=self.m_open)
+        self.open.Bind(wx.EVT_BUTTON, self.on_open)
         btn_sizer.Add(self.open, 5, wx.ALL, 15)
 
-        if self.tool.TSid != "":
-            self.open.Enable()
-        else:
-            self.open.Disable()
+        
 
-        self.create_btn = wx.Button(self, label='Create')
+        self.create_btn = wx.Button(self, label=self.m_create)
         self.create_btn.Bind(wx.EVT_BUTTON, self.on_create)
         btn_sizer.Add(self.create_btn, 5, wx.ALL, 15)
         self.create_btn.Disable()
@@ -100,6 +111,13 @@ class validateToolDialog(wx.Dialog):
         self.SetSizer(self.main_sizer)
         
         self.on_load(tool)
+
+        if self.tool.TSid != "":
+            self.open.Enable()
+            self.create_btn.Disable()
+        else:
+            self.open.Disable()
+            self.create_btn.Enable()
 
         #resize the dialog to fit the content
         self.Fit()
@@ -119,7 +137,7 @@ class validateToolDialog(wx.Dialog):
         #add binding to widget and send label_text to on_change
         widget.Bind(wx.EVT_TEXT, lambda event: self.on_change(event, label))
 
-        label_text = wx.StaticText(self, label=label)
+        label_text = wx.StaticText(self, label=self.menu.get_menu(label).capitalize())
         sizer = wx.BoxSizer(wx.VERTICAL)
         sizer.Add(label_text, 0, wx.ALL | wx.CENTER, 5)
         sizer.Add(widget, 0, wx.ALL, 2)
@@ -161,6 +179,12 @@ class validateToolDialog(wx.Dialog):
 
         self.Fit()
 
+    def on_open(self, event):
+        print("open ", self.tool.name, self.tool.toolType)
+
+        self.ts.open_file(self.tool.TSid)
+
+        self.Destroy()
 
     def on_save(self, event):
         if self.tool.id != 0:
@@ -188,8 +212,8 @@ class validateToolDialog(wx.Dialog):
         saveTool(self.tool,self.toolData.tool_types_list)
 
         
-        if not self.ts or not self.ts.connected:
-                    self.ts = TopSolidAPI()
+        if not self.ts or self.ts.connected == False:
+                    self.ts.Connect()
         
         self.ts.copy_tool(self, self.tool, False, False)
 

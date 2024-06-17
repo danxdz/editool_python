@@ -115,3 +115,18 @@ toolHolderMaterial;Tool Holder Material;Matériau porte-outil;Material do suport
 toolHolderMaterialClass;Tool Holder
 Material Class;Classe de matériau porte-outil;Classe de material do suporte
 toolHolderTSid;Tool Holder TopSolid id;id TopSolid porte-outil;id TopSolid do suporte
+toolType;tool type;type d'outil;tipo de ferramenta
+tooltype;tool type;type d'outil;tipo de ferramenta
+toolMaterial;tool material;matériau d'outil;material da ferramenta
+chamfer;chamfer;chanfer;chanfro
+threadTolerance;thread tolerance;tolérance de filetage;tolerância de rosca
+mfr;manufacturer;fabricant;fabricante
+mfrCode;manufacturer code;code fabricant;código fabricante
+mfrRef;manufacturer reference;référence fabricant;referência fabricante
+mfrSecRef;manufacturer secondary reference;référence secondaire fabricant;referência secundária fabricante
+code;code;code;código
+codeBar;code bar;code barre;código de barras
+comment;comment;commentaire;comentário
+TSid;TopSolid id;id TopSolid;id TopSolid
+imported;imported;importé;importado
+name;name;nom;nome

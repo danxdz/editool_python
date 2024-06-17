@@ -138,16 +138,39 @@ class ToolsCustomData:
 class Tool:
     """
     This class represents a tool with all its attributes.
-    """
-
-    #make comments so i have more info about tool class
-
-
+    - id is the id of the tool in the database
+    - name is the name of the tool
+    - toolType is the type of the tool
+    - cuttingMaterial is the material to cut
+    - toolMaterial is the material of the tool
+    - D1 is the cutting diameter
+    - D2 is the neck diameter
+    - D3 is the shank diameter
+    - L1 is the cutting length
+    - L2 is the neck length
+    - L3 is the total length
+    - z is the number of teeth
+    - cornerRadius is the corner radius
+    - chamfer is the chamfer
+    - neckAngle is the angle of the neck in degrees
+    - centerCut is the center cut
+    - coolantType is the coolant type
+    - threadTolerance is the thread tolerance
+    - threadPitch is the thread pitch
+    - mfr is the manufacturer
+    - mfrRef is the manufacturer reference
+    - mfrSecRef is the manufacturer secondary reference
+    - code is the tool ts code
+    - codeBar is the tool barcode
+    - comment is the tool comment
+    - TSid is the ts model id
+    - imported is a flag to know if the tool is freshly imported
+"""
     def __init__(self,id=0, name="", toolType=0, cuttingMaterial="", toolMaterial="",
                   D1=0.0, D2=0.0, D3=0.0, L1=0.0, L2=0.0, L3=0.0, 
                   z=0, cornerRadius=0.0, chamfer=0.0, 
                   neckAngle=0.0, centerCut=0.0, coolantType=0, 
-                  threadTolerance=0, threadPitch=0.0, mfr="", mfrRef="", mfrSecRef="", code="", codeBar="", comment="", TSid=""):
+                  threadTolerance=0, threadPitch=0.0, mfr="", mfrRef="", mfrSecRef="", code="", codeBar="", comment="", TSid="", imported=1):
    
         self.id = id
         #id from database
@@ -206,6 +229,8 @@ class Tool:
         self.comment = comment
         self.TSid = TSid
         #ts model id - after creating tool in ts
+        self.imported = imported
+        #freshly imported tool
 
     def getAttributes(self):
         return {
@@ -235,5 +260,6 @@ class Tool:
             'codeBar': self.codeBar,
             'comment': self.comment,
             'TSid' : self.TSid,
+            'imported': self.imported
         }
         

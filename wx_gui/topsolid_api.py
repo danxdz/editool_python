@@ -253,7 +253,11 @@ class TopSolidAPI:
     def get_language(self):
         '''get TopSolid language'''
         #string CurrentUICultureName { get; }
-        return self.ts.Application.CurrentUICultureName
+        culture = None
+        if self.ts.IsConnected:
+            culture = self.ts.Application.CurrentUICultureName
+
+        return culture
     
 
     def start_modif(self, op, ot):
@@ -472,6 +476,11 @@ class TopSolidAPI:
         '''open file in TopSolid'''
         try:
             #docId = self.self.ts.Documents.GetDocument(file)
+            from TopSolid.Kernel.Automating import DocumentId
+            # check if type(file) = String
+            if type(file) == str:
+                #public DocumentId(string inPdmDocumentId) 
+                file = DocumentId(file)
             res = self.ts.Documents.Open(file)
             print(f"file opened {res}")
         except Exception as ex:
@@ -483,6 +492,8 @@ class TopSolidAPI:
         '''check in file'''
         #PdmObjectId GetPdmObject( DocumentId inDocumentId )
         pdm_obj = self.ts.Documents.GetPdmObject(file)
+       
+
         print("file to check in :: ", file.PdmDocumentId)
         self.ts.Pdm.CheckIn(pdm_obj, True)
 
@@ -762,7 +773,6 @@ class TopSolidAPI:
             use_frames.WCS = None
             use_frames.CSW = None
 
-            frames = self.get_Frames(newdoc[0])                            
 
             #open the file
             print("get_Frames :: ", len(frames))
@@ -770,6 +780,9 @@ class TopSolidAPI:
             self.open_file(newdoc[0])
                         
             self.start_modif("frame", False)
+            drt = self.ts.Documents.EnsureIsDirty(newdoc[0])
+            newdoc[0] = drt
+            frames = self.get_Frames(newdoc[0])                            
 
             print("INFO :: frames :: ", len(frames), use_frames.named_frames)
 
@@ -867,7 +880,7 @@ class TopSolidAPI:
                         
                         print("Multiple shapes found, 'CUT' shape found, is a tool :: D1 :: ", tool.D1 * 1000, "L1 :: ", tool.L1 * 1000)
                         
-                if self.tool == False:
+                if not self.tool:
                     print("Multiple shapes found, no 'CUT' shape, is a holder")
             
             else:
@@ -949,7 +962,7 @@ class TopSolidAPI:
                     func_proj = func
                     break
             
-            if self.tool == True:
+            if self.tool :
                 print("INFO :: add tool functions")
 
                 '''      
@@ -1426,6 +1439,7 @@ class TopSolidAPI:
                 print("duplicate tool (db and ts): ", tool.TSid)
                 #duplicate tool in database and create a new tool in TS
                 tool.id = 0 #set id to 0 to create a new tool
+                tool.TSid = "" #set TSid to empty to create a new tool
                 saveTool(tool, window.toolData.tool_types_list)
                 return True
             elif answer == wx.ID_YES:
@@ -1457,272 +1471,273 @@ class TopSolidAPI:
 
         try:
             #search for editool project for custom tools models and tool assembly templates
-            output_lib = self.ts.Pdm.SearchProjectByName("editool")
+            if self.ts.IsConnected:
+                output_lib = self.ts.Pdm.SearchProjectByName("editool")
 
-            if not output_lib:
-                #if not found, use current project to create tools
-                #alert user to import editool project to use all features
-                print("editool project not found")
-                alert = wx.MessageBox('editool project not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
-                
-                #TODO :: show a dialog to create editool project
-                output_lib = self.ts.Pdm.GetCurrentProject()
-
-            output_lib = output_lib[0]
-            print("output_lib: ", output_lib.Id)
-            if output_lib:
-                
-                # open it to create tool
-                self.ts.Pdm.OpenProject(output_lib)
-                                
-                # get custom tool model name
-                customToolModel = toolData.ts_models[tool.toolType]
-
-                # if custom model exist
-                if customToolModel:
-                    print("custom model: ", customToolModel)
-                    modelLib = output_lib
-                    toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, customToolModel)
-                else:
-                    print("custom model not found")
-                    # or get ts default model 
-                    modelLib = self.get_default_tools_lib() # TODO make it connect only one time if we create multiple tools
-                    modelLib = modelLib[0]
-                    tsDefaultModel = toolDefaultData.ts_models[tool.toolType]
-
-                    print("tsDefaultModel: ", tsDefaultModel, modelLib)
-                    toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, tsDefaultModel)
-            else:
-                # if not editool project :: use current project to create tools
-                output_lib = self.ts.Pdm.GetCurrentProject()
-                print("GetCurrentProject :: ", output_lib.Id)
-
-            print(f"*** copy tool ***  {toolDefaultData.tool_types[tool.toolType]} :: from: {self.ts.Pdm.GetName(modelLib)} :: model : {self.ts.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {self.ts.Pdm.GetName(output_lib)}")
-            
-            #for i in toolModelId:
-            #    print("toolModelId: ", i.Id)
-
-            # need a list of PdmObjectId to CopySeveral, with only one tool model
-            firstTool = toolToCopy_ModelId[0]
-            toolToCopy_ModelId.Clear()
-            toolToCopy_ModelId.Add(firstTool)
-
-            #print("GetCurrentProject :: ", output_lib.Id)
-
-            # find model tool to copy from default lib
-            #print("toolModelId: ", len(toolModelId))
-
-            savedTool = self.ts.Pdm.CopySeveral(toolToCopy_ModelId, output_lib)
-
-            if savedTool:
-                #print(f"Tool copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
-                print(f"tool model copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
-
-            savedToolDocId = self.ts.Documents.GetDocument(savedTool[0])
-
-            #modif = self.ts.Application.StartModification("saveTool", True)
-            #print("Start modif: ", modif, savedToolDocId.PdmDocumentId)
-            self.start_modif("saveTool", False)
-            savedToolModif = self.ts.Documents.EnsureIsDirty(savedToolDocId)
-
-            #print("dirt savedToolModif: ", savedToolModif.PdmDocumentId)
-
-            #Debug -> get elements param list
-            """
-            sys_pard = self.ts.Elements.GetElements(savedToolModif)
-            print("sys_pard: ", sys_pard)
-            for i in range(len(sys_pard)):
-                print("sys_pard: ", sys_pard[i])
-                print("sys_pard: ", self.ts.Elements.GetName(sys_pard[i]))            
-                if self.ts.Elements.GetName(sys_pard[i]) == "":
-                    print("sys_pard: ", self.ts.Elements.GetDescription(sys_pard[i]))
-            
-            exit()
-            """
-            #get name mask
-            #print("tool type: ", tool.toolType, len(toolData.tool_names_mask))
-            #for mask in toolData.tool_names_mask:
-                #print("mask: ", mask)
-            toolData.tool_names_mask = load_masks()
-            #need to strip last char from mask _n??
-            mask = toolData.tool_names_mask[tool.toolType]
-
-            #print("mask: ", mask)
-
-            self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), str(mask))
-
-            #self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.name)
-            #TODO: add tool parameters config
-            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), str(tool.name))
-            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), str(tool.mfr))
-            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), str(tool.codeBar))
-            self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.code))
-            self.ts.Parameters.SetBooleanValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
-
-            print("tool: ", tool.name, tool.mfr, tool.codeBar, tool.code)
-
-            d1 = 0
-            d2 = 0
-            d3 = 0
-            l1 = 0
-            l2 = 0
-            l3 = 0
-            r = 0
-            chamfer = 0
-            z = 0
-            threadPitch = 0.0
-            threadTolerance = ""
-            #print("tool type: ", tool.toolType)
-
-            if tool.toolType == 8:#tap
-
-                if tool.threadTolerance and tool.threadTolerance != "None" and tool.threadTolerance != "":
-                    self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Type"), threadTolerance)
-                else:
-                    self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Norm"), threadTolerance)
-
-            if tool.threadPitch and int(float(tool.threadPitch != 0)):
-                #print("thread pitch : ", tool.threadPitch)
-                threadPitch = float(tool.threadPitch / 1000).__round__(5)
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
-
-            if tool.z:
-                z = int(float(tool.z)) #dont work with float
-                self.ts.Parameters.SetIntegerValue(self.ts.Elements.SearchByName(savedToolModif, "NoTT"), int(z))
-                #print("z: ", z)
-
-            if tool.D1:
-                if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
-                    d1 = float(tool.D1 / 1000).__round__(5)                
-            if tool.D2: #Fix for D2 = "None"
-                if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
-                    d2 = float(tool.D2 / 1000).__round__(5)
-            else:
-                if tool.toolType == 7:
-                    d2 = float(d1-threadPitch-0.2).__round__(5)
-                d2 = float(d1-(0.2/1000)).__round__(5)
-            if tool.D3:
-                if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
-                    d3 = float(tool.D3 / 1000).__round__(5)            
-            if tool.L1:
-                l1 = float(tool.L1 / 1000).__round__(5) if tool.L1 is not None and tool.L1 != 0 else 0
-            if tool.L2:
-                l2 = float(tool.L2 / 1000).__round__(5) if tool.L2 is not None and tool.L2 != 0 else 0
-            if tool.L3:
-                l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0            
-            if tool.cornerRadius:
-                #print("cornerRadius: ", tool.cornerRadius, tool.toolType  )
-                if tool.cornerRadius != None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
-                    r = float(tool.cornerRadius / 1000).__round__(5)
-                    if tool.toolType == 1:#radius mill
-                        self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"r"), r)  
-                
-            print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
-
-            #set tool parameters
-
-            if tool.toolType == 6:#center drill
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D1"), d3)    
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D2"), d1)    
-                
-                #need to convert angle from deg to rad
-                #print("AngleDeg: ", tool.neckAngle, "chamfer: ", tool.chamfer)
-                angle = float(tool.neckAngle) * 1
-                chamfer = float(tool.chamfer) * 1
-
-                chamfer = float(chamfer * pi / 180).__round__(5)
-                angle = float(angle * pi / 180).__round__(5)
-
-                self.setRealParameter(savedToolModif,"A_T", chamfer)
-                                                                    
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), angle)
-                #print("AngleRad: ", angle, "chamfer: ", chamfer)        
-            else:
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D"), d1)                
-
-            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"SD"), d3)                
-            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l1)                
-            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"OL"), l3)
-
-            print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
-
-            #if drill
-            if tool.toolType == 7:#drill
-                if not tool.neckAngle:
-                    tool.neckAngle = 140
-                #print("AngleDeg: ", tool.neckAngle)
-                tmpAngleRad = int(tool.neckAngle) * pi / 180
-                #print("tmpAngleRad: ", tmpAngleRad)
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
-            
-            #thread mill
-            elif tool.toolType == 9:
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
-                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"LH"), l2)
-            
-                getSketchs = self.ts.Sketches2D.GetSketches(savedToolModif)
-                #print("getSketch: ", getSketchs, len(getSketchs))
-                for sketch in getSketchs:
-                    sketchName = self.ts.Elements.GetName(sketch)
-                    if sketchName == "ShankSketch":
-                            #print("childName: ", sketchName, sketch.GetType())
-                            consts = self.ts.Elements.GetConstituents(sketch)
-                            #print("consts: ", consts,len(consts))
-                            props = self.ts.Elements.GetProperties(sketch)
-                            #print("props: ", props,len(props))
-
-                            #for p in props:
-                                #print("prop: ",p)
-
-                            for i in consts:
-                                constName = self.ts.Elements.GetName(i)
-                                if constName == "Dimension 3" or constName == "Dimension 4":
-                                    #print("consts: ", constName, i.GetType())
-                                    value = self.ts.Elements.GetTypeFullName(i)
-                                    modif = self.ts.Elements.IsModifiable(i)
-                                    delet = self.ts.Elements.IsDeletable(i)
-
-                                    #print("value: ", value, modif, delet )
-                                    #propType = self.ts.Elements.Delete(i)
-                                    #print("propType: ", propType)
-            #if spot drill
-            elif tool.toolType == 6:#spot drill
-                    #print("spot drill: ", l2)
-                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l2)
-            
-            else:
+                if not output_lib:
+                    #if not found, use current project to create tools
+                    #alert user to import editool project to use all features
+                    print("editool project not found")
+                    alert = wx.MessageBox('editool project not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
                     
-                if l2 > 0 and tool.toolType != 8 and tool.toolType != 9 and tool.toolType != 7:
-                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
-                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
-                            
-            from TopSolid.Kernel.Automating import SmartText
+                    #TODO :: show a dialog to create editool project
+                    output_lib = self.ts.Pdm.GetCurrentProject()
 
-            smartTextType = SmartText(self.ts.Parameters.GetDescriptionParameter(savedToolModif))
-        
-            self.ts.Parameters.PublishText(savedToolModif, "FR", smartTextType)
+                output_lib = output_lib[0]
+                print("output_lib: ", output_lib.Id)
+                if output_lib:
+                    
+                    # open it to create tool
+                    self.ts.Pdm.OpenProject(output_lib)
+                                    
+                    # get custom tool model name
+                    customToolModel = toolData.ts_models[tool.toolType]
 
-            self.end_modif(True, False)
+                    # if custom model exist
+                    if customToolModel:
+                        print("custom model: ", customToolModel)
+                        modelLib = output_lib
+                        toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, customToolModel)
+                    else:
+                        print("custom model not found")
+                        # or get ts default model 
+                        modelLib = self.get_default_tools_lib() # TODO make it connect only one time if we create multiple tools
+                        modelLib = modelLib[0]
+                        tsDefaultModel = toolDefaultData.ts_models[tool.toolType]
+
+                        print("tsDefaultModel: ", tsDefaultModel, modelLib)
+                        toolToCopy_ModelId = self.ts.Pdm.SearchDocumentByName(modelLib, tsDefaultModel)
+                else:
+                    # if not editool project :: use current project to create tools
+                    output_lib = self.ts.Pdm.GetCurrentProject()
+                    print("GetCurrentProject :: ", output_lib.Id)
+
+                print(f"*** copy tool ***  {toolDefaultData.tool_types[tool.toolType]} :: from: {self.ts.Pdm.GetName(modelLib)} :: model : {self.ts.Pdm.GetName(toolToCopy_ModelId[0])} :: to : {self.ts.Pdm.GetName(output_lib)}")
+                
+                #for i in toolModelId:
+                #    print("toolModelId: ", i.Id)
+
+                # need a list of PdmObjectId to CopySeveral, with only one tool model
+                firstTool = toolToCopy_ModelId[0]
+                toolToCopy_ModelId.Clear()
+                toolToCopy_ModelId.Add(firstTool)
+
+                #print("GetCurrentProject :: ", output_lib.Id)
+
+                # find model tool to copy from default lib
+                #print("toolModelId: ", len(toolModelId))
+
+                savedTool = self.ts.Pdm.CopySeveral(toolToCopy_ModelId, output_lib)
+
+                if savedTool:
+                    #print(f"Tool copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
+                    print(f"tool model copied successfully!  {self.ts.Pdm.GetName(savedTool[0])} ::  {savedTool[0].Id}")
+
+                savedToolDocId = self.ts.Documents.GetDocument(savedTool[0])
+
+                #modif = self.ts.Application.StartModification("saveTool", True)
+                #print("Start modif: ", modif, savedToolDocId.PdmDocumentId)
+                self.start_modif("saveTool", False)
+                savedToolModif = self.ts.Documents.EnsureIsDirty(savedToolDocId)
+
+                #print("dirt savedToolModif: ", savedToolModif.PdmDocumentId)
+
+                #Debug -> get elements param list
+                """
+                sys_pard = self.ts.Elements.GetElements(savedToolModif)
+                print("sys_pard: ", sys_pard)
+                for i in range(len(sys_pard)):
+                    print("sys_pard: ", sys_pard[i])
+                    print("sys_pard: ", self.ts.Elements.GetName(sys_pard[i]))            
+                    if self.ts.Elements.GetName(sys_pard[i]) == "":
+                        print("sys_pard: ", self.ts.Elements.GetDescription(sys_pard[i]))
+                
+                exit()
+                """
+                #get name mask
+                #print("tool type: ", tool.toolType, len(toolData.tool_names_mask))
+                #for mask in toolData.tool_names_mask:
+                    #print("mask: ", mask)
+                toolData.tool_names_mask = load_masks()
+                #need to strip last char from mask _n??
+                mask = toolData.tool_names_mask[tool.toolType]
+
+                #print("mask: ", mask)
+
+                self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), str(mask))
+
+                #self.ts.Parameters.SetTextParameterizedValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Name"), tool.name)
+                #TODO: add tool parameters config
+                self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.ManufacturerPartNumber"), str(tool.name))
+                self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Manufacturer"), str(tool.mfr))
+                self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.Code"), str(tool.codeBar))
+                self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.PartNumber"), str(tool.code))
+                self.ts.Parameters.SetBooleanValue(self.ts.Elements.SearchByName(savedToolModif, "$TopSolid.Kernel.TX.Properties.VirtualDocument"), False)
+
+                print("tool: ", tool.name, tool.mfr, tool.codeBar, tool.code)
+
+                d1 = 0
+                d2 = 0
+                d3 = 0
+                l1 = 0
+                l2 = 0
+                l3 = 0
+                r = 0
+                chamfer = 0
+                z = 0
+                threadPitch = 0.0
+                threadTolerance = ""
+                #print("tool type: ", tool.toolType)
+
+                if tool.toolType == 8:#tap
+
+                    if tool.threadTolerance and tool.threadTolerance != "None" and tool.threadTolerance != "":
+                        self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Type"), threadTolerance)
+                    else:
+                        self.ts.Parameters.SetTextValue(self.ts.Elements.SearchByName(savedToolModif,"Norm"), threadTolerance)
+
+                if tool.threadPitch and int(float(tool.threadPitch != 0)):
+                    #print("thread pitch : ", tool.threadPitch)
+                    threadPitch = float(tool.threadPitch / 1000).__round__(5)
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), threadPitch)
+
+                if tool.z:
+                    z = int(float(tool.z)) #dont work with float
+                    self.ts.Parameters.SetIntegerValue(self.ts.Elements.SearchByName(savedToolModif, "NoTT"), int(z))
+                    #print("z: ", z)
+
+                if tool.D1:
+                    if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
+                        d1 = float(tool.D1 / 1000).__round__(5)                
+                if tool.D2: #Fix for D2 = "None"
+                    if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
+                        d2 = float(tool.D2 / 1000).__round__(5)
+                else:
+                    if tool.toolType == 7:
+                        d2 = float(d1-threadPitch-0.2).__round__(5)
+                    d2 = float(d1-(0.2/1000)).__round__(5)
+                if tool.D3:
+                    if tool.D3 is not None and tool.D3 != 0 and tool.D3 != "None":
+                        d3 = float(tool.D3 / 1000).__round__(5)            
+                if tool.L1:
+                    l1 = float(tool.L1 / 1000).__round__(5) if tool.L1 is not None and tool.L1 != 0 else 0
+                if tool.L2:
+                    l2 = float(tool.L2 / 1000).__round__(5) if tool.L2 is not None and tool.L2 != 0 else 0
+                if tool.L3:
+                    l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0            
+                if tool.cornerRadius:
+                    #print("cornerRadius: ", tool.cornerRadius, tool.toolType  )
+                    if tool.cornerRadius != None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
+                        r = float(tool.cornerRadius / 1000).__round__(5)
+                        if tool.toolType == 1:#radius mill
+                            self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"r"), r)  
+                    
+                print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
+
+                #set tool parameters
+
+                if tool.toolType == 6:#center drill
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D1"), d3)    
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D2"), d1)    
+                    
+                    #need to convert angle from deg to rad
+                    #print("AngleDeg: ", tool.neckAngle, "chamfer: ", tool.chamfer)
+                    angle = float(tool.neckAngle) * 1
+                    chamfer = float(tool.chamfer) * 1
+
+                    chamfer = float(chamfer * pi / 180).__round__(5)
+                    angle = float(angle * pi / 180).__round__(5)
+
+                    self.setRealParameter(savedToolModif,"A_T", chamfer)
+                                                                        
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), angle)
+                    #print("AngleRad: ", angle, "chamfer: ", chamfer)        
+                else:
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"D"), d1)                
+
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"SD"), d3)                
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l1)                
+                self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"OL"), l3)
+
+                print(f" {tool.toolType} :: {d1} :  {d2} : {d3} : {l1} : {l2} : {l3} : {z}")
+
+                #if drill
+                if tool.toolType == 7:#drill
+                    if not tool.neckAngle:
+                        tool.neckAngle = 140
+                    #print("AngleDeg: ", tool.neckAngle)
+                    tmpAngleRad = int(tool.neckAngle) * pi / 180
+                    #print("tmpAngleRad: ", tmpAngleRad)
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"A"), tmpAngleRad)
+                
+                #thread mill
+                elif tool.toolType == 9:
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"Pitch"), float(tool.threadPitch/1000).__round__(5))
+                    self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"LH"), l2)
+                
+                    getSketchs = self.ts.Sketches2D.GetSketches(savedToolModif)
+                    #print("getSketch: ", getSketchs, len(getSketchs))
+                    for sketch in getSketchs:
+                        sketchName = self.ts.Elements.GetName(sketch)
+                        if sketchName == "ShankSketch":
+                                #print("childName: ", sketchName, sketch.GetType())
+                                consts = self.ts.Elements.GetConstituents(sketch)
+                                #print("consts: ", consts,len(consts))
+                                props = self.ts.Elements.GetProperties(sketch)
+                                #print("props: ", props,len(props))
+
+                                #for p in props:
+                                    #print("prop: ",p)
+
+                                for i in consts:
+                                    constName = self.ts.Elements.GetName(i)
+                                    if constName == "Dimension 3" or constName == "Dimension 4":
+                                        #print("consts: ", constName, i.GetType())
+                                        value = self.ts.Elements.GetTypeFullName(i)
+                                        modif = self.ts.Elements.IsModifiable(i)
+                                        delet = self.ts.Elements.IsDeletable(i)
+
+                                        #print("value: ", value, modif, delet )
+                                        #propType = self.ts.Elements.Delete(i)
+                                        #print("propType: ", propType)
+                #if spot drill
+                elif tool.toolType == 6:#spot drill
+                        #print("spot drill: ", l2)
+                        self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"L"), l2)
+                
+                else:
+                        
+                    if l2 > 0 and tool.toolType != 8 and tool.toolType != 9 and tool.toolType != 7:
+                        self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AD"), d2)
+                        self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"CTS_AL"), l2)
+                                
+                from TopSolid.Kernel.Automating import SmartText
+
+                smartTextType = SmartText(self.ts.Parameters.GetDescriptionParameter(savedToolModif))
             
-            self.ts.Documents.Save(savedToolModif)
-            self.ts.Documents.Open(savedToolModif)
+                self.ts.Parameters.PublishText(savedToolModif, "FR", smartTextType)
 
-            #print("Created tool with id: ", savedToolModif.PdmDocumentId)
-            logging.info(f"Created tool with id: {savedToolModif.PdmDocumentId}")
-            tool.TSid = savedToolModif.PdmDocumentId
+                self.end_modif(True, False)
+                
+                self.ts.Documents.Save(savedToolModif)
+                self.ts.Documents.Open(savedToolModif)
+
+                #print("Created tool with id: ", savedToolModif.PdmDocumentId)
+                logging.info(f"Created tool with id: {savedToolModif.PdmDocumentId}")
+                tool.TSid = savedToolModif.PdmDocumentId
+                
+                #update tool in database
+                update_tool(tool)
+
+                if holder:
+                    self.add_tool_to_holder(output_lib, tool, holder)
             
-            #update tool in database
-            update_tool(tool)
-
-            if holder:
-                self.add_tool_to_holder(output_lib, tool, holder)
-        
         except Exception as ex:
             self.end_modif(True, False)
             print("Error copying tool: " + str(ex))
 
-        # Disconnect TopSolid and end the modification
-        #self.ts.Disconnect()
+            # Disconnect TopSolid and end the modification
+            #self.ts.Disconnect()
 
     def setRealParameter(self, doc, paramName, value):
         #setRealParameter(savedToolModif,"A_T", chamfer)

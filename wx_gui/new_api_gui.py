@@ -1,5 +1,7 @@
+import logging
 import wx
 import os
+import json
 
 # Import the TopSolidAPI class from the top_solid_api module
 from topsolid_api import TopSolidAPI
@@ -14,6 +16,8 @@ class TopSolidGUI(wx.Frame):
         self.panel = wx.Panel(self)
         self.create_widgets()
         self.Bind(wx.EVT_CLOSE, self.on_close)
+        self.right_clicked_button = None 
+
 
     def create_widgets(self):
         sizer = wx.BoxSizer(wx.VERTICAL)
@@ -52,6 +56,90 @@ class TopSolidGUI(wx.Frame):
 
         self.panel.SetSizer(sizer)
 
+        self.load_buttons()
+        
+    def create_context_menu(self):
+        menu = wx.Menu()
+        item_remove = menu.Append(wx.ID_ANY, "Remove")
+        self.Bind(wx.EVT_MENU, self.on_remove, item_remove)
+        return menu
+    
+    def on_right_click(self, event):
+        self.right_clicked_button = event.GetEventObject()
+        self.PopupMenu(self.create_context_menu())
+
+    def on_remove(self, event):
+
+        # Use the stored reference to the button
+        button = self.right_clicked_button
+
+        # Remove the button from the saved buttons
+        self.remove_button(button.GetLabel())
+
+        # Remove the button
+        if button:
+            button.Destroy()
+            self.panel.Layout()
+
+  
+
+    def remove_button(self, button_label):
+        # Carrega os botões salvos
+        saved_buttons = self.load_saved_buttons()
+
+        # Remove o botão
+        saved_buttons.remove(button_label)
+
+        # Salva os botões
+        with open('saved_buttons.json', 'w') as f:
+            json.dump(saved_buttons, f)
+
+    def on_add_button(self, event):
+        selected_function = self.function_combo.GetValue()
+        
+        # add new button to panel with selected function
+        new_button = wx.Button(self.panel, label=selected_function)
+        new_button.Bind(wx.EVT_BUTTON, self.on_execute)
+        new_button.Bind(wx.EVT_RIGHT_DOWN, self.on_right_click)
+ 
+        self.panel.GetSizer().Add(new_button, 0, wx.ALL | wx.CENTER, 10)
+        self.panel.Layout()
+
+        # Salva o botão adicionado
+        self.save_button(selected_function)
+
+    def save_button(self, button_label):
+        # Carrega os botões salvos
+        saved_buttons = self.load_saved_buttons()
+
+        # Adiciona o novo botão
+        saved_buttons.append(button_label)
+
+        # Salva os botões
+        with open('saved_buttons.json', 'w') as f:
+            json.dump(saved_buttons, f)
+
+    def load_buttons(self):
+        # Carrega os botões salvos
+        saved_buttons = self.load_saved_buttons()
+
+        # Cria os botões
+        for button_label in saved_buttons:
+            button = wx.Button(self.panel, label=button_label)
+            button.Bind(wx.EVT_BUTTON, self.on_execute)
+            button.Bind(wx.EVT_RIGHT_DOWN, self.on_right_click)
+            self.panel.GetSizer().Add(button, 0, wx.ALL | wx.CENTER, 10)
+
+        self.panel.Layout()
+
+    def load_saved_buttons(self):
+        # Carrega os botões salvos
+        try:
+            with open('saved_buttons.json', 'r') as f:
+                return json.load(f)
+        except FileNotFoundError:
+            return []
+
     def on_execute(self, event):
         selected_function = self.function_combo.GetValue()
 
@@ -64,8 +152,9 @@ class TopSolidGUI(wx.Frame):
             elif selected_function == "Test connection to TopSolid":
                 wx.MessageBox("Connected to TopSolid", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Get Current Project":
-                lib, name = self.topSolid.get_current_project()
-                wx.MessageBox(f"Current Project: {name}", "Success", wx.OK | wx.ICON_INFORMATION)
+                self.topSolid.get_current_project()
+                name = self.topSolid.get_name(self.topSolid.current_project)
+                wx.MessageBox(f"Current Project: {name} - {self.topSolid.current_project}", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Get Constituents of Current Project":
                 lib_const = self.topSolid.get_constituents(None, True)
                 wx.MessageBox(f"Constituents: {len(lib_const)}", "Success", wx.OK | wx.ICON_INFORMATION)
@@ -88,8 +177,9 @@ class TopSolidGUI(wx.Frame):
                 files = self.topSolid.get_open_files()
                 wx.MessageBox(f"Open Files: {files}", "Success", wx.OK | wx.ICON_INFORMATION)
             elif selected_function == "Export all to pdfs":
-                lib, name = self.topSolid.get_current_project()
-                print(lib, name)
+                self.topSolid.get_current_project()
+                name = self.topSolid.get_name(self.topSolid.current_project)
+                print(name)
                 lib_const = self.topSolid.get_constituents(None, True)
                 print(lib_const)
                 # get path to save pdfs
@@ -123,11 +213,12 @@ class TopSolidGUI(wx.Frame):
                     document_name = os.path.basename(file_path)
 
 
-                    lib, name = self.topSolid.get_current_project()
+                    #lib, name = self.topSolid.get_current_project()
+                    self.topSolid.get_current_project()
 
                 try:
                     # Chama o método import_documents
-                    imported_documents, log, bad_document_ids = self.topSolid.Import_file_w_conv(10, file_path, lib)
+                    imported_documents, log, bad_document_ids = self.topSolid.Import_file_w_conv(10, file_path, self.topSolid.current_project)
                     
                     # Examine os resultados conforme necessário
                     if imported_documents:
@@ -187,7 +278,7 @@ class TopSolidGUI(wx.Frame):
                     print(functions)
 
 
-    def on_add_button(self, event):
+    def on_add_buttonç(self, event):
         selected_function = self.function_combo.GetValue()
         
         # add new button to panel with selected function

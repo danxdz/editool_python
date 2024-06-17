@@ -44,6 +44,15 @@ class MainFrame(wx.Frame):
         sizer.Add(open3d_control, 1, wx.EXPAND)
         sizer.Add(panel, 0)
 
+        # add buttons to the panel
+        button1 = wx.Button(panel, label="Button 1")
+        button2 = wx.Button(panel, label="Button 2")
+        sizer2 = wx.BoxSizer(wx.VERTICAL)
+        sizer2.Add(button1, 0, wx.EXPAND)
+        sizer2.Add(button2, 0, wx.EXPAND)
+        panel.SetSizer(sizer2)
+        
+
         # Show the frame
         self.Show()
 

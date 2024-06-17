@@ -15,17 +15,20 @@ import os
 
 class MenusInter:
     def __init__(self, lang):
-        self.lang = lang
+        self.set_lang(lang)
+        ##self.lang = lang
         self.menus = {}
         self.load_menu()
 
-    def GetCustomLanguage(ts_lang):
+    def GetCustomLanguage(ts_lang=None):
         '''Get the language of the menus'''
         #read the config file to get the language
         data = []
-
-        # if no config file, get the language of the system
-        lang = ts_lang.split('-')[0]
+        if ts_lang:
+            # if no config file, get the language of the system
+            lang = ts_lang.split('-')[0]
+        else:
+            lang = "en"
 
         if os.path.isfile('config.txt'):            
             with open('config.txt', 'r', encoding='utf-8') as file:
@@ -42,7 +45,7 @@ class MenusInter:
         file.close()
         return lang
 
-    def set_lang(self, lang):
+    def set_lang(self, lang='en'):
         '''Set the language of the menus'''
         data = []
         config_exists = os.path.isfile('config.txt')

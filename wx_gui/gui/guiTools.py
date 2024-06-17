@@ -158,6 +158,10 @@ def refreshToolList(panel, toolData):
     selected = panel.olvSimple.GetSelectedObject()
     if selected:
         print("selected :: ", selected.name)
+        parent = panel.GetParent()
+        parent.selected_tool = selected
+
+
     
     tool_type = toolData.selected_toolType
     tools = toolData.full_tools_list
@@ -173,6 +177,13 @@ def refreshToolList(panel, toolData):
 
         panel.olvSimple.Refresh()
         print("INFO :: refreshToolList :: ", panel.olvSimple.GetItemCount(), " :: ", len(tools))
+        
+        tt = panel.olvSimple.GetObjects()
+        for i, tool in enumerate(tt):
+            if tool.TSid:
+                panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(204, 250, 229))
+            elif tool.imported:
+                panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(255, 255, 214))
 
     else:
         panel.olvSimple.SetObjects(tools)
@@ -182,7 +193,7 @@ def refreshToolList(panel, toolData):
     panel.Refresh()
     panel.Update()
     panel.Layout()
-    panel.olvSimple.Refresh()
+    #panel.olvSimple.Refresh()
 
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
@@ -254,6 +265,7 @@ def get_custom_settings(self):
 
     self.lang = lang
     
+
 
 def build_menus(self):
 

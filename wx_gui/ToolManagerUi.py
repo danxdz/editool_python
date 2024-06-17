@@ -15,6 +15,7 @@ from gui.guiTools import get_custom_settings
 from gui.guiTools import FileDialogHandler
 
 from databaseTools import load_tools_from_database
+from databaseTools import update_tool
 
 from importHolders.holdersPanel import HoldersSetupPanel
 
@@ -29,14 +30,12 @@ from tool import ToolsCustomData
 
 from topsolid_api import TopSolidAPI
 
-
 #from share.save_supabase import read_menu
 
 from importTools.dragdrop import FileDrop
 
+
 from help.help import HelpFrame
-
-
 
 class ToolManagerUI(wx.Frame):
     BACKGROUND_COLOUR = wx.Colour(240, 240, 240)
@@ -49,9 +48,12 @@ class ToolManagerUI(wx.Frame):
 
         super(ToolManagerUI, self).__init__(parent, title=title)
 
+        self.parent = parent
+
         self.ts = TopSolidAPI()
         self.selected_tooltype_name = "all"
         self.selected_toolType = -1
+        self.selected_tool = None
         self.icons_bar_widget = None
 
         self.mouse_pos = None
@@ -66,11 +68,10 @@ class ToolManagerUI(wx.Frame):
         #add F1 key to the help menu
         f1_id = wx.NewId()
     
-        self.file_drop_target = FileDrop(self)
+        self.file_drop_target = FileDrop(parent,self)
         
         # Set the drop target for the frame
         self.SetDropTarget(self.file_drop_target)
-
   
         self.Bind(wx.EVT_MENU, self.help, id=f1_id)
         self.Bind(wx.EVT_ENTER_WINDOW, self.help, id=f1_id)
@@ -85,7 +86,6 @@ class ToolManagerUI(wx.Frame):
         #add bind to click on the mouse so we can release it
         self.Bind(wx.EVT_LEFT_DOWN, self.on_mouse_click)
 
-
     def on_mouse_click(self, event):
         print(f"mouse click :: {event.GetPosition()}")
         #release the mouse
@@ -94,7 +94,6 @@ class ToolManagerUI(wx.Frame):
         else:
             self.CaptureMouse()
         #print(f"mouse click :: {event.GetPosition()}")
-            
         '''
 
     def on_quit(self, event):
@@ -105,19 +104,6 @@ class ToolManagerUI(wx.Frame):
         self.canvas.show()
         event.Skip()
 
-    def OnDropFile(self, path,  filename, file_extension):
-        # Handle the dropped file here
-        print("Dropped file:", filename, "Extension:", file_extension)
-        # call xml import
-        if file_extension == 'xml':
-            print("xml file")
-            tools = import_xml_wx.import_xml_file(self, path)
-            self.on_new_tool(tools)            
-
-        # call step import
-        elif file_extension in ['stp', 'step']:
-            print("step file")
-            self.on_import_step(None, path)
 
     def setupUI(self):
         '''load the gUI'''
@@ -147,6 +133,13 @@ class ToolManagerUI(wx.Frame):
         toolData.get_custom_ts_models()
         
         toolData.full_tools_list, existent_tooltypes = load_tools_from_database(-1, self.lang)
+
+        #change all tool.imported to False - 0
+        for tool in toolData.full_tools_list:
+            if tool.imported:
+                tool.imported = 0
+                #and save it to the database
+                update_tool(tool)
         
         for existent_tooltype in existent_tooltypes:
             toolData.existent_tooltypes.append(int(existent_tooltype))
@@ -289,9 +282,6 @@ class ToolManagerUI(wx.Frame):
         title = "Paste ISO13999 data" 
         import_past.open_file(self, title)         
 
-        #pasteDialog(self.panel, title).ShowModal()
-
-
     def on_export_xml(self, event):
         print("export_xml")
         title = "Choose a XML file:"
@@ -303,16 +293,13 @@ class ToolManagerUI(wx.Frame):
     def close_app(event, handle):
         print("exit",event.Title, handle, sep=" :: ")
         sys.exit()        
-    
 
     def toolSetupPanel(self, event):
         toolSetupPanel(self).ShowModal()
 
-    
     def HoldersSetupPanel(self, event):
         HoldersSetupPanel(self).ShowModal()
 
- 
 
     def change_language(self, event):
         '''change the language of the UI'''
@@ -334,7 +321,6 @@ class ToolManagerUI(wx.Frame):
         self.main_sizer.Add(self.panel, 1, wx.ALL | wx.CENTER | wx.EXPAND, 15)
         self.main_sizer.Layout()
         self.Refresh()
-        
 
     def on_mouse_move(self, event):
         print(f"mouse move :: {event.GetPosition()}")
@@ -343,9 +329,7 @@ class ToolManagerUI(wx.Frame):
         print(f"help :: {event.GetId()}")
         logging.info(f"{self.statusBar.GetStatusText()}")
         #show the help file
-
         HelpFrame(self, "Help",self.lang).Show()
-
     
     def about(self, event):
         wx.MessageBox("ediTool - Fast, Precise, Automated Editing \n\nVersion 0.1\n2024", "About ediTool", wx.OK | wx.ICON_INFORMATION)
@@ -353,3 +337,6 @@ class ToolManagerUI(wx.Frame):
     def exit(self, event):
         print("exit")
         self.Close()
+
+    def import_file(self, event):
+        print("import_file")

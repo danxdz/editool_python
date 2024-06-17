@@ -3,6 +3,7 @@ import wx
 from importTools.validateImportDialogue import validateToolDialog
 
 from gui.guiTools import refreshToolList
+
 from gui.toolPreview import OnPaint
 
 from databaseTools import delete_selected_item , load_tools_from_database
@@ -13,8 +14,10 @@ from gui.menus_inter import MenusInter
 
 import logging
 
-from gui.viewer3d import OpenGLCanvas
+from tool import ToolsDefaultsData
 
+from gui.viewer3d import OpenGLCanvas
+#from gui.pyopengl_demo import MyPanel
 
 
 
@@ -31,11 +34,17 @@ class ToolList(wx.Panel):
 
         #get the menu text from the dictionary
         menu = MenusInter(self.lang)
+        # menu text
+        self.create_tool = f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}"
+        self.clone_tool = f"{menu.get_menu('duplicate').capitalize()} {menu.get_menu('tool')}"
 
         self.parent = parent
         self.toolData = self.parent.toolData
         self.selected_tool = self.toolData.selected_tool
         
+        self.sort = True
+
+
         #initialize the tool list
         self.tool_labels = {}
 
@@ -50,17 +59,16 @@ class ToolList(wx.Panel):
         self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
         self.olvSimple.SetEmptyListMsg("No tools found")
         self.olvSimple.SetEmptyListMsgFont(self.font_10)
+        self.olvSimple.typingSearchesSortColumn = True
         
-        '''        self.imageListSmall = wx.ImageList(20, 10)
-        
+        '''        
+        self.imageListSmall = wx.ImageList(20, 10)        
         self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
-
         self.olvSimple.AddNamedImages('ballMill', "icons/ballMill.png")
         self.olvSimple.AddNamedImages('radiusMill', "icons/radiusMill.png")
         self.olvSimple.AddNamedImages('chamferMill', "icons/chamferMill.png")
         self.olvSimple.AddNamedImages('tslotMill', "icons/tslotMill.png")
         self.olvSimple.AddNamedImages('endMill', "icons/endMill.png")
-
         self.olvSimple.SetImageList(self.imageListSmall, wx.IMAGE_LIST_SMALL)'''
 
         print("toolData :: ", self.olvSimple.GetObjects(), len(self.toolData.full_tools_list))
@@ -68,7 +76,6 @@ class ToolList(wx.Panel):
         
         simpleColumns = [
             ColumnDefn("TS", "center", 50, self.olvSimple),
-
             ColumnDefn("Name", "left", 100, "name"),
             ColumnDefn("D1", "left", 50, "D1"),
             ColumnDefn("D2", "left", 50, "D2"),
@@ -79,8 +86,8 @@ class ToolList(wx.Panel):
             ColumnDefn("Z", "left", 50, "z"),
             ColumnDefn("Corner Radius", "left", 50, "cornerRadius"),
             ColumnDefn("Holder", "left", 50, "holder"),
-            ColumnDefn("TSid", "left", 50, "TSid"),
         ]
+            #ColumnDefn("TSid", "left", 50, "TSid"),
         self.olvSimple.SetColumns(simpleColumns)
 
         #self.olvSimple.CreateCheckStateColumn(0)
@@ -90,6 +97,13 @@ class ToolList(wx.Panel):
             self.olvSimple.SetObjects(self.toolData.full_tools_list)
 
             #self.olvSimple.cellEditMode = ObjectListView.CELLEDIT_F2ONLY
+            self.olvSimple.CreateCheckStateColumn()
+            #self.olvSimple.useAlternateBackColors = True
+            # set the colors for the rows
+            #self.olvSimple.oddRowsBackColor = wx.Colour(255, 255, 250) 
+            #self.olvSimple.evenRowsBackColor = wx.Colour(240, 240, 250)
+            self.olvSimple.oddRowsBackColor = wx.Colour(255, 255, 250) 
+            self.olvSimple.evenRowsBackColor = wx.Colour(255, 255, 250)         
             
         self.sizer.Add(self.olvSimple, 1, wx.ALL|wx.EXPAND, 5)
 
@@ -100,9 +114,13 @@ class ToolList(wx.Panel):
         #double left click event
         self.olvSimple.Bind(wx.EVT_LEFT_DCLICK, self.db_click, self.olvSimple)
 
+        #get the bond evt when click the list header
+        self.olvSimple.Bind(wx.EVT_LIST_COL_CLICK, self.on_sort)
+
         #create popup menu
         self.popup_menu = wx.Menu()
-        self.popup_menu.Append(0, f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}")
+        self.popup_menu.Append(0, self.create_tool)
+        #check if the tool have tsid
         self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
         self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
         #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
@@ -114,6 +132,7 @@ class ToolList(wx.Panel):
         self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
         # need to bind the paint event to the panel
         # create a sizer for the panel
+        
         self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
         self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
 
@@ -122,7 +141,28 @@ class ToolList(wx.Panel):
         
         #canvas = OpenGLCanvas(self)
         #self.sizer.Add(canvas, 1, wx.EXPAND)
+
+        #need to check list items and change the color of the line if the tool have tsid
+        self.checkToolsTSid(self.olvSimple)
         
+        refreshToolList(self, self.toolData)
+
+    def checkToolsTSid(self, olvSimple):
+        print("check")
+                
+    
+    def on_sort(self, event):
+        print("on_sort")
+        #get the column name
+        selected_column = event.GetColumn()
+        print("col_name :: ", selected_column)
+        #get the order of the column
+        
+        self.sort = not self.sort
+        #sort the list
+        self.olvSimple.SortBy(selected_column, self.sort)
+        #refresh the list
+        self.olvSimple.RefreshObjects(self.olvSimple.GetObjects())
         refreshToolList(self, self.toolData)
 
 
@@ -135,6 +175,7 @@ class ToolList(wx.Panel):
 
             if tool:
                 OnPaint(self, dc, tool)
+
 
     def getTsImage(self, tool):
         #print("getTsImage :: ", tool.name)
@@ -155,10 +196,29 @@ class ToolList(wx.Panel):
         tool  = self.olvSimple.GetSelectedObject() or self.olvSimple.GetSelectedObjects()[0]
 
         if tool:
-            self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tool.toolType}")
+            # get tool type name
+
+            tsd = ToolsDefaultsData()
+            tooltype = tsd.tool_types[tool.toolType]
+
+            self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype}")
             self.parent.toolData.selected_tool = tool
             self.selected_tool = tool
             self.Refresh()
+
+            if tool.TSid:
+                self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype} :: TSid: {tool.TSid}")
+                # get right click menu button addToHolder
+                self.popup_menu.Enable(1, True)
+                # change the create tool button text
+                self.popup_menu.SetLabel(0, self.clone_tool)
+                #
+            else:
+                self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype}")
+                # get right click menu button addToHolder
+                self.popup_menu.Enable(1, False)
+                # change the create tool button text
+                self.popup_menu.SetLabel(0, self.create_tool)
                 
 
     def db_click(self, event):
@@ -166,7 +226,6 @@ class ToolList(wx.Panel):
 
         tool = self.olvSimple.GetSelectedObject()
 
-        #EditDialog(self,tool, self.toolData.tool_types_list).ShowModal()
         validateToolDialog(self, tool, False).ShowModal()
 
 
@@ -222,7 +281,7 @@ class ToolList(wx.Panel):
         elif id == 4:
             msg = "not implemented yet"
             #alertbox that will show the message
-            dlg = wx.MessageDialog(self, msg, "Export tool", wx.OK)
+            dlg = wx.MessageDialog(self, msg, "Open tool", wx.OK)
             dlg.ShowModal()
             dlg.Destroy()
 

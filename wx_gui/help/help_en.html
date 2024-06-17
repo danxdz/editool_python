@@ -1,0 +1,102 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Application Help</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+        }
+        #container {
+            display: flex;
+            height: 100vh;
+        }
+        #sidebar {
+            width: 200px;
+            background-color: #f0f0f0;
+            padding: 20px;
+            border-right: 1px solid #ccc;
+        }
+        #content {
+            flex: 1;
+            padding: 20px;
+            overflow-y: auto;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+            margin: 0;
+        }
+        li {
+            margin-bottom: 10px;
+        }
+        a {
+            text-decoration: none;
+            color: #333;
+        }
+        a:hover {
+            color: #666;
+        }
+        img {
+            max-width: 100%;
+            height: auto;
+            margin-bottom: 20px;
+        }
+        h1 {
+            margin-top: 0;
+        }
+        p {
+            margin-top: 0;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div id="container">
+        <div id="sidebar">
+            <ul>
+                <li><a href="#topic1">Import XML</a></li>
+                <li><a href="#topic2">Import .step</a></li>
+                <li><a href="#topic3">Topic 3</a></li>
+                <li><a href="#topic4">Topic 4</a></li>
+                <li><a href="#topic5">Topic 5</a></li>
+            </ul>
+        </div>
+        <div id="content">
+            <h1 id="topic1">Import XML Tool File</h1>
+            <p>Import tool data from XML files (DIN4000 data).</p>
+            <p>Supported tool manufacturers:</p>
+            <ul>
+                <li>FRAISA</li>
+                <li>HOFFMAN</li>
+                <li>CERATIZIT</li>
+                <li>JONGEN</li>
+            </ul>
+            <img src="xml_1.png" alt="xml data">
+            <img src="xml_2.png" alt="xml import">
+            <img src="xml_3.png" alt="xml files">
+            <img src="xml_4.png" alt="xml edit/save">
+
+
+            <h1 id="topic2">Import .step files</h1>
+            <p>Supports the step file importation to holder that have correct configuration, like CIP frame</p>
+            <img src="image2.jpg" alt="Image 2">
+
+            <h1 id="topic3">Topic 3</h1>
+            <p>Content of topic 3...</p>
+            <img src="image3.jpg" alt="Image 3">
+
+            <h1 id="topic4">Topic 4</h1>
+            <p>Content of topic 4...</p>
+            <img src="image4.jpg" alt="Image 4">
+
+            <h1 id="topic5">Topic 5</h1>
+            <p>Content of topic 5...</p>
+            <img src="image5.jpg" alt="Image 5">
+        </div>
+    </div>
+</body>
+</html>
