@@ -290,15 +290,16 @@ class TopSolidAPI:
         '''get tools from tools library'''
         #toolsList<ElementId> GetTools(DocumentId inDocumentId,bool inUsed)
         tools = self.ts_cam.Documents.GetTools(doc_id, used)
-        print("tools :: ", tools, len(tools))
-        
-        for t in tools:
-            print(self.get_name(t))
-            #params = self.ts_cam.Tools.GetParameters(t)
-            #print("params :: ", params, len(params))
-            #for p in params: 
-             #   print(p)
-            #List<ElementId> GetConstituents(	ElementId inElementId )
+        if tools is not None:
+            print("tools :: ", tools, len(tools))
+            
+            for t in tools:
+                print(self.get_name(t))
+                #params = self.ts_cam.Tools.GetParameters(t)
+                #print("params :: ", params, len(params))
+                #for p in params: 
+                #   print(p)
+                #List<ElementId> GetConstituents(	ElementId inElementId )
 
 
     def initFolders(self):
@@ -319,39 +320,42 @@ class TopSolidAPI:
             # Handle
             print("error :: ", ex)
 
-    def get_constituents(self, proj, printInfo = False):
-        '''get constituents of current project'''
+    def get_constituents(self, proj, printInfo=False):
+        '''Get constituents of current project'''
         if proj is None:
             proj = self.ts.Pdm.GetCurrentProject()
 
         proj_const = self.ts.Pdm.GetConstituents(proj)
         proj_name = self.get_name(proj)
- 
+    
         files = self.check_folder_or_file(proj_const, printInfo)
         
         if printInfo:
             self.print_folder(proj_const, proj_name)
-        return files
+        
+        return proj, files
 
-    def check_folder_or_file(self, folder_const, printInfo = False):        
+    def check_folder_or_file(self, folder_const, printInfo=False):
         files = []
+        
         for file in folder_const[1]:
-            #printInfo(file, "files")
             self.filter_types(file, printInfo)
             files.append(file)
             
         for dir in folder_const[0]:
-            #print ("folder path ::", self.get_name(dir))
-
-            iFiles = self.get_constituents(dir, printInfo)
-            for i in iFiles:
-                files.append(i)
+            folder_name = self.get_name(dir)
+            folder_contents = self.get_constituents(dir, printInfo)[1]
+            files.append((folder_name, folder_contents))
+            
         return files
+
 
 
     def filter_types(self, file, printInfo = False):
         file_type = self.get_type(file)
-        match file_type:
+        #file_type = "(<TopSolid.Kernel.Automating.PdmObjectType object at 0x000001DBE3697EC0>, '.TopPrt')"
+        ff = file_type[1]
+        match ff:
             case ".TopPrt":
                 type_text = "part"               
             case ".TopAsm":
@@ -362,6 +366,8 @@ class TopSolidAPI:
                 type_text = "mill turn"
             case ".TopMacComp":
                 type_text = "machine component"
+            case ".TopNewPrtSet":
+                type_text = "part set"
             case ".png":
                 type_text = "image"
             case ".jpg":
@@ -402,9 +408,11 @@ class TopSolidAPI:
             if str(raw_ts_type[0]) == "Folder":
                 ts_type = str(raw_ts_type[0])
             else:
-                ts_type = str(self.ts.Pdm.GetType(obj)[1])
+               # ts_type = str(self.ts.Pdm.GetType(obj)[1])
+               ts_type = self.ts.Pdm.GetType(obj)
         elif obj_type is self.auto.DocumentId:
-            ts_type = str(self.ts.Documents.GetType(obj)[0])
+            #ts_type = str(self.ts.Documents.GetType(obj)[0])
+            ts_type = str(self.ts.Documents.GetTypeFullName(obj))
         elif obj_type is self.auto.ElementId:
             ts_type = str(self.ts.Elements.GetTypeFullName(obj))
 
@@ -412,17 +420,19 @@ class TopSolidAPI:
 
     def get_name(self, obj):
         '''get name of object by type, either PdmObjectId, DocumentId or ElementId'''
-        obj_type = type(obj)
-        name = ""
-        
-        if obj_type is self.auto.PdmObjectId:
-            name = str(self.ts.Pdm.GetName(obj))
-        elif obj_type is self.auto.DocumentId:
-            name = str(self.ts.Documents.GetName(obj))
-        elif obj_type is self.auto.ElementId:
-            name = str(self.ts.Elements.GetName(obj))
+        if isinstance(obj, (self.auto.PdmObjectId, self.auto.DocumentId, self.auto.ElementId)):
+            if obj.IsEmpty is False:
+                obj_type = type(obj)
+                name = ""
+                
+                if obj_type is self.auto.PdmObjectId:
+                    name = str(self.ts.Pdm.GetName(obj))
+                elif obj_type is self.auto.DocumentId:
+                    name = str(self.ts.Documents.GetName(obj))
+                elif obj_type is self.auto.ElementId:
+                    name = str(self.ts.Elements.GetName(obj))
 
-        return name
+                return name
 
     def print_info(self, file, msg):
         '''print info about TS object'''
@@ -432,7 +442,7 @@ class TopSolidAPI:
 
     def print_folder(self, folder_const, folder_name):
         if len(folder_const[0]) > 0 or len(folder_const[1]) > 0:
-            print(f"project {folder_name} @ have ", end="")
+            print(f"folder :: {folder_name} @ have ", end="")
             if len(folder_const[0]) > 0:
                 print(f"{len(folder_const[0])} folders ", end="")
             if len(folder_const[1]) > 0:
@@ -441,6 +451,12 @@ class TopSolidAPI:
                 print("")
         else:
             print(f"dir {folder_name} is empty")
+
+    def get_open_projects(self):
+        #List<PdmObjectId> GetOpenProjects(bool inGetsWorkingProjects,bool inGetsLibraryProjects)
+        '''get all open projects'''
+        projects = self.ts.Pdm.GetOpenProjects(True, False)
+        return projects
 
     def get_current_project(self):
         self.current_project = self.ts.Pdm.GetCurrentProject()
@@ -1367,7 +1383,7 @@ class TopSolidAPI:
 
             newTool =  self.ts.Pdm.CopySeveral(assemblyModelId, output_lib)
 
-            print(f"Tool copied successfully!", newTool[0].Id)
+            print(f"Tool copied successfully! {newTool[0].Id}")
             
             newToolDocId = self.ts.Documents.GetDocument(newTool[0])
 
@@ -1400,7 +1416,7 @@ class TopSolidAPI:
                         IsInclusion = self.ts_d.Assemblies.IsInclusion(o)
                         print("child: ", IsInclusion, o.DocumentId)
 
-                        if IsInclusion == True:
+                        if IsInclusion is True:
 
                             newTool = elemModelId[i]  #self.ts.Documents.GetDocument(elemModelId[i])
                             i = i + 1
@@ -1427,7 +1443,7 @@ class TopSolidAPI:
 
     def check_existing_tool(self, window, tool):        
         #check if tool is created
-        if tool.TSid == "" or tool.TSid == None :
+        if tool.TSid == "" or tool.TSid is None :
             print("INFO :: check_existing_tool :: ", tool.name," not created in ts")
             return True
         else:        
@@ -1453,7 +1469,7 @@ class TopSolidAPI:
     def copy_tool(self, window , tool, holder, clone): #holder = true or false
         '''create a new tool in TS -> copy tool model and set tool parameters'''
         exists = self.check_existing_tool(window, tool)
-        if not exists and clone == False:
+        if not exists and clone is False:
             return
         else:
             #create a new tool in TS and update TSid in database
@@ -1607,10 +1623,10 @@ class TopSolidAPI:
                     #print("z: ", z)
 
                 if tool.D1:
-                    if tool.D1 != None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
+                    if tool.D1 is not None and tool.D1 != 0 and tool.D1 != "None": #Fix for D1 = "None"
                         d1 = float(tool.D1 / 1000).__round__(5)                
                 if tool.D2: #Fix for D2 = "None"
-                    if tool.D2 != None and tool.D2 != 0 and tool.D2 != "None":
+                    if tool.D2 is not None and tool.D2 != 0 and tool.D2 != "None":
                         d2 = float(tool.D2 / 1000).__round__(5)
                 else:
                     if tool.toolType == 7:
@@ -1627,7 +1643,7 @@ class TopSolidAPI:
                     l3 = float(tool.L3 / 1000).__round__(5) if tool.L3 is not None and tool.L3 != 0 else 0            
                 if tool.cornerRadius:
                     #print("cornerRadius: ", tool.cornerRadius, tool.toolType  )
-                    if tool.cornerRadius != None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
+                    if tool.cornerRadius is not None and tool.cornerRadius != 0 and tool.cornerRadius != "None":
                         r = float(tool.cornerRadius / 1000).__round__(5)
                         if tool.toolType == 1:#radius mill
                             self.ts.Parameters.SetRealValue(self.ts.Elements.SearchByName(savedToolModif,"r"), r)  
