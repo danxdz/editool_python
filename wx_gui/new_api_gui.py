@@ -34,7 +34,7 @@ class TopSolidGUI(wx.Frame):
         #add file menu to menu bar
         menu_bar.Append(file_menu, "File")
 
-        #add meni Pdm
+        #add menu Pdm
         pdm_meth = self.topSolid.ts.Pdm
         doc_meth = self.topSolid.ts.Documents
         #add a menu to pdm
