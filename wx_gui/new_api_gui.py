@@ -65,16 +65,11 @@ class TopSolidGUI(wx.Frame):
         menu_bar.Append(pdm_menu, "Pdm")
         menu_bar.Append(doc_menu, "Documents")
 
-
-
-
-
-
         #add menu bar to frame
         self.SetMenuBar(menu_bar)
 
         self.pdm = None
-        self.doc_id = None
+        self.doc_id = []
 
         #add text to status bar
         self.SetStatusText("TopSolid API GUI")
@@ -91,22 +86,27 @@ class TopSolidGUI(wx.Frame):
 
         #add a listener to when window  get focus
         self.Bind(wx.EVT_ACTIVATE, self.project_status_refresh)
-        #add a listener when item get double clicked
-        self.Bind(wx.EVT_LEFT_DCLICK, self.on_tree_dclick)
+        
         #self.Bind(wx.EVT_ACTIVATE, self.refresh_tree)
         self.refresh_tree()
 
-    def on_tree_dclick(self, event):
-        item = event.GetItem().GetText()
-        print(item)        
+    def on_tree_double_click(self, event):
+        item = event.GetItem()
+        print(item) 
+        data = self.tree.GetItemData(item)
+        if data is not str and data != "Folder":
+                self.topSolid.open_file(data)
+                #self.topSolid.ts.Documents.Open(self.topSolid.ts.Documents.GetDocument(data))       
 
     def on_tree_select(self, event):
         item = event.GetItem()
-        print(f"Selected item: {self.tree.GetItemText(item)}")
         #get data from selected item
         data = self.tree.GetItemData(item)
-        if data:
-            print(f"Data: {data}")
+        
+        if not data:
+            data = "No Data"
+            
+        print(f"Selected item: {self.tree.GetItemText(item)} - {data}")
 
     def refresh_tree(self, event=None):
         # Clear the tree
@@ -129,6 +129,8 @@ class TopSolidGUI(wx.Frame):
         for project in all_projects:
             project_name = self.topSolid.get_name(project)
             project_item = self.tree.AppendItem(root, project_name, data=project)
+            #add a listener when item get double clicked
+            self.tree.Bind(wx.EVT_TREE_ITEM_ACTIVATED, self.on_tree_double_click)
             
             # Add the project's constituents as children of the project
             if show_all_files:
@@ -182,9 +184,12 @@ class TopSolidGUI(wx.Frame):
         event.Skip() 
     
     def on_tree_right_click(self, event):
-        item = event.GetItem()
+        #item = event.GetItem()
+        #get all selected nodes
         
-        if item:
+        selected_nodes = self.tree.GetSelections()
+        
+        for item in selected_nodes:
             #create PdmObjectId from item data
             #public PdmObjectId(string inPdmObjectId)
             pdm_id = self.tree.GetItemData(item)
@@ -194,8 +199,8 @@ class TopSolidGUI(wx.Frame):
        
                 print(f'Right clicked item: {self.tree.GetItemText(item)} - {self.topSolid.get_name(doc)} - {self.topSolid.get_name(proj)} - {proj.Id} - {doc.PdmDocumentId}')
 
-            self.tree.SelectItem(item)
-            self.PopupMenu(self.ts_tree_menu(pdm_id))
+        self.tree.SelectItem(item)
+        self.PopupMenu(self.ts_tree_menu(selected_nodes))
     
    
     def get_real_value_for_param(self, param, docId=None):
@@ -239,30 +244,32 @@ class TopSolidGUI(wx.Frame):
             command = getattr(self.pdm, attribute, None)
             if command:
                 try:
-                    # Verifica os argumentos do comando usando inspect
-                    sig = inspect.signature(command)
-                    # create a list to store the parameters
-                    args = []
-                    for param in sig.parameters.values():
-                        # get the real value for the parameter
-                        value = self.get_real_value_for_param(param, self.doc_id)
-                        if value is not None:
-                            args.append(value)
-                    # execute the command
-                    if command.__name__ == 'Update':
-                        self.topSolid.ts.Application.StartModification("Update ", True)
-                        doc = self.topSolid.ts.Documents.GetDocument(self.doc_id)
-                        dirty_doc = self.topSolid.ts.Documents.EnsureIsDirty(doc)
-                        #change doc id in args
-                        args[0] = dirty_doc
-                        result = command(*args)
-                        self.topSolid.ts.Application.EndModification(True, True)
+                    for pdm_id in self.doc_id:
+                     
+                        # Verifica os argumentos do comando usando inspect
+                        sig = inspect.signature(command)
+                        # create a list to store the parameters
+                        args = []
+                        for param in sig.parameters.values():
+                            # get the real value for the parameter
+                            value = self.get_real_value_for_param(param, pdm_id)
+                            if value is not None:
+                                args.append(value)
+                        # execute the command
+                        if command.__name__ == 'Update':
+                            self.topSolid.ts.Application.StartModification("Update ", True)
+                            doc = self.topSolid.ts.Documents.GetDocument(pdm_id)
+                            dirty_doc = self.topSolid.ts.Documents.EnsureIsDirty(doc)
+                            #change doc id in args
+                            args[0] = dirty_doc
+                            result = command(*args)
+                            self.topSolid.ts.Application.EndModification(True, True)
 
-                    else:
-                        result = command(*args)
-                    print(f"Result: {self.topSolid.get_name(self.doc_id)} gets {command.__name__}")
-                    if result:
-                        wx.MessageBox(f"Result: {result}", "Success", wx.OK | wx.ICON_INFORMATION)
+                        else:
+                            result = command(*args)
+                        print(f"Result: {self.topSolid.get_name(pdm_id)} gets {command.__name__}")
+                        if result:
+                            wx.MessageBox(f"Result: {result}", "Success", wx.OK | wx.ICON_INFORMATION)
 
                 except Exception as e:
                     print(f"Error executing {attribute}: {e}")
@@ -271,16 +278,24 @@ class TopSolidGUI(wx.Frame):
                 print(f"Attribute {attribute} not found in pdm")
                 wx.MessageBox(f"Attribute {attribute} not found in pdm", "Error", wx.OK | wx.ICON_ERROR)
 
-    def ts_tree_menu(self, pdm_id):
+    def ts_tree_menu(self, pdm_id_list):
         menu = wx.Menu()
-        if pdm_id is str or pdm_id == "Folder":
-            item_type_name = pdm_id
-        else:
+        item_type_name = []
 
-            doc = self.topSolid.ts.Documents.GetDocument(pdm_id)
-            item_type_name = self.topSolid.get_type(doc)
+        self.doc_id = []
+        
+        for pdm_id in pdm_id_list:
+            if pdm_id is str or pdm_id == "Folder":
+                item_type_name.append(pdm_id)
+            else:
+                #get data from selected item
+                docObj = self.tree.GetItemData(pdm_id)
+                self.doc_id.append(docObj)
+                doc = self.topSolid.ts.Documents.GetDocument(docObj)
+                item_type_name = self.topSolid.get_type(doc)
+   
 
-
+            
         # Definir grupos de tipos
         pdm_group = [
             'TopSolid.Kernel.DB.Projects.ProjectDocument',
@@ -302,9 +317,9 @@ class TopSolidGUI(wx.Frame):
         elif item_type_name in documents_group:
             self.pdm = self.topSolid.ts.Documents
         else:
-            self.pdm = self.topSolid.ts.Pdm
+            self.pdm = self.topSolid.ts
+        
 
-        self.doc_id = pdm_id
 
         if self.pdm:
             for letter in "abcdefghijklmnopqrstuvwxyz":
