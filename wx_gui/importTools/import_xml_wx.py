@@ -277,7 +277,7 @@ def din4000_xml_parser(tool):
                 newTool.D1 = get_property_value(tool, "A11")
                 newTool.D2 = get_property_value(tool, "A11_2")
                 newTool.D3 = get_property_value(tool, "C3")
-                newTool.L1 = get_property_value(tool, "B4") or get_property_value(tool, "B2_2")
+                newTool.L1 = get_property_value(tool, "D3")#get_property_value(tool, "B4") or get_property_value(tool, "B2_2")
                 newTool.L2 = get_property_value(tool, "B3")
                 newTool.L3 = get_property_value(tool, "B5")
                 newTool.chamfer = get_property_value(tool, "E4_2")

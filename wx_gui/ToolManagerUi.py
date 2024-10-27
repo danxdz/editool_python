@@ -173,7 +173,7 @@ class ToolManagerUI(wx.Frame):
 
     def setFrameSizeAndPosition(self):
         screenWidth, screenHeight = wx.GetDisplaySize()
-        self.SetSize(int(screenWidth / 3), int(screenHeight) - 100)
+        self.SetSize(int(screenWidth / 3)+50, int(screenHeight) - 100)
         self.SetPosition(self.PANEL_POSITION)
         self.Show()
         

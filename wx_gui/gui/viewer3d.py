@@ -249,21 +249,3 @@ class OpenGLCanvas(GLCanvas):
         glEnd()
 
 
-class test(wx.Frame):
-    def __init__(self):
-        """
-        Initialisation de la frame utilisée pour afficher le canvas openGL
-        """
-        wx.Frame.__init__(self, None, \
-                          title = "Basic Shapes", \
-                          size = (506, 432))
-        aire = OpenGLCanvas(self)
-        panel = wx.Panel(self, -1, size = (100, 432))
-
-        sizer = wx.BoxSizer(wx.HORIZONTAL)
-        sizer.Add(aire, 1, wx.EXPAND)
-        sizer.Add(panel, 0)
-        
-        self.SetSizer(sizer)
-
-        self.Show()

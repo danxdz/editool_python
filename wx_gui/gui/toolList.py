@@ -16,7 +16,7 @@ import logging
 
 from tool import ToolsDefaultsData
 
-from gui.viewer3d import OpenGLCanvas
+from gui.vp import OpenGLCanvas
 #from gui.pyopengl_demo import MyPanel
 
 
@@ -129,18 +129,39 @@ class ToolList(wx.Panel):
         #self.popup_menu.Append(4, "Export")
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
         
-        self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
-        # need to bind the paint event to the panel
-        # create a sizer for the panel
-        
-        self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
-        self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
+        #2d preview of the tool
 
+        #self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
+        #self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
+        #self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
+
+
+        #3d preview of the tool
         #add scene to the panel
-        #self.setScene()
-        
-        #canvas = OpenGLCanvas(self)
-        #self.sizer.Add(canvas, 1, wx.EXPAND)
+        #self.setScene()        
+        canvas = OpenGLCanvas(self)
+        self.sizer.Add(canvas, 1, wx.EXPAND)
+
+        #grid with tool parameters
+        self.toolParamsPanel = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/15)), style=wx.BORDER_SIMPLE)
+        self.toolParamsPanel.SetBackgroundColour(wx.Colour(255, 255, 250))
+        self.toolParamsPanel.SetFont(self.font_tool_params_12)
+        #add textboxes to the panel
+        self.toolParamsPanel.SetSizer(wx.GridSizer(1, 10, 5, 5))
+        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D1"))
+        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
+        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D2"))
+        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
+        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D3"))
+        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
+        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="L1"))
+        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
+        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="L2"))
+        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
+
+
+        self.sizer.Add(self.toolParamsPanel, 1, wx.EXPAND)
+
 
         #need to check list items and change the color of the line if the tool have tsid
         self.checkToolsTSid(self.olvSimple)

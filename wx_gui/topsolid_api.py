@@ -49,15 +49,10 @@ class TopSolidAPI:
         self.connected = False
         self.editing = None
         self.current_project = None
-
-        
         # to select the right tool type on import STEP file
         self.tool = None
 
         self._initialize_topsolid()
-
-
-
 
     def _initialize_kernel(self, top_solid_path):
         try:
