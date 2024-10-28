@@ -116,14 +116,17 @@ class OpenGLCanvas(glcanvas.GLCanvas):
 
         glTranslatef(0, 0, -center_of_rotation) # Move the object to the center of the screen
         
-        self.drawText(self.pan_x*200+80, self.pan_y*200+400, (1, -0.25), "D1: " + str(self.Parent.selected_tool.D1))
 
 
         self.DrawCoordinateSystem(scaled_values["D1"]*1.5)  # You can adjust the size parameter as needed
 
 
-        self.DrawRule(scaled_values["L3"], scaled_values["D3"], 1*scale_width /100) 
-        
+        self.DrawRule(self.Parent.selected_tool.L3, scaled_values["L3"], scaled_values["D3"], 1*scale_width /100) 
+
+        #build text
+        text = "D1:" + str(self.Parent.selected_tool.D1) + "\n" + " L1:" + str(self.Parent.selected_tool.L1) 
+        self.drawText(0, 0.2, -.8, (1, -0.25), text)
+                
         neck = False
 
         # Draw the tool
@@ -164,8 +167,8 @@ class OpenGLCanvas(glcanvas.GLCanvas):
             glTranslatef(0, 0, scaled_values["D1"]/math.tan(math.radians(self.Parent.selected_tool.chamfer/2))-lineW)
             self.DrawCylinder(scaled_values["D2"], lineW, slices, cutContourColor)
             glTranslatef(0, 0, lineW)
-            self.DrawCylinder(scaled_values["D2"], l2-lineW, slices, cutFaceColor)
-            glTranslatef(0, 0, l2-lineW)
+            self.DrawCylinder(scaled_values["D2"], l2-lineW-cone_height-scaled_values["L1"], slices, cutFaceColor)
+            glTranslatef(0, 0, l2-lineW-cone_height-scaled_values["L1"])
        
             neck = False
 
@@ -233,12 +236,6 @@ class OpenGLCanvas(glcanvas.GLCanvas):
        
         self.SwapBuffers()
 
-    def drawText(self, x, y, color, text):
-        
-        glWindowPos2f(x,y)
-
-        for c in text:
-            glutBitmapCharacter(GLUT_BITMAP_HELVETICA_12, ord(c))
 
 
     def DrawSphere(self, radius, slices,color):
@@ -310,8 +307,25 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         
         glPopMatrix()
 
+    def drawText(self, x, y, z, color, text):
+        # Save current attributes
+      
 
-    def DrawRule(self, size=1.0,diam=1.0, step=1.0):
+        # Draw 3D numbers
+        glPushMatrix()
+        glTranslatef(x, y, z)
+        glRotatef(self.camera_angle_y*-1, 0, 1, 0)
+        glRotatef(self.camera_angle_x*-1, 1, 0, 0)
+        glScalef(0.0004, 0.0004, 0.0004)
+        for line in text.split("\n"):
+            for char in line:
+                glutStrokeCharacter(GLUT_STROKE_MONO_ROMAN, ord(char))
+            
+
+        glPopMatrix()
+
+
+    def DrawRule(self, l3, size=1.0,diam=1.0, step=1.0):
         """
         Draw a rule with numbers
         Args:
@@ -326,6 +340,8 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         # Draw rule
         glBegin(GL_LINES)
         for i in range(int(size*1.5 / step) + 1):
+            if i > l3:
+                break
             glColor3f(0.8, 0.8, 0.8)
             #change color every 10
             mult = 1.3
@@ -347,10 +363,19 @@ class OpenGLCanvas(glcanvas.GLCanvas):
             
             if i % 10 == 0:
                 glPushMatrix()
-                glTranslatef(0, -diam*1.5, i * step)
+                glTranslatef(0, -diam*1.5-0.06, i * step-0.02)
+                glRotatef(-90, 0, 1, 0)
                 glScalef(0.0005, 0.0005, 0.001)
                 glColor3f(0.2, 0.2, 0.2)
-                glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(str(i // 10)))
+                if i < 100:
+                    glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(str(i // 10)))
+                elif i >= 100:
+                    #100 gets to 10 divise into 2 numbers to get 1 and 0
+                    glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(str(i // 100)))
+                    glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(str((i // 10) % 10)))
+
+
+                
                 glPopMatrix()
 
 
@@ -394,7 +419,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         glTranslatef(-size-(size/5), 0, 0)
         glRotatef(90, 0, 1, 0)
         self.DrawCone(size/15, size/5, 20, red)
-        self.drawText(10, 10, (1.0, 0.0, 0.0), "X")
+        #self.drawText(10, 10, (1.0, 0.0, 0.0), "X")
         glRotatef(-90, 0, 1, 0)
         glTranslatef(size+(size/5), 0, 0)
 
@@ -402,7 +427,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         glTranslatef(0, size+(size/5),0)
         glRotatef(90, 1, 0, 0)
         self.DrawCone(size/15, size/5, 20, blue)
-        self.drawText(10, 50, (0.0, 0.0, 1.0), "Z")
+        #self.drawText(10, 50, (0.0, 0.0, 1.0), "Z")
         glRotatef(-90, 1, 0, 0)
         glTranslatef(0, -size-(size/5),0)
         
@@ -410,7 +435,7 @@ class OpenGLCanvas(glcanvas.GLCanvas):
         glTranslatef(0, 0, size+(size/5))
         glRotatef(180, 0, 1, 0)
         self.DrawCone(size/15, size/5, 20, green)
-        self.drawText(10, 30, (0.0, 1.0, 0.0), "Y")
+        #self.drawText(10, 30, (0.0, 1.0, 0.0), "Y")
         glRotatef(-180, 0, 1, 0)
         glTranslatef(0, 0, -size-(size/5))
 
