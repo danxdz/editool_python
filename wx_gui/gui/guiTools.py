@@ -199,7 +199,7 @@ def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
     #add buttons with tool types icons to the container
     #add first empty button
-    self.bt = wx.BitmapButton(self, id=-1, bitmap=wx.Bitmap(f'icons/noFilter.png'), name="noFilter",style=wx.BORDER_RAISED)
+    self.bt = wx.BitmapButton(self, id=-1, bitmap=wx.Bitmap('icons/noFilter.png'), name="noFilter",style=wx.BORDER_RAISED)
     self.bt.SetToolTip(wx.ToolTip("no filter"))
     self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
     self.bt.SetWindowStyleFlag(wx.NO_BORDER)
@@ -207,6 +207,10 @@ def tooltypesButtons(self):
     self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
     if self.selected_toolType == -1:
         self.bt.Enabled = False
+        #change the background color of the button
+        self.bt.SetBackgroundColour(wx.Colour(204, 204, 204))
+
+
     else:
         self.bt.Enabled = True
 
@@ -222,7 +226,10 @@ def tooltypesButtons(self):
 
         #add button to the container
         self.bt = wx.BitmapButton(self, id=i, bitmap=icon, name=toolType,style=wx.BORDER_RAISED)
-        self.bt.SetToolTip(wx.ToolTip(toolType))
+        #get language text for the tool type
+        menu = MenusInter(self.lang)
+        toolType_inter = f"{menu.get_menu(toolType).capitalize()}"
+        self.bt.SetToolTip(wx.ToolTip(toolType_inter))
         self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.bt.SetWindowStyleFlag(wx.NO_BORDER)
         self.bt.Enabled = False

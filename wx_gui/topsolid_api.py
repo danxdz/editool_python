@@ -486,15 +486,15 @@ class TopSolidAPI:
     def open_file(self, file):
         '''open file in TopSolid'''
         try:
-            self.ts.Documents.Open(self.ts.Documents.GetDocument(file))
-            #  docId = self.self.ts.Documents.GetDocument(file)
-            #from TopSolid.Kernel.Automating import DocumentId
+            #self.ts.Documents.Open(self.ts.Documents.GetDocument(file))
+            
+            from TopSolid.Kernel.Automating import DocumentId
             # check if type(file) = String
-            #if type(file) == str:
+            if type(file) == str:
                 #public DocumentId(string inPdmDocumentId) 
-                #file = DocumentId(file)
-            #res = self.ts.Documents.Open(file)
-            #print(f"file opened {res}")
+                file = DocumentId(file)
+            res = self.ts.Documents.Open(file)
+            print(f"file opened {res}")
         except Exception as ex:
             print(str(ex))
         finally:

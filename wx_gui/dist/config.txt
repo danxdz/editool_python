@@ -1,1 +1,2 @@
 lang;fr
+save_path;C:\Users\user\Downloads

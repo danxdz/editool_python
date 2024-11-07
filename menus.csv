@@ -88,11 +88,13 @@ unitTime;unit time;temps unitaire;tempo unitário
 TSid;TopSolid id;id TopSolid;id TopSolid
 tools_readed_db;Tools readed from database;Outils lus depuis la base de données;Ferramentas lidas da base de dados
 sideMill;Side Mill;Fraise;Fresa
-endMill;End Mill;Fraise;Fresa de topo
+endMill;End Mill;Fraise 2 tailles;Fresa de topo
 radiusMill;Radius Mill;Fraise à rayon;Fresa de raio
 ballNoseMill;Ball Nose Mill;Fraise hemisphérique;Fresa esférica
+ballMill;Ball Nose Mill;Fraise hemisphérique;Fresa esférica
 chamferMill;Chamfer Mill;Fraise à chanfreiner;Fresa de chanfro
 tSlotMill;T Slot Mill;Fraise à T;Fresa em T
+tslotMill;T Slot Mill;Fraise à T;Fresa em T
 dovetailMill;Dovetail Mill;Fraise à queue d'aronde;Fresa de cunha
 spotDrill;Spotting Drill;Foret à pointer;Broca de pontear
 centerDrill;Center Drill;Foret à centrer;Broca de centrar

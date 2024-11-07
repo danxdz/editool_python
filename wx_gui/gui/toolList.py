@@ -8,7 +8,7 @@ from gui.toolPreview import OnPaint
 
 from databaseTools import delete_selected_item , load_tools_from_database
 
-from ObjectListView import ObjectListView, ColumnDefn
+from ObjectListView3 import ObjectListView, ColumnDefn
 
 from gui.menus_inter import MenusInter
 
@@ -24,11 +24,15 @@ from gui.vp import OpenGLCanvas
 class ToolList(wx.Panel):    
     def __init__(self, parent):
         super().__init__(parent)
-            
+        
+        self.started = False
+
         self.font_10 = wx.Font(10, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_tool_params_12 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Courier 10 Pitch')
             
+        self.units = 0 #1 = cm, 0 = mm
+
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.ts = parent.ts
 
@@ -45,15 +49,56 @@ class ToolList(wx.Panel):
         self.sort = True
 
 
-        #initialize the tool list
-        self.tool_labels = {}
-
         #create the sizer
         self.sizer = wx.BoxSizer(wx.VERTICAL)
         self.SetSizer(self.sizer)
 
+        #make a box to hold the drop boxs
+        self.box = wx.BoxSizer(wx.HORIZONTAL)
+
+        #add drop box to filter the tools, fill the drop box with the tool D1, make it unique
+        #need to make something to make it for all the D1 d2 d3 L1 L2 L3 Z cornerRadius 
+        self.filters = ['D1', 'L1', 'L2', 'L3', 'z', 'cornerRadius']
+        #self.filters = ['D1', 'D2', 'D3', 'L1', 'L2', 'L3', 'z', 'cornerRadius']
+        self.filters_dropbox = []
+        self.actived_filters = []
+        
+        #create the drop box within a loop but create an index for each drop box
+        for index, filter in enumerate(self.filters):
+            tool_data = self.getToolData(filter)
+            #create the drop box
+            self.filters_dropbox.append(wx.ComboBox(self, -1, choices=tool_data, style=wx.CB_READONLY))
+            self.filters_dropbox[index].SetSelection(0)
+            #bind the drop box to the event and pass the index of the drop box
+            self.filters_dropbox[index].Bind(wx.EVT_COMBOBOX, lambda event, index=index: self.on_tool_data_change(event,index))
+            self.filters_dropbox[index].SetFont(self.font_10)
+            #add box to hold the drop box and the label
+            self.tab = wx.BoxSizer(wx.VERTICAL)
+            self.tab.Add(wx.StaticText(self, -1, filter), 0, wx.ALL|wx.LEFT, 5)
+            #add the drop box to the box
+            self.tab.Add(self.filters_dropbox[index], 0, wx.ALL|wx.LEFT, 5)
+            #add the box to the main box
+            self.box.Add(self.tab, 0, wx.ALL|wx.EXPAND, 5)
+
+
+        self.sizer.Add(self.box, 0, wx.ALL|wx.EXPAND, 5)
+
+
+        """
+        self.toolsD1 = self.getToolsD1(self.toolData.full_tools_list)
+        #create the drop box
+        self.toolType = wx.ComboBox(self, -1, choices=self.toolsD1, style=wx.CB_READONLY)
+        self.toolType.SetSelection(0)
+        self.toolType.Bind(wx.EVT_COMBOBOX, self.on_tool_d1_change)
+        self.toolType.SetFont(self.font_10)
+        self.sizer.Add(self.toolType, 0, wx.ALL|wx.EXPAND, 5)
+"""
+
         #this is the list control that will hold the tools list
         self.screenWidth, self.screenHeight = wx.GetDisplaySize()
+
+        #initialize the tool list
+        self.tool_labels = {}
 
         #get the columns for the list control from tool class
         self.olvSimple = ObjectListView(self, wx.ID_ANY, style=wx.LC_REPORT|wx.SUNKEN_BORDER)
@@ -75,7 +120,6 @@ class ToolList(wx.Panel):
 
         
         simpleColumns = [
-            ColumnDefn("TS", "center", 50, self.olvSimple),
             ColumnDefn("Name", "left", 100, "name"),
             ColumnDefn("D1", "left", 50, "D1"),
             ColumnDefn("D2", "left", 50, "D2"),
@@ -85,9 +129,9 @@ class ToolList(wx.Panel):
             ColumnDefn("L3", "left", 50, "L3"),
             ColumnDefn("Z", "left", 50, "z"),
             ColumnDefn("Corner Radius", "left", 50, "cornerRadius"),
-            ColumnDefn("Holder", "left", 50, "holder"),
+            ColumnDefn("TSid", "left", 50, "TSid"),
         ]
-            #ColumnDefn("TSid", "left", 50, "TSid"),
+            #ColumnDefn("Holder", "left", 50, "holder"),
         self.olvSimple.SetColumns(simpleColumns)
 
         #self.olvSimple.CreateCheckStateColumn(0)
@@ -119,12 +163,14 @@ class ToolList(wx.Panel):
 
         #create popup menu
         self.popup_menu = wx.Menu()
-        self.popup_menu.Append(0, self.create_tool)
         #check if the tool have tsid
-        self.popup_menu.Append(1, f"{menu.get_menu('createToolWithHolder').capitalize()}")
-        self.popup_menu.Append(2, f"{menu.get_menu('edit').capitalize()}")
+
+        self.popup_menu.Append(0, f'{menu.get_menu("open").capitalize()} {menu.get_menu("tool")}')
+        self.popup_menu.Append(1, self.create_tool)
+        self.popup_menu.Append(2, f"{menu.get_menu('createToolWithHolder').capitalize()}")
+        self.popup_menu.Append(3, f"{menu.get_menu('edit').capitalize()}")
         #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
-        self.popup_menu.Append(3, f"{menu.get_menu('delete').capitalize()}")
+        self.popup_menu.Append(5, f"{menu.get_menu('delete').capitalize()}")
         self.popup_menu.AppendSeparator()
         #self.popup_menu.Append(4, "Export")
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
@@ -137,30 +183,9 @@ class ToolList(wx.Panel):
 
 
         #3d preview of the tool
-        #add scene to the panel
-        #self.setScene()        
+        
         canvas = OpenGLCanvas(self)
         self.sizer.Add(canvas, 1, wx.EXPAND)
-
-        #grid with tool parameters
-        self.toolParamsPanel = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/15)), style=wx.BORDER_SIMPLE)
-        self.toolParamsPanel.SetBackgroundColour(wx.Colour(255, 255, 250))
-        self.toolParamsPanel.SetFont(self.font_tool_params_12)
-        #add textboxes to the panel
-        self.toolParamsPanel.SetSizer(wx.GridSizer(1, 10, 5, 5))
-        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D1"))
-        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
-        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D2"))
-        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
-        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="D3"))
-        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
-        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="L1"))
-        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
-        self.toolParamsPanel.GetSizer().Add(wx.StaticText(self.toolParamsPanel, label="L2"))
-        self.toolParamsPanel.GetSizer().Add(wx.TextCtrl(self.toolParamsPanel, size=(50, 20)))
-
-
-        self.sizer.Add(self.toolParamsPanel, 1, wx.EXPAND)
 
 
         #need to check list items and change the color of the line if the tool have tsid
@@ -168,6 +193,54 @@ class ToolList(wx.Panel):
         
         refreshToolList(self, self.toolData)
 
+        self.started = True
+
+    
+    def getToolData(self, filter, tools=None):
+        data = []
+        data.append("-") # make 1s value "-" to be the first value in the list so the user can select it to show all the tools
+        if tools is None:
+            tools = self.toolData.full_tools_list
+        for tool in tools:
+            value = getattr(tool, filter) # the filter is the key of the tool object
+            value = str(value) # convert the value to string to be able to add it to the list
+            if value not in data:
+                data.append(value)
+        return data
+    
+
+    def on_tool_data_change(self, event, index):
+        if self.started is False:
+            return      
+        #get the index of the selected filter
+        filter = self.filters_dropbox[index].GetValue()
+        self.actived_filters.append(filter)
+        logging.info("filters :: %s :: %s", self.actived_filters, index)
+        #filter the tools list by the selected filters, if many filters are selected, the index will be the last selected filter
+        #and need to remove the filter if the user select the "-" value 
+        #create a list to hold the tools filtered
+        tools = []
+        #get the tools list
+        tools = self.toolData.full_tools_list
+        #filter the tools list
+        for filter in self.actived_filters:
+            tools = [tool for tool in tools if str(getattr(tool, self.filters[index])) == filter]
+        
+        #refresh the list
+        self.olvSimple.SetObjects(tools)
+        #select the first tool
+        self.olvSimple.Select(0)
+        #refresh the cb filters
+        for i in range(len(self.filters_dropbox)):
+            if i != index:
+                #refresh the values of the filters for each filter
+                self.filters_dropbox[i].SetItems(self.getToolData(self.filters[i],tools))
+                #select the first value
+                self.filters_dropbox[i].SetSelection(0)
+
+        
+
+    
     def checkToolsTSid(self, olvSimple):
         print("check")
                 
@@ -230,16 +303,18 @@ class ToolList(wx.Panel):
             if tool.TSid:
                 self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype} :: TSid: {tool.TSid}")
                 # get right click menu button addToHolder
-                self.popup_menu.Enable(1, True)
+                self.popup_menu.Enable(2, True)
+                self.popup_menu.Enable(0, True)
                 # change the create tool button text
-                self.popup_menu.SetLabel(0, self.clone_tool)
+                self.popup_menu.SetLabel(1, self.clone_tool)
                 #
             else:
                 self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype}")
                 # get right click menu button addToHolder
-                self.popup_menu.Enable(1, False)
+                self.popup_menu.Enable(2, False)
+                self.popup_menu.Enable(0, False)
                 # change the create tool button text
-                self.popup_menu.SetLabel(0, self.create_tool)
+                self.popup_menu.SetLabel(1, self.create_tool)
                 
 
     def db_click(self, event):
@@ -277,13 +352,17 @@ class ToolList(wx.Panel):
          
 
     def selectOption(self, tool, id):
-        if id == 0:                
+        if id == 0:
+            print("floatMenu :: Open")
+            #open tool
+            print("open tool :: ", tool.name)
+            self.ts.open_file(tool.TSid)
+        elif id == 1:                
             print("floatMenu :: Create")      
             #create tool :: false = no holder 
             print("create tool :: ", tool.name)
             self.ts.copy_tool(self, tool, False, False)
-                
-        if id == 1:                
+        elif id == 2:                
             print("floatMenu ::  Insert into holder")     
             #create tool :: true = holder
             print("insert into holder for :: ", tool.name)
@@ -291,15 +370,14 @@ class ToolList(wx.Panel):
             #id = ts.get_tool_TSid(tool)
             #copy_holder(self, tool)
             self.ts.insert_into_holder(tool)
-
-        elif id == 2:
+        elif id == 3:
             print("floatMenu :: Edit :: ", tool.name )
             validateToolDialog(self, tool, False).ShowModal()
-        elif id == 3:
+        elif id == 5:
             print("floatMenu :: Delete")
             self.olvSimple.RemoveObject(tool)
             delete_selected_item(self.GetParent(),tool)
-        elif id == 4:
+        elif id == 5:
             msg = "not implemented yet"
             #alertbox that will show the message
             dlg = wx.MessageDialog(self, msg, "Open tool", wx.OK)
