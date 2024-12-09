@@ -15,53 +15,69 @@ import os
 
 class MenusInter:
     def __init__(self, lang):
-        self.set_lang(lang)
-        ##self.lang = lang
+        #self.set_lang(lang)
+        self.lang = lang
         self.menus = {}
         self.load_menu()
 
     def GetCustomLanguage(ts_lang=None):
-        '''Get the language of the menus'''
+        '''Get the custom language from the config file'''
         #read the config file to get the language
         data = []
-        if ts_lang:
-            # if no config file, get the language of the system
-            lang = ts_lang.split('-')[0]
-        else:
-            lang = "en"
+        lang = -1
 
         if os.path.isfile('config.txt'):            
             with open('config.txt', 'r', encoding='utf-8') as file:
                 data = file.readlines()
                 if data:
-                    lang = data[0].split(';')[1].strip()
-        else:
-            # create the config file with the default language
-            with open('config.txt', 'w', encoding='utf-8') as file:
-                file.write(f"lang;{lang}" + '\n')
-                lang = 'lang'
+                    for line in data:
+                        if line.startswith('lang'):
+                            lang = int(line.split(';')[1].strip())
+                            break
+            
+                
 
-        # close the file
-        file.close()
+            # close the file
+            file.close()
+      
+        # if no config file, do not set the language at this point
+
+        return lang
+    
+    def get_lang_code(lang):
+        lang = 0 if lang == 'en' else 1 if lang == 'fr' else 2 if lang == 'pt' else -1
         return lang
 
-    def set_lang(self, lang='en'):
+    def set_lang(self, lang=0):
         '''Set the language of the menus'''
         data = []
+        #if lang not int:
+        if isinstance(lang, str):
+            lang = lang.split('-')[0]
+            lang = MenusInter.get_lang_code(lang)
+
         config_exists = os.path.isfile('config.txt')
         if config_exists:
+            #open the file and read the data
             with open('config.txt', 'r', encoding='utf-8') as file:
                 data = file.readlines()
-                if data:
-                    data[0] = f"lang;{lang}" + '\n'
-                else:
-                    data.append(f"lang;{lang}" + '\n')
-            with open('config.txt', 'w', encoding='utf-8') as file:
+                #check if the language is already set
+                for line in data:
+                    if line.startswith('lang'): #if the line starts with lang
+                        data.remove(line) #remove the line
+                        break
+                #and else add the language to the file
+                data.append(f"lang;{lang}" + '\n')
+                #write the data
+                file = open('config.txt', 'w', encoding='utf-8')
                 file.writelines(data)
+            #close the file
+            file.close()
         else:
             with open('config.txt', 'w', encoding='utf-8') as file:
                 file.write(f"lang;{lang}" + '\n')
-        self.lang = lang
+        
+        return lang
 
 
     def get_language_by_id(self, lang_index):
@@ -88,12 +104,5 @@ class MenusInter:
 
     def get_menu(self, menu):
         #print("get_menu :: ", menu)
-        #print("get_menu :: ", self.menus[menu][self.lang])
-        if self.lang == 'en':
-            return self.menus[menu][0]
-        elif self.lang == 'fr':
-            return self.menus[menu][1]
-        elif self.lang == 'pt':
-            return self.menus[menu][2]
-        else:
-            return self.menus[menu][0]
+        #print("get_menu :: ", self.menus[menu][self.lang])        
+        return self.menus[menu][self.lang]

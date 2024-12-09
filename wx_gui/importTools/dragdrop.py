@@ -7,13 +7,14 @@ from importTools.validateImportDialogue import validateToolDialog
 
 from gui.guiTools import FileDialogHandler
 
+import numpy as np
+
 class FileDrop(wx.FileDropTarget):
-    def __init__(self, parent, window):
+    def __init__(self,  window, gl ):
         wx.FileDropTarget.__init__(self)
         self.window = window
         self.supported_extensions = ['stp', 'step', 'xml']
-
-        self.parent = parent
+        self.gl = gl
 
     def OnDropFiles(self, x, y, filenames):
         for filename in filenames:
@@ -27,21 +28,27 @@ class FileDrop(wx.FileDropTarget):
                 wx.MessageBox("File type not supported: %s" % file_extension, "Error", wx.OK | wx.ICON_ERROR)
         return True
     
-    def OnDropFile(self, path,  filename, file_extension):
-    # Call the function to handle the file import
+
+    def OnDropFile(self, path, filename, file_extension):
         
-        # Handle the dropped file here
         print("Dropped file:", filename, "Extension:", file_extension)
-        # call xml import
+
         if file_extension == 'xml':
             print("xml file")
+            logging.info("Importing XML file: %s" % path)
             tools = import_xml_wx.import_xml_file(self, path)
             self.on_new_tool(tools)            
 
-        # call step import
         elif file_extension in ['stp', 'step']:
             print("step file")
-            self.on_import_step(None, path)
+            self.gl.read_step_file_geometry(path)
+
+            # Prepare vertex and index arrays
+            self.gl.vertex_array = np.array(self.gl.vertices, dtype=np.float32)
+            self.gl.index_array = np.array(self.gl.indices, dtype=np.uint32)
+
+            # Compute normals
+            self.gl.normals = self.gl.compute_normals(self.gl.vertex_array, self.gl.index_array)
 
     
     def on_new_tool(self, tools):
@@ -62,8 +69,8 @@ class FileDrop(wx.FileDropTarget):
         
         else:
             try:
-            
-                self.ts = self.window.ts
+                parent = self.parent
+                self.ts = parent.ts
                 self.ts.get_current_project()
                 msg = f"Error importing documents: "
 

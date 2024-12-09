@@ -27,6 +27,7 @@ undo;undo;annuler;desfazer
 redo;redo;refaire;refazer
 exit;exit;quitter;sair
 create;create;créer;criar
+createTool;create tool;créer outil;criar ferramenta
 createToolWithHolder;into to holder;dans le porte-outil;no suporte
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
 importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP

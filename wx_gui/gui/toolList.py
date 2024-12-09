@@ -10,8 +10,6 @@ from databaseTools import delete_selected_item , load_tools_from_database
 
 from ObjectListView3 import ObjectListView, ColumnDefn
 
-from gui.menus_inter import MenusInter
-
 import logging
 
 from tool import ToolsDefaultsData
@@ -19,10 +17,11 @@ from tool import ToolsDefaultsData
 from gui.vp import OpenGLCanvas
 #from gui.pyopengl_demo import MyPanel
 
+import math
 
 
 class ToolList(wx.Panel):    
-    def __init__(self, parent):
+    def __init__(self, parent, gl):
         super().__init__(parent)
         
         self.started = False
@@ -31,22 +30,26 @@ class ToolList(wx.Panel):
         self.font_name = wx.Font(16, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_BOLD, False, 'Courier 10 Pitch')
         self.font_tool_params_12 = wx.Font(12, wx.FONTFAMILY_DEFAULT, wx.FONTSTYLE_NORMAL, wx.FONTWEIGHT_NORMAL, False, 'Courier 10 Pitch')
             
-        self.units = 0 #1 = cm, 0 = mm
+        self.units = 1 #1 = mm, 0 = cm
 
         self.lang = parent.lang #0 = en, 1 = fr, 2 = pt
         self.ts = parent.ts
-
-        #get the menu text from the dictionary
-        menu = MenusInter(self.lang)
+        self.menu = parent.menu
         # menu text
-        self.create_tool = f"{menu.get_menu('create').capitalize()} {menu.get_menu('tool')}"
-        self.clone_tool = f"{menu.get_menu('duplicate').capitalize()} {menu.get_menu('tool')}"
+        #self.menus[menu][self.lang]
+        self.create_tool = f"{self.menu.menus['createTool'][self.lang].capitalize()}"
+                              
+        self.clone_tool = f"{self.menu.menus['duplicate'][self.lang].capitalize()} {self.menu.menus['tool'][self.lang]}"
+                    
 
         self.parent = parent
         self.toolData = self.parent.toolData
         self.selected_tool = self.toolData.selected_tool
         
         self.sort = True
+
+        self.gl = gl
+
 
 
         #create the sizer
@@ -58,14 +61,14 @@ class ToolList(wx.Panel):
 
         #add drop box to filter the tools, fill the drop box with the tool D1, make it unique
         #need to make something to make it for all the D1 d2 d3 L1 L2 L3 Z cornerRadius 
-        self.filters = ['D1', 'L1', 'L2', 'L3', 'z', 'cornerRadius']
-        #self.filters = ['D1', 'D2', 'D3', 'L1', 'L2', 'L3', 'z', 'cornerRadius']
-        self.filters_dropbox = []
-        self.actived_filters = []
+        self.filters = [['D1', 0, 0], ['D2', 0, 0], ['D3', 0, 0], ['L1', 0, 0], ['L2', 0, 0], ['L3', 0, 0], ['z', 0, 0], ['cornerRadius', 0, 0], ['TSid', 0, 0]]
+        
+        self.filters_dropbox = []    
+        self.filtered_tools = self.toolData.full_tools_list
         
         #create the drop box within a loop but create an index for each drop box
         for index, filter in enumerate(self.filters):
-            tool_data = self.getToolData(filter)
+            tool_data = self.getToolData(filter[0])
             #create the drop box
             self.filters_dropbox.append(wx.ComboBox(self, -1, choices=tool_data, style=wx.CB_READONLY))
             self.filters_dropbox[index].SetSelection(0)
@@ -74,7 +77,7 @@ class ToolList(wx.Panel):
             self.filters_dropbox[index].SetFont(self.font_10)
             #add box to hold the drop box and the label
             self.tab = wx.BoxSizer(wx.VERTICAL)
-            self.tab.Add(wx.StaticText(self, -1, filter), 0, wx.ALL|wx.LEFT, 5)
+            self.tab.Add(wx.StaticText(self, -1, filter[0]), 0, wx.ALL|wx.LEFT, 5)
             #add the drop box to the box
             self.tab.Add(self.filters_dropbox[index], 0, wx.ALL|wx.LEFT, 5)
             #add the box to the main box
@@ -165,27 +168,53 @@ class ToolList(wx.Panel):
         self.popup_menu = wx.Menu()
         #check if the tool have tsid
 
-        self.popup_menu.Append(0, f'{menu.get_menu("open").capitalize()} {menu.get_menu("tool")}')
+        self.popup_menu.Append(0, f'{self.menu.menus["open"][self.lang].capitalize()} {self.menu.menus["tool"][self.lang]}')
         self.popup_menu.Append(1, self.create_tool)
-        self.popup_menu.Append(2, f"{menu.get_menu('createToolWithHolder').capitalize()}")
-        self.popup_menu.Append(3, f"{menu.get_menu('edit').capitalize()}")
-        #self.popup_menu.Append(5, f"{menu.get_menu('duplicate').capitalize()}")
-        self.popup_menu.Append(5, f"{menu.get_menu('delete').capitalize()}")
+        self.popup_menu.Append(2, f"{self.menu.menus['createToolWithHolder'][self.lang].capitalize()}")                                   
+        self.popup_menu.Append(3, f"{self.menu.menus['edit'][self.lang].capitalize()}")                                     
+        #self.popup_menu.Append(4, f"{menu.get_menu('duplicate').capitalize()}")
+        self.popup_menu.Append(5, f"{self.menu.menus['delete'][self.lang].capitalize()}")
         self.popup_menu.AppendSeparator()
         #self.popup_menu.Append(4, "Export")
         self.popup_menu.Bind(wx.EVT_MENU, self.on_menu_click)
         
         #2d preview of the tool
-
         #self.toolView = wx.Panel(self, size=(int(self.screenWidth/3), int(self.screenHeight/5)))
         #self.sizer.Add(self.toolView, 1, wx.EXPAND, border=5)
         #self.toolView.Bind(wx.EVT_PAINT, self._OnPaint)
 
+        #add radio buttons to select the units
+        self.units_box = wx.BoxSizer(wx.HORIZONTAL)
+        self.mm = wx.RadioButton(self, -1, 'mm', style=wx.RB_GROUP)
+        self.mm.SetValue(True)
+        self.mm.Bind(wx.EVT_RADIOBUTTON, self.on_units_change)
+        self.mm.SetFont(self.font_10)
+        self.units_box.Add(self.mm, 0, wx.ALL|wx.EXPAND, 5)
+        self.cm = wx.RadioButton(self, -1, 'cm')
+        self.cm.Bind(wx.EVT_RADIOBUTTON, self.on_units_change)
+        self.cm.SetFont(self.font_10)
+        self.units_box.Add(self.cm, 0, wx.ALL|wx.EXPAND, 5)
+        self.sizer.Add(self.units_box, 0, wx.ALL|wx.EXPAND, 5)
+
+        #add a slider to change the size of the tool preview, can have step 1
+        if self.toolData.selected_tool is not None:
+            l2 = int(self.toolData.selected_tool.L2)
+            l3 = int(self.toolData.selected_tool.L3 - self.toolData.selected_tool.D3)
+        else:
+            l2 = 0
+            l3 = 2
+
+        self.tool_slider = wx.Slider(self, -1, l2+2, l2, l3, style=wx.SL_HORIZONTAL|wx.SL_LABELS)
+        #need to change slider min and max values
+        
+   
+        self.tool_slider.Bind(wx.EVT_SLIDER, self.on_slider_change)
+        self.sizer.Add(self.tool_slider, 0, wx.ALL|wx.EXPAND, 5)
+
 
         #3d preview of the tool
-        
-        canvas = OpenGLCanvas(self)
-        self.sizer.Add(canvas, 1, wx.EXPAND)
+        gl_canvas = OpenGLCanvas(self, self.gl)
+        self.sizer.Add(gl_canvas, 1, wx.EXPAND)
 
 
         #need to check list items and change the color of the line if the tool have tsid
@@ -195,6 +224,22 @@ class ToolList(wx.Panel):
 
         self.started = True
 
+    def on_slider_change(self, event):
+        #get the value of the slider
+        value = self.tool_slider.GetValue()
+        #change the color of the slider if to close to the max value, gets red
+        if value >= (self.tool_slider.GetMax() - self.toolData.selected_tool.D3):
+            self.tool_slider.SetForegroundColour(wx.RED)
+        else:
+            self.tool_slider.SetForegroundColour(wx.BLACK)
+        self.Refresh()
+
+    def on_units_change(self, event):
+        if self.mm.GetValue():
+            self.units = 1
+        else:
+            self.units = 0
+        self.Refresh()
     
     def getToolData(self, filter, tools=None):
         data = []
@@ -213,18 +258,25 @@ class ToolList(wx.Panel):
         if self.started is False:
             return      
         #get the index of the selected filter
-        filter = self.filters_dropbox[index].GetValue()
-        self.actived_filters.append(filter)
-        logging.info("filters :: %s :: %s", self.actived_filters, index)
+        filter_value = self.filters_dropbox[index].GetValue()
+        self.filters[index][1] = filter_value
+        if filter_value == "-":
+            self.filters[index][2] = 0
+        else:
+            self.filters[index][2] = 1
+        logging.info("filters :: %s :: %s", self.filters, index)
         #filter the tools list by the selected filters, if many filters are selected, the index will be the last selected filter
         #and need to remove the filter if the user select the "-" value 
         #create a list to hold the tools filtered
         tools = []
         #get the tools list
-        tools = self.toolData.full_tools_list
-        #filter the tools list
-        for filter in self.actived_filters:
-            tools = [tool for tool in tools if str(getattr(tool, self.filters[index])) == filter]
+        tools = self.filtered_tools
+        #filter the tools list ; enumerate the filters list to get the index of the selected filter
+        for i, filter in enumerate(self.filters):
+            if filter[2] != 0:                
+                tools = [tool for tool in tools if str(getattr(tool, str(self.filters[i][0]))) == filter[1]]
+        
+        #self.filtered_tools = tools
         
         #refresh the list
         self.olvSimple.SetObjects(tools)
@@ -232,10 +284,8 @@ class ToolList(wx.Panel):
         self.olvSimple.Select(0)
         #refresh the cb filters
         for i in range(len(self.filters_dropbox)):
-            if i != index:
-                #refresh the values of the filters for each filter
-                self.filters_dropbox[i].SetItems(self.getToolData(self.filters[i],tools))
-                #select the first value
+            if i > index:
+                self.filters_dropbox[i].SetItems(self.getToolData(self.filters[i][0], self.filtered_tools))
                 self.filters_dropbox[i].SetSelection(0)
 
         
@@ -263,6 +313,9 @@ class ToolList(wx.Panel):
     def _OnPaint(self, event):
         #check if there is a any tool
         if len(self.toolData.full_tools_list) > 0:
+            
+            
+        
             tool = self.selected_tool
 
             dc = wx.PaintDC(self.toolView)
@@ -298,7 +351,20 @@ class ToolList(wx.Panel):
             self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype}")
             self.parent.toolData.selected_tool = tool
             self.selected_tool = tool
-            self.Refresh()
+            #self.Refresh()
+
+            #check if  int(self.toolData.selected_tool.L2) is int and round it up
+
+
+            if self.toolData.selected_tool.L2:
+                l2 = int(math.ceil(self.toolData.selected_tool.L2))
+            else:
+                l2 = int(math.ceil(self.toolData.selected_tool.L1)) 
+            l3 = int(math.ceil(self.toolData.selected_tool.L3 - self.toolData.selected_tool.D3))
+            
+            self.tool_slider.SetMin(l2)
+            self.tool_slider.SetValue(l2+2)
+            self.tool_slider.SetMax(l3)
 
             if tool.TSid:
                 self.parent.statusBar.SetStatusText(f"tool selected: {tool.name} :: {tooltype} :: TSid: {tool.TSid}")

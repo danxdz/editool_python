@@ -700,7 +700,7 @@ class TopSolidGUI(wx.Frame):
                 f.close()
 
             elif selected_function  == "Get culture language":
-                print(self.topSolid.get_language())
+                print(self.topSolid.get_ts_language())
 
             elif selected_function  == "Read functions from open file":
                 doc = self.topSolid.get_open_files()

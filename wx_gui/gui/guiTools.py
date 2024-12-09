@@ -182,8 +182,10 @@ def refreshToolList(panel, toolData):
         for i, tool in enumerate(tt):
             if tool.TSid:
                 panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(204, 250, 229))
+                panel.olvSimple.SetItem(i, 10, "X")
             elif tool.imported:
                 panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(255, 255, 214))
+                panel.olvSimple.SetItem(i, 10, "")
 
     else:
         panel.olvSimple.SetObjects(tools)
@@ -197,23 +199,19 @@ def refreshToolList(panel, toolData):
 
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
+    tool_icons = []
+
     #add buttons with tool types icons to the container
     #add first empty button
-    self.bt = wx.BitmapButton(self, id=-1, bitmap=wx.Bitmap('icons/noFilter.png'), name="noFilter",style=wx.BORDER_RAISED)
+    self.bt = wx.BitmapButton(self, id=99, bitmap=wx.Bitmap('icons/noFilter.png'), name="noFilter",style=wx.BORDER_RAISED)
     self.bt.SetToolTip(wx.ToolTip("no filter"))
     self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
     self.bt.SetWindowStyleFlag(wx.NO_BORDER)
-    self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+    #self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+    self.bt.SetWindowStyleFlag(wx.BORDER_RAISED)
+
     self.Bind(wx.EVT_BUTTON, self.filterToolType, id=-1)
-    if self.selected_toolType == -1:
-        self.bt.Enabled = False
-        #change the background color of the button
-        self.bt.SetBackgroundColour(wx.Colour(204, 204, 204))
-
-
-    else:
-        self.bt.Enabled = True
-
+    tool_icons.append(self.bt)
     
     #print("existent_tooltypes :: ", self.toolData.existent_tooltypes, self.selected_toolType)
 
@@ -233,13 +231,17 @@ def tooltypesButtons(self):
         self.bt.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.bt.SetWindowStyleFlag(wx.NO_BORDER)
         self.bt.Enabled = False
-        self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+        #self.iconsBar.Add(self.bt, 0, wx.ALL, 5)
+        tool_icons.append(self.bt)
         self.Bind(wx.EVT_BUTTON, self.filterToolType, id=i)
         if i in self.toolData.existent_tooltypes and i != self.selected_toolType:
            self.bt.Enabled = True
+        
+
 
     #add the container to the main sizer
-    return (self.iconsBar)
+    #return (self.iconsBar)
+    return tool_icons
 
 
 def get_custom_settings(self):
@@ -277,7 +279,8 @@ def get_custom_settings(self):
 def build_menus(self):
 
     #update the language of the menus
-    self.lang = MenusInter.GetCustomLanguage(self.ts_lang)
+    if (not self.lang) and self.lang != 0:
+        self.lang = MenusInter.GetCustomLanguage()
     #get the menu text from the dictionary
     self.menu = MenusInter(self.lang)
 
@@ -286,14 +289,15 @@ def build_menus(self):
 
     file_menu = wx.Menu()
 
-    open_xml = file_menu.Append(wx.ID_ANY, self.menu.get_menu("importXml"), 'open a xml file with tool data')        
+    open_xml = file_menu.Append(wx.ID_ANY, self.menu.menus['importXml'][self.lang], 'open a xml file with tool data')
     self.Bind(event=wx.EVT_MENU, handler=self.on_open_xml,source=open_xml,)
 
-    importStep = file_menu.Append(wx.ID_ANY, self.menu.get_menu("importSTEP"), 'import tool data from a step file')
-    self.Bind(event=wx.EVT_MENU, handler=self.on_import_step,source=importStep,)
-    self.Bind(event=wx.EVT_ENTER_WINDOW, handler=self.help,source=importStep,)
+    importStep = file_menu.Append(wx.ID_ANY, self.menu.menus['importSTEP'][self.lang], 'import tool data from a step file')
+    self.Bind(event=wx.EVT_MENU, handler=self.on_import_step,source=importStep)
     
-    ISO13999 = file_menu.Append(wx.ID_ANY, self.menu.get_menu("pasteISO"), 'paste tool data ISO13999')        
+    #self.Bind(event=wx.EVT_ENTER_WINDOW, handler=self.help,source=importStep)
+    
+    ISO13999 = file_menu.Append(wx.ID_ANY, self.menu.menus['pasteISO'][self.lang], 'paste tool data ISO13999')        
     self.Bind(event=wx.EVT_MENU, handler=self.on_paste_iso13999,source=ISO13999,)
 
     #exp_xml = file_menu.Append(wx.ID_ANY, self.menu.get_menu("exportXml"), 'export tool data into XML file')

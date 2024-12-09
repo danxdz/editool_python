@@ -3,15 +3,16 @@
 
 a = Analysis(
     ['editool.py'],
-    pathex=['../pyopengl/'],
+    pathex=[],
     binaries=[],
     datas=[],
-    hiddenimports=['pkg_resources.py2_warn'],
+    hiddenimports=[],
     hookspath=[],
     hooksconfig={},
     runtime_hooks=[],
     excludes=[],
     noarchive=False,
+    optimize=0,
 )
 pyz = PYZ(a.pure)
 

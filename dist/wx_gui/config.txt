@@ -1,0 +1,10 @@
+app;TopSolid 7;Application name to capture
+mouse_button;Button.x1;Button to open the menu
+menu_1;check_in_all_files;Check in all files
+menu_2;CTRL+SHIFT+O;Open projects
+menu_3;test_connection;Test connection
+menu_4;CTRL+SHIFT+O;Open project
+menu_5;CTRL+Z;Undo
+menu_6;CTRL+ALT+SHIFT+B;Rev sketch
+menu_7;ask_plan;Ask plan
+menu_8;import_files;Import holders
