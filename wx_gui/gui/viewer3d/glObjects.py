@@ -203,22 +203,26 @@ class glObjects:
                 glScalef(0.00052, 0.00052, 0.00052)
                 glColor3f(0.5, 0.5, 0.5)
           
+                # convert the number to string
+                if units == 0: #mm
+                    t = int(i /10) #convert to cm
+                    text = f"{t}" 
+                else:
+                    text = f"{i}" 
 
                 if i == l3: 
-                    # Draw the number make a for loop to draw the number if there are more than 1 digit
-                    text = f"{int(i)/10}"
+                    # Draw the number - loop - if len(text)> 1 
+                    glTranslatef(100, 0, 0)
+                    glScalef(1.6, 1.6, 1.6)
+                    if units == 0:
+                        text = f"{int(i)/10}"
                     for c in text:
                         glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(c))
+                    glTranslatef(-10, 0, 0)
+                    
                     glPopMatrix()
 
-                elif i < l3:
-                    # convert the number to string
-                    if units == 0: #mm
-                        t = int(i /10) #convert to cm
-                        text = f"{t}" 
-                    else:
-                        text = f"{i}" 
-
+                elif i < l3:                    
                     for c in text:
                         glutStrokeCharacter(GLUT_STROKE_ROMAN, ord(c))
 

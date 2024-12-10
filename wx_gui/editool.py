@@ -5,6 +5,7 @@ import logging
 from ToolManagerUi import ToolManagerUI
 from radial_menu.round import TransparentRadialMenu, start_pynput_listener
 
+
 if __name__ == "__main__":
     # Create or clear the log file
     open('editool.log', 'w').close()
@@ -18,6 +19,8 @@ if __name__ == "__main__":
     )
     
     logging.info('Starting ediTool')
+
+
     
     # Initialize the wxPython application
     app = wx.App()
@@ -27,14 +30,14 @@ if __name__ == "__main__":
     main_frame.Show()
     
     # Create the radial menu frame
-    radial_menu_frame = TransparentRadialMenu(None, title='Radial Menu')
+    ### radial_menu_frame = TransparentRadialMenu(None, title='Radial Menu')
     
     # Start the pynput listener in a separate daemon thread
-    threading.Thread(
+    '''threading.Thread(
         target=start_pynput_listener, 
         args=(radial_menu_frame,), 
         daemon=True
-    ).start()
+    ).start()'''
     
     # Start the application's main event loop
     app.MainLoop()

@@ -303,6 +303,9 @@ def build_menus(self):
     #exp_xml = file_menu.Append(wx.ID_ANY, self.menu.get_menu("exportXml"), 'export tool data into XML file')
     #self.Bind(event=wx.EVT_MENU, handler=self.on_export_xml,source=exp_xml)
 
+    find_tool = file_menu.Append(wx.ID_ANY, self.menu.menus['findTool'][self.lang], 'find tool data')
+    self.Bind(event=wx.EVT_MENU, handler=self.on_find_tool,source=find_tool)
+    
     exit = file_menu.Append(wx.ID_ANY, self.menu.get_menu('exit'), "close app")
 
     self.Bind(event=wx.EVT_MENU,handler=self.close_app,source=exit)

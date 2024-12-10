@@ -1,9 +1,33 @@
 import wx
 from wx.glcanvas import *
 
-from OpenGL.GL import *
-from OpenGL.GLU import *
-from OpenGL.GLUT import *
+#specific imports for OpenGL to reduce the number of functions imported
+import wx
+from wx.glcanvas import *
+
+# Specific imports for OpenGL to reduce the number of functions imported
+from OpenGL.GL import (
+    glEnable, glClearColor, glBlendFunc, glHint, glLightfv,
+    GL_DEPTH_TEST, GL_MULTISAMPLE, GL_COLOR_MATERIAL, GL_NORMALIZE,
+    GL_BLEND, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_LINE_SMOOTH,
+    GL_LINE_SMOOTH_HINT, GL_NICEST, GL_LIGHTING, GL_LIGHT0, GL_POSITION,
+    GL_DIFFUSE, GL_SPECULAR, GL_LIGHT2, GL_LIGHT3, GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+    GL_SPECULAR, GL_SHININESS, GL_SMOOTH, GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA, GL_LINE_SMOOTH_HINT,
+    GL_VERTEX_ARRAY, GL_SMOOTH, GL_COLOR_MATERIAL, GL_FRONT_AND_BACK, GL_AMBIENT_AND_DIFFUSE,
+    GL_SPECULAR, GL_SHININESS, GL_MODELVIEW, GL_PROJECTION, GL_DEPTH_BUFFER_BIT, GL_COLOR_BUFFER_BIT,
+    GL_RGB, GL_UNSIGNED_BYTE, GL_BACK, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB, GL_UNSIGNED_BYTE, GL_RGB, GL_UNSIGNED_BYTE,
+    glClear, glLoadIdentity, glTranslatef, glRotatef, glReadBuffer, glReadPixels, glFlush, glViewport,
+    glMatrixMode, glLoadIdentity, glMatrixMode, glLoadIdentity, glTranslatef, glRotatef, glClear,
+    glReadBuffer, glReadPixels, glFlush, glMatrixMode, glLoadIdentity, glMatrixMode, glColorMaterial, glMaterialfv, glMaterialf,
+    glShaderBinary, glShadeModel, glEnableClientState, glEnable, glDisable, glBlendFunc, glHint, glLightfv, glLightModelfv, glLightModeli,
+       
+)
+from OpenGL.GLU import gluPerspective
+from OpenGL.GLUT import glutInit, glutInitDisplayMode, GLUT_DOUBLE, GLUT_RGB, GLUT_DEPTH
+
+import numpy as np
+import math
+import os
 
 import numpy as np
 import math
@@ -180,7 +204,7 @@ class OpenGLCanvas(GLCanvas):
             'D2': int((self.Parent.selected_tool.D2 * self.scale_width) / 2) / 100 if self.Parent.selected_tool.D2 else int(((self.Parent.selected_tool.D1 - 0.2) * self.scale_width) / 2) / 100,
             'D3': int((self.Parent.selected_tool.D3 * self.scale_width) / 2) / 100,
             'L1': int(self.Parent.selected_tool.L1 * self.scale_width) / 100,
-            'L2': int(self.Parent.selected_tool.L2 * self.scale_width) / 100 if self.Parent.selected_tool.L2 else 0,
+            'L2': int(self.Parent.selected_tool.L2 * self.scale_width) / 100 if self.Parent.selected_tool.L2 else int(self.Parent.selected_tool.L1 * self.scale_width) / 100,
             'L3': int(self.Parent.selected_tool.L3 * self.scale_width) / 100,
             'r': int(float(self.Parent.selected_tool.cornerRadius) * self.scale_width) / 100 if self.Parent.selected_tool.cornerRadius else 0,
         }

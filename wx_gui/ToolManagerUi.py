@@ -1,6 +1,7 @@
 import wx
 import sys
 import logging
+import asyncio
 
 from gui.menus_inter import MenusInter
 
@@ -38,6 +39,8 @@ from importTools.dragdrop import FileDrop
 from gui.viewer3d.glObjects import glObjects
 
 from help.help import HelpFrame
+
+import locateTools.findTools 
 
 class ToolManagerUI(wx.Frame):
     BACKGROUND_COLOUR = wx.Colour(240, 240, 240)
@@ -327,7 +330,16 @@ class ToolManagerUI(wx.Frame):
                 logging.error(msg)
 
 
+    def on_find_tool(self, event):
+        '''find a tool in the database'''
+        logging.info('find a tool')
+        tool = asyncio.run(locateTools.findTools.search_tool(["1K223-1000-300-NH H10F"], "tool_parameters.txt"))
+        print(tool.name)
+        #add the tool to the database
+        validateToolDialog(self.panel, tool, True).ShowModal()
+
     def on_paste_iso13999(self, event):
+        '''paste ISO13999 data and convert it to a tool'''
         title = "Paste ISO13999 data" 
         import_past.open_file(self, title)         
 
