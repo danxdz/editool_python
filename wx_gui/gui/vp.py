@@ -114,18 +114,18 @@ class OpenGLCanvas(GLCanvas):
         
         glEnable(GL_LIGHTING)
         glEnable(GL_LIGHT0)  # Enable the first light
-        glLightfv(GL_LIGHT0, GL_POSITION, [0.0, 1.0, 0.0, 0.0])  # Position of the light
-        glLightfv(GL_LIGHT0, GL_DIFFUSE, [0.5, 0.5, 0.5, 1.0])   # Diffuse light color
-        glLightfv(GL_LIGHT0, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])  # Specular light color
+        glLightfv(GL_LIGHT0, GL_POSITION, [1, 1, 3, 0.0])  # Position of the light x = 1 back, y = 1 up, z = 1 left
+        glLightfv(GL_LIGHT0, GL_DIFFUSE, [1, 1, 1, 1.0])   # Diffuse light color
+        glLightfv(GL_LIGHT0, GL_SPECULAR, [1, 1, 1, 1.0])  # Specular light color
 
 
         glEnable(GL_LIGHT2)
-        glLightfv(GL_LIGHT2, GL_POSITION, [0.0, -1.0, 1.0, 0.0])
+        glLightfv(GL_LIGHT2, GL_POSITION, [-1, 1.0, 1.0, 0.0])
         glLightfv(GL_LIGHT2, GL_DIFFUSE, [0.5, 0.5, 0.5, 1.0])
         glLightfv(GL_LIGHT2, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])
 
         glEnable(GL_LIGHT3)
-        glLightfv(GL_LIGHT3, GL_POSITION, [-1.0, 1.0, 1.0, 0.0])
+        glLightfv(GL_LIGHT3, GL_POSITION, [-1.0, -1.0, -3, 0.0])
         glLightfv(GL_LIGHT3, GL_DIFFUSE, [0.5, 0.5, 0.5, 1.0])
         glLightfv(GL_LIGHT3, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])
         

@@ -584,6 +584,7 @@ class glObjects:
             self.draw_text3d(x, y, z, [1, 1, 1], out)
             out = f"L2: {tool.L2}"
             y -= 2
+            self.draw_text3d(x, y, z, [1, 1, 1], out)
         elif last_click3d == 5000268:
             #d3 l3
             out = f"D3: {tool.D3}"

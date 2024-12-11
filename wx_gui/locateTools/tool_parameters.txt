@@ -110,6 +110,7 @@ KCH,Corner chamfer angle
 KCHL,corner chamfer angle left hand
 KCHR,corner chamfer angle right hand
 KRINS,Major cutting edge angle
+KAPR, Tool cutting edge angle
 KWW,Keyway width
 L,Cutting edge length
 LU,Cutting edge length

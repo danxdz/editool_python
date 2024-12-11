@@ -330,14 +330,30 @@ class ToolManagerUI(wx.Frame):
                 logging.error(msg)
 
 
+    def FindToolDialog (self):
+        '''dialog to enter a tool ref to find'''
+        logging.info('ask ref')
+        #create a dialog to enter the tool ref
+        dialog = wx.TextEntryDialog(self, "Enter the tool reference", "Find a tool")
+        if dialog.ShowModal() == wx.ID_OK:
+            ref = dialog.GetValue()
+            #find the tool in the database
+            tool = asyncio.run(locateTools.findTools.search_tool([ref], "tool_parameters.txt"))
+            #add the tool to the database
+            validateToolDialog(self.panel, tool, True).ShowModal()
+        dialog.Destroy()
+            
     def on_find_tool(self, event):
         '''find a tool in the database'''
         logging.info('find a tool')
-        tool = asyncio.run(locateTools.findTools.search_tool(["1K223-1000-300-NH H10F"], "tool_parameters.txt"))
+    
+        find_tool_dialog = self.FindToolDialog()
+
+        '''tool = asyncio.run(locateTools.findTools.search_tool(["1K223-1000-300-NH H10F"], "tool_parameters.txt"))
         print(tool.name)
         #add the tool to the database
         validateToolDialog(self.panel, tool, True).ShowModal()
-
+        '''
     def on_paste_iso13999(self, event):
         '''paste ISO13999 data and convert it to a tool'''
         title = "Paste ISO13999 data" 
