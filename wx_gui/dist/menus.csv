@@ -38,7 +38,7 @@ importCsv;import from Csv;importer depuis Csv;importar Csv
 exportCsv;export to Csv;exporter vers Csv;exportar Csv
 importXls;import from Xls;importer depuis Xls;importar Xls
 exportXls;export to Xls;exporter vers Xls;exportar Xls
-pasteISO;Paste tool ISO13999;Coller outil ISO13999;Colar ferramenta ISO13999
+pasteISO;paste tool ISO13999;coller outil ISO13999;Colar ferramenta ISO13999
 tools;tools;outils;ferramentas
 tool;tool;outil;ferramenta
 help;help;aide;ajuda
@@ -133,3 +133,4 @@ comment;comment;commentaire;comentário
 TSid;TopSolid id;id TopSolid;id TopSolid
 imported;imported;importé;importado
 name;name;nom;nome
+findTool;find tool;rechercher outil;procurar ferramenta
