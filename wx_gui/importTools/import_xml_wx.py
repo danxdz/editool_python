@@ -103,7 +103,7 @@ def parse_hp_xml_data(root):
     mfr = tool.find('param[@name="manufacturer"]').attrib['value']
     ##print("mfr: ", mfr)
 
-    codeBar = tool.find('param[@name="orderingCode"]').attrib['value']
+    orderingCode = tool.find('param[@name="orderingCode"]').attrib['value']
     #print("CodeBar: ", codeBar)
     
     comment = tool.find('param[@name="comment"]').attrib['value']
@@ -130,10 +130,10 @@ def parse_hp_xml_data(root):
         'threadPitch': 0,
         'threadTolerance': "",
         'mfr': mfr,
-        'mfrRef': tool.find('param[@name="orderingCode"]').attrib['value'],
+        'mfrRef': orderingCode,
         'mfrSecRef': "",
         'code': " ",
-        'codeBar': codeBar,
+        'codeBar': "",
         'comment': comment,
     }
 

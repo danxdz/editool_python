@@ -1,2 +1,11 @@
-2024-12-11 13:46:34 INFO Starting ediTool
-2024-12-11 13:46:34 INFO TopSolid 719 connected successfully!
+2024-12-13 22:34:01 INFO Starting ediTool
+2024-12-13 22:34:01 ERROR TopSolid window not found
+2024-12-13 22:34:19 INFO find a tool
+2024-12-13 22:34:19 INFO ask ref
+2024-12-13 22:34:20 DEBUG Using proactor: IocpProactor
+2024-12-13 22:34:43 INFO find a tool
+2024-12-13 22:34:43 INFO ask ref
+2024-12-13 22:34:44 DEBUG Using proactor: IocpProactor
+2024-12-13 22:35:05 INFO find a tool
+2024-12-13 22:35:05 INFO ask ref
+2024-12-13 22:35:07 DEBUG Using proactor: IocpProactor

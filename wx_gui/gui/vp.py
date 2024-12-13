@@ -121,12 +121,12 @@ class OpenGLCanvas(GLCanvas):
 
         glEnable(GL_LIGHT2)
         glLightfv(GL_LIGHT2, GL_POSITION, [-1, 1.0, 1.0, 0.0])
-        glLightfv(GL_LIGHT2, GL_DIFFUSE, [0.5, 0.5, 0.5, 1.0])
+        glLightfv(GL_LIGHT2, GL_DIFFUSE, [.8, .8, .8, 1.0])
         glLightfv(GL_LIGHT2, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])
 
         glEnable(GL_LIGHT3)
         glLightfv(GL_LIGHT3, GL_POSITION, [-1.0, -1.0, -3, 0.0])
-        glLightfv(GL_LIGHT3, GL_DIFFUSE, [0.5, 0.5, 0.5, 1.0])
+        glLightfv(GL_LIGHT3, GL_DIFFUSE, [1, 1, 1, 1.0])
         glLightfv(GL_LIGHT3, GL_SPECULAR, [0.5, 0.5, 0.5, 1.0])
         
 

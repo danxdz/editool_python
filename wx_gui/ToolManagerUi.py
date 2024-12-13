@@ -2,6 +2,7 @@ import wx
 import sys
 import logging
 import asyncio
+import os
 
 from gui.menus_inter import MenusInter
 
@@ -338,7 +339,10 @@ class ToolManagerUI(wx.Frame):
         if dialog.ShowModal() == wx.ID_OK:
             ref = dialog.GetValue()
             #find the tool in the database
-            tool = asyncio.run(locateTools.findTools.search_tool([ref], "tool_parameters.txt"))
+            #get localpath
+            path = os.path.dirname(os.path.abspath(__file__))
+            path = os.path.join(path, "tool_parameters.txt")
+            tool = asyncio.run(locateTools.findTools.search_tool([ref], path))
             #add the tool to the database
             validateToolDialog(self.panel, tool, True).ShowModal()
         dialog.Destroy()

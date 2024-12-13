@@ -25,22 +25,26 @@ def parse_tool_data(json_file_path):
     with open(json_file_path, 'r', encoding='utf-8') as f:
         data = json.load(f)
 
+    # Check if the data contains valid tool attributes APMXS and LU and APMX
+    l1 = next((parse_dimension(get_value(data, key)) for key in ['APMXS', 'LU', 'APMX'] if parse_dimension(get_value(data, key))), 0.0)
+    l2 = next((parse_dimension(get_value(data, key)) for key in ['LB_1', 'LN', 'LH', 'LPR'] if parse_dimension(get_value(data, key))), l1)
+
     # Initialize the tool attributes with default values
     tool_attrs = {
         'name': data.get('name', ''),
-        'toolType': 0,  # TODO: Determine based on data
+        'toolType': int(data.get('toolType', '')),
         'cuttingMaterial': get_value(data, 'TMC1ISO'),
         'toolMaterial': get_value(data, 'GRADE'),
         'D1': parse_dimension(get_value(data, 'DC')),
         'D2': parse_dimension(get_value(data, 'DN')),
         'D3': parse_dimension(get_value(data, 'DMM')) if get_value(data, 'DMM') else parse_dimension(get_value(data, 'DCONMS')),
-        'L1': parse_dimension(get_value(data, 'APMXS')) if get_value(data, 'APMXS') else parse_dimension(get_value(data, 'LU')) ,
-        'L2': parse_dimension(get_value(data, 'LN')) if get_value(data, 'LN') else parse_dimension(get_value(data, 'LB_1')) ,
+        'L1': l1 ,
+        'L2': l2 ,
         'L3': parse_dimension(get_value(data, 'OAL')) if get_value(data, 'OAL') else parse_dimension(get_value(data, 'LF')),
         'z': int(parse_dimension(get_value(data, 'PCEDC'))) if get_value(data, 'PCEDC') else int(parse_dimension(get_value(data, 'ZEFP'))),
         'cornerRadius': parse_dimension(get_value(data, 'RE')),
         'chamfer': parse_dimension(get_value(data, 'CHW')) if get_value(data, 'CHW') else parse_dimension(get_value(data, 'KAPR')) ,
-        'neckAngle': parse_dimension(get_value(data, 'FHA')),
+        'neckAngle': parse_dimension(get_value(data, 'FHA')) if get_value(data, 'FHA') else parse_dimension(get_value(data, 'SIG')),
         'centerCut': int(parse_dimension(get_value(data, 'CCC'))),
         'coolantType': int(parse_dimension(get_value(data, 'CSP'))),
         'threadTolerance': get_value(data, 'TCDCON'),
@@ -50,7 +54,7 @@ def parse_tool_data(json_file_path):
         'mfr': get_value(data, 'mfr'),
         'mfrRef': data.get('name', ''),
         'mfrSecRef': '',  # Map from data if available
-        'comment': '',  # Add any additional comments if needed
+        'comment': data.get('comment', ''),
         'TSid': '',  # Map from data if available
     }
 

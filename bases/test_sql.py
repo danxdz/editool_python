@@ -6,13 +6,21 @@ database = '716718_'  # Nome da base de dados específica
 
 #list all databases in the server
 
-# Conectando ao servidor usando a autenticação sql
+# Conectando ao servidor usando a autenticação windows
+
 conn = pyodbc.connect(
     'DRIVER={ODBC Driver 17 for SQL Server};'
     f'SERVER={server};'
-    'UID=sa;'
-    'PWD=TopSolid7'
+    'Trusted_Connection=yes;'
 )
+
+
+'''conn = pyodbc.connect(
+    'DRIVER={ODBC Driver 17 for SQL Server};'
+    f'SERVER={server};'
+    'UID=sa;'
+    'PWD=TopSolid'
+)'''
 
 # Criando um cursor
 cursor = conn.cursor()
@@ -27,7 +35,7 @@ for db in databases:
     #show all tables in each database
 
 
-cursor.execute("SELECT * FROM [716718_].[dbo].[Users]")
+cursor.execute("SELECT * FROM [719].[dbo].[Users]")
 columns = cursor.fetchall()
 
 # Imprimindo as colunas da tabela 'Document'
@@ -36,7 +44,7 @@ for column in columns:
    print(column[7])
    print(column[10])
 
-cursor.execute("SELECT * FROM [716718_].[dbo].[Users]")
+cursor.execute("SELECT * FROM [716].[dbo].[Users]")
 # show dartabase content columns formated
 users = cursor.fetchall()
 
