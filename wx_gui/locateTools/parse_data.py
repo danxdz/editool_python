@@ -29,13 +29,21 @@ def parse_tool_data(json_file_path):
     l1 = next((parse_dimension(get_value(data, key)) for key in ['APMXS', 'LU', 'APMX'] if parse_dimension(get_value(data, key))), 0.0)
     l2 = next((parse_dimension(get_value(data, key)) for key in ['LB_1', 'LN', 'LH', 'LPR'] if parse_dimension(get_value(data, key))), l1)
 
+    #check if tooltype is an integer
+    if not isinstance(data.get('toolType', ''), int):
+        #try to convert it to an integer
+        try:
+            data['toolType'] = int(data.get('toolType', ''))
+        except ValueError:
+            data['toolType'] = 0
+
     # Initialize the tool attributes with default values
     tool_attrs = {
         'name': data.get('name', ''),
-        'toolType': int(data.get('toolType', '')),
+        'toolType': data.get('toolType', 0),
         'cuttingMaterial': get_value(data, 'TMC1ISO'),
         'toolMaterial': get_value(data, 'GRADE'),
-        'D1': parse_dimension(get_value(data, 'DC')),
+        'D1': parse_dimension(get_value(data, 'DC')) if get_value(data, 'DC') else parse_dimension(get_value(data, 'D1')) ,
         'D2': parse_dimension(get_value(data, 'DN')),
         'D3': parse_dimension(get_value(data, 'DMM')) if get_value(data, 'DMM') else parse_dimension(get_value(data, 'DCONMS')),
         'L1': l1 ,
@@ -52,8 +60,8 @@ def parse_tool_data(json_file_path):
         'code': get_value(data, 'Numéroarticle'),
         'codeBar': get_value(data, 'Code barre'),
         'mfr': get_value(data, 'mfr'),
-        'mfrRef': data.get('name', ''),
-        'mfrSecRef': '',  # Map from data if available
+        'mfrRef': get_value(data, 'mfrRef'),
+        'mfrSecRef': get_value(data, 'mfrSecRef'),
         'comment': data.get('comment', ''),
         'TSid': '',  # Map from data if available
     }

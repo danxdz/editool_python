@@ -117,7 +117,7 @@ async def search_tool(reference, file_path):
     async with async_playwright() as p:
         try:
             progress_dialog.Update(10, "Launching browser...")
-            browser = await p.chromium.launch(headless=False)
+            browser = await p.chromium.launch(headless=True)
             page = await browser.new_page()
             if type(reference) == str:
                 reference = [reference]
@@ -191,9 +191,106 @@ async def search_tool(reference, file_path):
                                 xml_file_path = await download_fraisa_file(reference_code)
                                 break
                 
-                            elif ("hoffman" in href):
+                            elif ("hoffman" in href) or ("holex" in href):
+                                valid_mfr = True
                                 data["mfr"] = "Hoffman"
+                                #https://www.hoffmann-group.com/FR/fr/hof/p/203054-18?tId=4
+                                #203054 18
+                                num = ref.replace(" ", "-") 
+
+                                if num:
+                                    ref_serial = str(num)
+                                    mfr_link = f"https://www.hoffmann-group.com/FR/fr/hof/p/{ref_serial}?tId=4"
+                                    await page.goto(mfr_link, timeout=10000)
+                                    await page.wait_for_load_state("domcontentloaded")
+                                    await asyncio.sleep(2)
+                                    try:
+                                        name = await page.query_selector("h1")
+                                        data["name"] = await name.inner_text()
+                                    except Exception:
+                                        data["name"] = "Name not found"
+                                    try:
+                                        image = await page.query_selector("div.imagecontainer img")                                        
+                                        image_url = await image.get_attribute("src")
+                                        data["image_url"] = image_url
+                                    except Exception:
+                                        data["image_url"] = "Image not found"
+                                    # Extract data from the 'Caractéristiques techniques' table
+                                    try:
+                                        # Wait for the table to be available
+                                        await page.wait_for_selector('div#technicalData table')
+
+                                        # Select all rows in the technical data table
+                                        rows = await page.query_selector_all('div#technicalData table tbody tr')
+
+                                        for row in rows:
+                                            try:
+                                                # Get the key and value cells
+                                                key_element = await row.query_selector('td:nth-child(1)')
+                                                value_element = await row.query_selector('td:nth-child(3)')
+
+                                                # Extract text from the key and value cells
+                                                key = await key_element.inner_text()
+                                                value = await value_element.inner_text()
+
+                                                if key.strip() and value.strip():
+                                                    data[key.strip()] = value.strip()
+                                            except Exception as e:
+                                                print(f"Row parsing error: {e}")
+                                    except Exception as e:
+                                        print(f"Error extracting technical data: {e}")
+
+                          
+                                    # Map extracted data to standardized keys
+                                    # D1
+                                    data["D1"] = data.get("⌀ nom. DC", "")
+                                    data["DC"] = data.get("⌀ dents DC", "")
+                                    # D2
+                                    data["DCONMS"] = data.get("⌀ queue Ds", "")
+                                    # L1
+                                    data["APMXS"] = data.get("Longueur de coupe Lc", "") 
+                                    data["APMX"] = data.get("Profondeur de perçage maximale recommandée L2", "")
+                                    # L2
+                                    data["LH"] = data.get("Longueur de col L1 avec détalonnage", "")
+                                    data["LN"] = data.get("Longueur des goujures Lc", "")
+                                    # L3
+                                    data["OAL"] = data.get("Longueur totale L", "")
+                                    # Z
+                                    data["ZEFP"] = data.get("Nombre de dents Z", "")
+                                    data["toolMaterial"] = data.get("Type d'outils", "")
+                                    data["CHW"] = data.get("Largeur du chanfrein", "")
+                                    data["FHA"] = data.get("Angle d'hélice", "")
+                                    data["CCC"] = data.get("Arrosage interne", "")
+                                    data["CSP"] = data.get("Direction de l'approche", "")
+                                    data["TCDCON"] = data.get("Queue", "")
+                                    data["Code barre"] = data.get("EAN / GTIN", "")
+                                    data["mfr"] = "Hoffman"
+                                    data["mfrRef"] = ref
+                                    data["mfrSecRef"] = data.get("Série", "")
+                                    data["comment"] = data.get("Manufacturer", "")
+
+                                    #check tool type
+                                    #Type de produit: Fraise à dresser
+                                    if "toriques" in data["Type de produit"]:
+                                        data["toolType"] = "1"                                    
+                                    elif "hémisphérique" in data["Type de produit"]:
+                                        data["toolType"] = "2"
+                                    elif "Ebavureurs" in data["Type de produit"]:
+                                        data["toolType"] = "3"
+                                    elif "Fraises pour rainures en T" in data["Type de produit"]:
+                                        data["toolType"] = "4"
+                                    elif "Foret à centrer" in data["Type de produit"]:
+                                        data["toolType"] = "5"
+                                    elif "Foret à centrer" in data["Type de produit"]:
+                                        data["toolType"] = "6"
+                                    elif "Foret hélicoïdaux" in data["Type de produit"]:
+                                        data["toolType"] = "7"
+                                    else:
+                                        data["toolType"] = "0"
+                                    
+
                                 break
+
                             elif ("ceratizit" in href):
                                 valid_mfr = True
                                 data["mfr"] = "Ceratizit"

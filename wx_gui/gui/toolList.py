@@ -203,6 +203,9 @@ class ToolList(wx.Panel):
         else:
             l2 = 0
             l3 = 2
+        # l2 cant be greater than l3
+        if l2 > l3:
+            l2 = l3-2
 
         self.tool_slider = wx.Slider(self, -1, l2+2, l2, l3, style=wx.SL_HORIZONTAL|wx.SL_LABELS)
         #need to change slider min and max values
