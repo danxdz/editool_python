@@ -121,7 +121,8 @@ class StepFileViewer:
                             axis_placement = Axis2Placement3D(element_name, coord, dir_z, dir_x)
                             # to create all the Axis2Placement3D from step file
                             #found_elements[f"{element_name.strip()}_{cart}"] = axis_placement
-                            found_elements[{element_name}] = axis_placement
+                            #THIS DONT WORK - found_elements[{element_name}] = axis_placement
+                            found_elements[element_name.strip()] = axis_placement
                     elif element_type.strip() == "PRODUCT":
                         print(f"Product found: {element_number} {parts}")
                         brep_name = parts[1].replace("'", "").strip()

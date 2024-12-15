@@ -5,9 +5,7 @@ import wx
 import logging
 from math import pi
 
-clr.AddReference("System.Collections")
-
-from System.Collections.Generic import List
+import pygetwindow as gw 
 
 from step_file_viewer import StepFileViewer
 
@@ -18,6 +16,10 @@ from tool import ToolsCustomData
 from databaseTools import update_tool, saveTool
 
 from gui.guiTools import load_masks, GenericMessageBox
+
+clr.AddReference("System.Collections")
+
+from System.Collections.Generic import List
 
 key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
@@ -42,6 +44,14 @@ class TopSolidAPI:
             self.end_modif(True, False)
         self.disconnect_topsolid()
 
+    def find_active_window_title(self):
+            try:
+                window = gw.getWindowsWithTitle('TopSolid 7' )[0]
+                return True
+            except IndexError:
+                logging.error("TopSolid window not found")
+                return False
+                
 
     def __init__(self):
         '''initialize TopSolid API'''
@@ -49,15 +59,14 @@ class TopSolidAPI:
         self.connected = False
         self.editing = None
         self.current_project = None
-
-        
         # to select the right tool type on import STEP file
         self.tool = None
 
-        self._initialize_topsolid()
-
-
-
+        #look open windows to see if TopSolid is already open
+        act = self.find_active_window_title()
+        if act:
+            self._initialize_topsolid()
+        
 
     def _initialize_kernel(self, top_solid_path):
         try:
@@ -74,17 +83,61 @@ class TopSolidAPI:
             self.auto = Automating
             top_solid_kernel_type = Automating.TopSolidHostInstance
             self.ts = clr.System.Activator.CreateInstance(top_solid_kernel_type)
-
+            
+            
             self.ts.Connect()
 
             if self.ts.IsConnected:
                 ts_version = str(self.ts.Version)[:3]
                 logging.info(f"TopSolid {ts_version} connected successfully!")
+                
+                ### self.initialize_ui(top_solid_path)
+
                 return True
+            else:
+                return False
         except Exception as ex:
             print("Error initializing TopSolid Kernel:", ex)
             return False
+        
+    def initialize_ui(self, top_solid_path): ################ testing 
+        try:
+            # Caminho para a DLL
+            top_solid_cam = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.WX.dll")
 
+            # Carregar a DLL com clr.AddReference
+            clr.AddReference(top_solid_cam)
+            clr.setPreload(True)  # Pode ser útil, mas o comportamento exato depende de como o TopSolid gerencia dependências
+
+            # Importar o namespace e a classe desejada
+            from TopSolid.Kernel.WX import Application as WX
+
+            try:
+                WX.StartApplication()
+                WX.CloseAllDocumentWindows()
+            except Exception as ex:
+                print("Erro ao inicializar a aplicação:", ex)
+
+            document_windows = WX.DocumentWindows
+            if document_windows:
+                WX.CloseAllDocumentWindows()
+            else:
+                print("Nenhuma janela de documento aberta.")
+
+                
+            # Verifique se existe um documento ativo ou aberto
+            if WX.ActiveDocument is not None:
+                print("Documento ativo encontrado.")
+                # Agora, tente fechar as janelas
+                WX.CloseAllDocumentWindows()
+            else:
+                print("Nenhum documento ativo encontrado.")
+            return True
+
+        except Exception as ex:
+            print("Error initializing TopSolid Cam:", ex)
+            return False
+        
     def _initialize_design(self, top_solid_path):
         try:
             top_solid_design_path = os.path.join(top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
@@ -116,6 +169,12 @@ class TopSolidAPI:
             return False
 
     def _initialize_topsolid(self):
+        '''
+        * ts - TopSolidHostInstance 
+        * ts_d - TopSolidDesignHostInstance
+        * ts_cam - TopSolidCamHostInstance
+        '''
+        # Get TopSolid registry key path
         key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
 
         try:
@@ -124,7 +183,7 @@ class TopSolidAPI:
             top_solid_version = winreg.EnumKey(sub_keys, sub_keys_count - 1)
             key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
             value = winreg.QueryValueEx(key, "InstallDir")
-
+            # take the first value, last installed version
             top_solid_path = value[0]
 
             kernel_initialized = self._initialize_kernel(top_solid_path)
@@ -133,97 +192,61 @@ class TopSolidAPI:
                 cam_initialized = self._initialize_cam(top_solid_path)
                 if design_initialized and cam_initialized:
                     self.connected = True
+            else:
+                self.connected = False
+
+
+                            
+            open_files = self.get_open_files() ### testing
+            #bool IsCam(DocumentId inDocumentId)
+            #enumerate open cam files
+            cam_files = []
+            for file in open_files:
+                if self.ts_cam.Documents.IsCam(file):
+                    #IDocuments.GetMachine Method  
+                    # ElementId GetMachine(DocumentId inDocumentId)
+                    machine = self.ts_cam.Documents.GetMachine(file)
+                    print("machine :: ", self.get_name(machine))
+                    
+                    #IMachineTools.GetPockets Method 
+                    #List<ElementId> GetPockets(ElementId inMachineElementId)
+                    pockets = self.ts_cam.Machines.GetPockets(machine)
+                    print("pockets :: ", len(pockets))
+
+                    #IMachineTools.GetToolHolders Method  
+                    # List<ElementId> GetToolHolders(ElementId inMachineId)
+                    holders = self.ts_cam.Machines.GetToolHolders(machine)
+                    print("holders :: ", len(holders))
+
+                    #IMachineTools.GetMagazines Method  
+                    # List<ElementId> GetMagazines(ElementId inMachineId)
+                    magazines = self.ts_cam.Machines.GetMagazines(machine)
+                    print("magazines :: ", len(magazines))
+
+                    #IMachineTools.GetPartHolders Method  
+                    # List<ElementId> GetPartHolders(ElementId inMachineId)
+                    part_holders = self.ts_cam.Machines.GetPartHolders(machine)
+                    print("part_holders :: ", len(part_holders))
+
+                    #IMachineTools.GetParameters Method  
+                    # List<ParameterId> GetParameters(ElementId inElementId)
+                    params = self.ts_cam.Machines.GetParameters(machine)
+                    print("params :: ", len(params))
+
+                    print("Cam file :: ", file.PdmDocumentId)
+                    cam_files.append(file)
+                    tools = self.get_tools(file, True)
+                    print(f"tools :: {len(tools)}")
+                else:
+                    print("Design file :: ", file)
+
+            print(f"cam_files :: {len(cam_files)}") 
+                
+
         except Exception as ex:
             print("Error initializing TopSolid:", ex)
             self.connected = False
 
-    def initialize_topsolid(self):
-        '''
-        * ts - TopSolidHostInstance 
-        * ts_d - TopSolidDesignHostInstance
-        * ts_cam - TopSolidCamHostInstance
-        '''
-
-        # Get TopSolid registry key path
-        key_path = "SOFTWARE\\TOPSOLID\\TopSolid'Cam"
-
-        try:
-            # Open TopSolid registry key
-            sub_keys = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path, 0, winreg.KEY_READ | winreg.KEY_WOW64_64KEY)
-            sub_keys_count = winreg.QueryInfoKey(sub_keys)[0]
-            top_solid_version = winreg.EnumKey(sub_keys, sub_keys_count - 1)
-            key = winreg.OpenKey(winreg.HKEY_LOCAL_MACHINE, key_path + "\\" + top_solid_version, 0, winreg.KEY_READ)
-            value = winreg.QueryValueEx(key, "InstallDir")
-
-            top_solid_path = value[0] # take the first value, last installed version
-
-            # Load TopSolid DLLs
-            top_solid_kernel_sx_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.SX.dll")
-            #print(f"Loading dll: {top_solid_kernel_sx_path}")
-            clr.AddReference(top_solid_kernel_sx_path)
-
-            top_solid_kernel_path = os.path.join(top_solid_path, "bin", "TopSolid.Kernel.Automating.dll")
-            #print(f"Loading dll: {top_solid_kernel_path}")
-            clr.AddReference(top_solid_kernel_path)
-
-            clr.setPreload(True)
-
-            import TopSolid.Kernel.Automating as Automating
-
-            self.auto = Automating
-            
-            top_solid_kernel_type = Automating.TopSolidHostInstance
-            self.ts = clr.System.Activator.CreateInstance(top_solid_kernel_type)
-
-            # Connect to TopSolid
-            self.ts.Connect()
-
-            if self.ts.IsConnected:
-                #print only 3 first numbers of version 
-                ts_version = str(self.ts.Version)[:3]
-                logging.info(f"TopSolid {ts_version} connected successfully!")
-                #print(f"TopSolid  {ts_version} connected successfully!") 
-                #print(dir(self.ts))
-
-                top_solid_design_path = os.path.join(top_solid_path, "bin", "TopSolid.Cad.Design.Automating.dll")
-                #print(f"Loading dll: {top_solid_design_path}")
-                clr.AddReference(top_solid_design_path)    
-            
-                #set preload to true to load all dependent dlls
-                clr.setPreload(True)
-
-                import TopSolid.Cad.Design.Automating as Automating
-                self.ts_d = Automating.TopSolidDesignHostInstance(self.ts)
-
-                # Connect to TopSolid Design
-                self.ts_d.Connect()
-                if self.ts_d.IsConnected:
-                    self.connected = True 
-                    #print(f"TopSolid Design connected successfully!")
-                    #list all dll methods
-                    #print(dir(self.ts_d))
-
-                    top_solid_cam = os.path.join(top_solid_path, "bin", "TopSolid.Cam.NC.Kernel.Automating.dll")
-                    #print(f"Loading dll: {top_solid_cam}")
-                    clr.AddReference(top_solid_cam)    
-                
-                    #set preload to true to load all dependent dlls
-                    clr.setPreload(True)
-
-                    import TopSolid.Cam.NC.Kernel.Automating as Automating
-
-                    self.ts_cam = Automating.TopSolidCamHostInstance(self.ts)
-
-                    self.ts_cam.Connect()
-
-                    if self.ts_cam.IsConnected:
-                        #print(f"TopSolid Cam NC connected successfully! ")
-                        #list all dll methods
-                        #print(dir(self.ts_cam.Tools))
-                        self.ts_auto = Automating
-        except Exception as ex:
-            print("Error initializing TopSolid:", ex)
-            self.connected = False    
 
     def disconnect_topsolid(self):
         try:
@@ -250,15 +273,19 @@ class TopSolidAPI:
                 return pdmId, name
 
     
-    def get_language(self):
+    def get_ts_language(self):
         '''get TopSolid language'''
         #string CurrentUICultureName { get; }
         culture = None
         if self.ts.IsConnected:
             culture = self.ts.Application.CurrentUICultureName
-
         return culture
     
+    def isDirty(self, docId):
+        '''check if document is dirty'''
+        # TopSolidHost.Documents.EnsureIsDirty(ref docId);
+        return self.ts.Documents.EnsureIsDirty(docId)
+
 
     def start_modif(self, op, ot):
         try:
@@ -287,20 +314,63 @@ class TopSolidAPI:
 
 
     def get_tools(self, doc_id, used = False):
-        '''get tools from tools library'''
-        #toolsList<ElementId> GetTools(DocumentId inDocumentId,bool inUsed)
-        tools = self.ts_cam.Documents.GetTools(doc_id, used)
-        if tools is not None:
-            print("tools :: ", tools, len(tools))
-            
-            for t in tools:
-                print(self.get_name(t))
-                #params = self.ts_cam.Tools.GetParameters(t)
-                #print("params :: ", params, len(params))
-                #for p in params: 
-                #   print(p)
-                #List<ElementId> GetConstituents(	ElementId inElementId )
+        '''get tools from tools cam file'''
 
+
+        #toolsList<ElementId> GetTools(DocumentId inDocumentId,bool inUsed)
+        tools = self.ts_cam.Documents.GetTools(doc_id, False)
+        if tools is not None:
+                        
+            for t in tools:
+                
+                #ITools.GetPdmId Method 
+                #PdmObjectId GetPdmId(ElementId inToolId)
+                pdm_id = self.ts_cam.Tools.GetPdmId(t)
+                ### print("pdm_id :: ", pdm_id.Id)
+                
+                #IDocuments.GetDocument Method 
+                #DocumentId GetDocument(PdmObjectId inPdmDocumentId)
+                doc_id = self.ts.Documents.GetDocument(pdm_id)
+
+                #testing open tool fimes
+                ### self.open_file(doc_id)
+                #get name 
+                tool_name = self.get_name(doc_id)
+                print("tool_name :: ", tool_name)
+
+                #List<ElementId> GetParameters(ElementId inElementId)
+                params = self.ts_cam.Tools.GetParameters(t)                
+                ###print("params :: ", len(params))
+
+                for p in params: 
+                    try:
+                        #debug
+                        ### print(f"param :: {p.Name} :: {p.ElementId} :: {self.get_type(p.ElementId)}")
+
+                        #double GetPropertyRealValue(ElementId inElementId,string inFullName)
+                        #SmartObject GetNamedValue(ElementExId inElementId,string inName)
+
+                        value = self.ts_cam.Parameters.GetNamedValue(p.ElementId, p.Name)
+                        #print("value :: ", value)
+                        if value is not None:
+                            #SmartObject GetValue(ParameterId inParameterId)
+                            val = self.ts_cam.Parameters.GetValue(p)
+                            ''' p.Name examples
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.Name  ::  TopSolid.Kernel.Automating.SmartText
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.ErpPartNumber  ::  TopSolid.Kernel.Automating.SmartText
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.ManufacturerPartNumber  ::  TopSolid.Kernel.Automating.SmartText
+                            '''
+                            # extract only the parameter name
+                            param_name = p.Name.split(".")[-1]
+                            # debug
+                            ### print(param_name, " :: ", val.Value)
+
+                    except Exception as ex:
+                        print("error :: ", ex)
+                        continue
+
+                #List<ElementId> GetConstituents(	ElementId inElementId )
+        return tools
 
     def initFolders(self):
         try:
@@ -319,6 +389,12 @@ class TopSolidAPI:
         except Exception as ex:
             # Handle
             print("error :: ", ex)
+
+    
+    def read_ts_tools(self, event):
+        '''read tools from TopSolid'''
+        tools = self.get_tools()
+        print("tools :: ", tools)
 
     def get_constituents(self, proj, printInfo=False):
         '''Get constituents of current project'''
@@ -466,22 +542,6 @@ class TopSolidAPI:
         #current_proj_name = self.get_name(current_project)
         #return current_project, current_proj_name
     
-    def get_open_files(self, file_type = None):
-        '''get open files'''
-        docId = []
-        tmp = self.ts.Documents.GetOpenDocuments()
-        num = len(tmp)
-        print(f"number of open files : {num}")
-        if tmp is not None:
-            if tmp.Count > 1:
-                for i in tmp:
-                    docId.append(i)
-                return docId
-            else:
-                return tmp
-        
-        print(f"file opened : {docId}")
-        return docId
     
     def is_assembly(self, file):
         '''check if file is assembly'''
@@ -491,15 +551,15 @@ class TopSolidAPI:
     def open_file(self, file):
         '''open file in TopSolid'''
         try:
-            self.ts.Documents.Open(self.ts.Documents.GetDocument(file))
-            #  docId = self.self.ts.Documents.GetDocument(file)
-            #from TopSolid.Kernel.Automating import DocumentId
+            #self.ts.Documents.Open(self.ts.Documents.GetDocument(file))
+            
+            from TopSolid.Kernel.Automating import DocumentId
             # check if type(file) = String
-            #if type(file) == str:
+            if isinstance(file, str):
                 #public DocumentId(string inPdmDocumentId) 
-                #file = DocumentId(file)
-            #res = self.ts.Documents.Open(file)
-            #print(f"file opened {res}")
+                file = DocumentId(file)
+            res = self.ts.Documents.Open(file)
+            print(f"file opened {res}")
         except Exception as ex:
             print(str(ex))
         finally:
@@ -516,9 +576,17 @@ class TopSolidAPI:
 
     def check_in_all(self, files):
         '''check in all files in list'''
-        #need a list of PdmObjectId
-        for file in files:
-            self.ts.Pdm.CheckIn(file, True)
+        #create a list of PdmObjectId
+        if isinstance(files, list):
+            pdm_obj = List[self.auto.PdmObjectId]()
+            for file in files:
+                if isinstance(file, self.auto.PdmObjectId):
+                    pdm_obj.Add(file)
+            self.ts.Pdm.CheckInSeveral(pdm_obj, True)
+        else:
+            for file in files:
+                id = self.ts.Documents.GetPdmObject(file)
+                self.ts.Pdm.CheckIn(id, True)
 
 
     def ask_plan(self, file):
@@ -552,6 +620,7 @@ class TopSolidAPI:
         '''get open files'''
         try:
             docId = []
+            
             tmp = self.ts.Documents.GetOpenDocuments()
             num = len(tmp)
             #print(f"number of open files : {num}")
@@ -567,7 +636,7 @@ class TopSolidAPI:
         except Exception as ex:
             print(str(ex))
         finally:
-            print(f"number of open files : {num}")
+            print(f"Open files : {num}")
             return docId
 
     def make_path(self, path):
@@ -651,18 +720,24 @@ class TopSolidAPI:
         '''get file importer options'''
         
         opt = self.ts.Application.GetImporterOptions(inImporterIx)
-        # debug importer options
-        if debug:
-            print(f"opt :: {opt} :: {len(opt)}")
 
         # Create a copy of the list by iterating over it
         opt_copy = [item for item in opt]
 
         for i, item in enumerate(opt_copy):
-            if item.Key == "SIMPLIFIES_GEOMETRY" or item.Key == "SEWS_SHEETS": # add more options to change if needed
+            if item.Key == "SIMPLIFIES_GEOMETRY" or item.Key == "SEWS_SHEETS" or item.Key == "TRANSLATES_MATERIAL":
                 opt[i] = self.change_option(item, item.Key, "True")
+            elif item.Key == "TRANSLATES_ASSEMBLY":
+                opt[i] = self.change_option(item, item.Key, "False")
+            elif item.Key == "ASSEMBLY_DOCUMENT_EXTENSION":
+                opt[i] = self.change_option(item, item.Key, ".TopPrt")
             else:
                 opt[i] = self.change_option(item, item.Key, item.Value)
+
+        # debug options values    
+        #for item in opt:
+        #    print(f"option {item.Key} : {item.Value}")
+
         return opt
                 
 
@@ -677,7 +752,7 @@ class TopSolidAPI:
 
         set_opt = self.get_importer_options(inImporterIx)
                         
-        result = self.ts.Documents.ImportWithOptions(inImporterIx, set_opt ,  inFullName,  inOwnerId)
+        result = self.ts.Documents.ImportWithOptions(inImporterIx, set_opt ,  inFullName[0],  inOwnerId)
 
         print(f"Import result: {len(result)} - {result[0]} -- {result[1]} -- {result[2]}")
 
@@ -746,6 +821,14 @@ class TopSolidAPI:
                 print("f_name :: ", f_name, name)
                 self.setFrame(created_frame)
 
+    def close_file(self, file):
+        '''close file in TopSolid'''
+        try:
+            self.ts.Documents.Close(file, False, True)
+        except Exception as ex:
+            print(str(ex))
+        finally:
+            print("INFO :: close_file :: file successfully closed")
 
     def Import_file_w_conv(self, inImporterIx, inFullName, inOwnerId):
         '''import file with conversion'''
@@ -759,7 +842,7 @@ class TopSolidAPI:
             step_viewer = StepFileViewer()
             # load the step file
             print("INFO :: file loaded :: ", inFullName)
-            step_viewer.loadStepFile(inFullName)
+            step_viewer.loadStepFile(inFullName[0])
 
             # search for the axis2 elements in the step file
             found_elements , brep_name = step_viewer.findPlacementElements()
@@ -806,7 +889,7 @@ class TopSolidAPI:
             if len(found_elements) > 0:
                 self.create_frames_from_step(step_viewer, newdoc[0], found_elements)
             elif len(frames) <= 1:
-                print("INFO :: frames > found_elements")
+                print("INFO :: step file not full supported, {len(frames)} frames found")
                 new_plan = self.ask_plan(newdoc[0])
                 use_frames.CSW = new_plan
                 
@@ -1274,9 +1357,6 @@ class TopSolidAPI:
             print(str(ex))
 
 
-   
-
-
     def searchHolder(self, file):
         '''search holder in open files'''
         holders = []
@@ -1457,7 +1537,7 @@ class TopSolidAPI:
                 #duplicate tool in database and create a new tool in TS
                 tool.id = 0 #set id to 0 to create a new tool
                 tool.TSid = "" #set TSid to empty to create a new tool
-                saveTool(tool, window.toolData.tool_types_list)
+                saveTool(tool)
                 return True
             elif answer == wx.ID_YES:
                 # create new tool in TS, update TSid in database and keep the same id

@@ -1,0 +1,77 @@
+﻿<?xml version='1.0' encoding='UTF-8'?>
+<omtdx version="23" srcType="standard" match-formulas-by-expression="true" match-material-by-provider="fraisa" tecset-values-outdated="true">
+    <technologyPurposes>
+        <technologyPurpose name="Roughing HPC, full cut" />
+    </technologyPurposes>
+    <formulas>
+        <formula name="fZ" type="feedrate">
+            <param name="formula" value="fz*z*n" />
+        </formula>
+        <formula name="feedrateAxial" type="feedrate">
+            <param name="formula" value="fz*z*n/3" />
+        </formula>
+        <formula name="feedrateReduced" type="feedrate">
+            <param name="formula" value="fz*z*n*0.7" />
+        </formula>
+        <formula name="fN" type="speed">
+            <param name="formula" value="(Vc*1000)/(d*pi)" />
+        </formula>
+    </formulas>
+    <materials>
+        <material name="2024 alliages corroyés traités  70-150 HB" />
+    </materials>
+    <cuttingMaterials>
+        <cuttingMaterial name="MD">
+            <params />
+        </cuttingMaterial>
+    </cuttingMaterials>
+    <couplings />
+    <coolants>
+        <coolant number="1">
+            <param name="comment" value="External coolant" />
+            <param name="type" value="external" />
+        </coolant>
+    </coolants>
+    <tools>
+        <tool type="endMill" name="C5397501">
+            <param name="comment" value="Fraises cylindriques AX normal" />
+            <param name="orderingCode" value="C5397501" />
+            <param name="manufacturer" value="FRAISA" />
+            <param name="cuttingMaterial" value="MD" />
+            <param name="lengthOfUnit" value="mm" />
+            <param name="toolTotalLength" value="83" />
+            <param name="cuttingEdges" value="3" />
+            <param name="cuttingLength" value="26" />
+            <param name="toolShaftType" value="none" />
+            <param name="toolShaftDiameter" value="12" />
+            <param name="toolShaftChamferDefMode" value="abs" />
+            <param name="toolShaftChamferAbsPos" value="0" />
+            <param name="toolDiameter" value="12" />
+            <param name="taperHeight" value="26" />
+            <param name="collar" value="0" />
+            <param name="tipDiameter" value="0" />
+            <param name="cornerRadius" value="1e-05" />
+            <param name="coreDiameter" value="0" />
+            <param name="coreHeight" value="0" />
+            <param name="discHeight" value="0" />
+            <tecsets>
+                <tecset type="milling">
+                    <param name="material" value="2024 alliages corroyés traités  70-150 HB" />
+                    <param name="purpose" value="Roughing HPC, full cut" />
+                    <param name="lengthOfUnit" value="mm" />
+                    <param name="spindleSpeedFormula" value="fN" />
+                    <param name="cuttingSpeed" value="500" />
+                    <param name="coolants" value="1" />
+                    <param name="cuttingDirection" value="upAndDown" />
+                    <param name="feedratePerEdge" value="0.12" />
+                    <param name="cuttingWidth" value="12" />
+                    <param name="cuttingLength" value="18" />
+                    <param name="plungeAngle" value="0" />
+                    <param name="planeFeedrateFormula" value="fZ" />
+                    <param name="zFeedrateFormula" value="feedrateAxial" />
+                    <param name="reducedFeedrateFormula" value="feedrateReduced" />
+                </tecset>
+            </tecsets>
+        </tool>
+    </tools>
+</omtdx>

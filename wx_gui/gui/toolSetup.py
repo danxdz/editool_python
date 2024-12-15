@@ -82,10 +82,10 @@ class toolSetupPanel(wx.Dialog):
         #need to divide the list in two lists
         #one for masks and one for tsmodels
         for i, mask_textctrl in enumerate(self.mask_textctrls):
-            if i % 2 == 0:
+            if i % 2 == 0: #even index is mask
                 mask = mask_textctrl.GetValue()
                 masks.append(mask+"\n")
-            else:
+            else: #odd index is tsmodel
                 tsmodel = mask_textctrl.GetValue()
                 #masks.append(tsmodel+"\n")
         

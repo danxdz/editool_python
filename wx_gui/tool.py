@@ -1,15 +1,10 @@
 #hardcoded values for tool types
 class ToolsDefaultsData:
-    '''
-    
+    '''    
         tool_names_mask
-
         tool_types
-
         ts_models
-
         coolants_types    
-
     '''
 
     tool_names_mask = [
@@ -77,8 +72,6 @@ class ToolsDefaultsData:
     -   Tap M10*1,5 L35 SD10
     -   Internal Thread Mill ISO P1,5 L30 SD10
     -   Constant Reamer D10 L20 SD9
-
-
     '''
 
 
@@ -98,6 +91,8 @@ class ToolsCustomData:
         self.tool_types_list = []
         """ list of all tools types names """
         self.full_tools_list = []
+        """ list of all tools """
+        self.filtered_tools = []
         """ list of filtered tools """
         self.tool_names_mask = []
         """ list of all tool names masks """
