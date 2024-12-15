@@ -26,6 +26,9 @@ from importTools.validateImportDialogue import validateToolDialog
 from importTools import import_past
 from importTools import import_xml_wx
 
+
+from databaseTools import saveTool
+
 from export_xml_wx import create_xml_data
 
 from tool import ToolsCustomData
@@ -156,14 +159,14 @@ class ToolManagerUI(wx.Frame):
         #print("self.icons_bar_widget :: ", self.icons_bar_widget)
         main_sizer.Add(self.icons_bar_widget,  0, wx.ALL | wx.CENTER, 5)
         
-        #create big icon button "plus" to add new tool
+        '''#create big icon button "plus" to add new tool
         self.plus_icon = wx.BitmapButton(self, -1, wx.Bitmap("icons/plus.png", wx.BITMAP_TYPE_PNG), size=(50, 50))
         self.plus_icon.SetBackgroundColour(wx.Colour(240, 240, 240))
         self.Bind(wx.EVT_BUTTON, self.add_to_assembly, self.plus_icon)
         #create sizer for the plus icon
         self.assemby_sizer = wx.BoxSizer(wx.HORIZONTAL)
         self.assemby_sizer.Add(self.plus_icon, 0, wx.ALL | wx.CENTER, 5)
-        main_sizer.Add(self.assemby_sizer, 0, wx.ALL | wx.CENTER, 5)
+        main_sizer.Add(self.assemby_sizer, 0, wx.ALL | wx.CENTER, 5)'''
 
         self.panel = ToolList(self, self.gl)
 
@@ -315,6 +318,12 @@ class ToolManagerUI(wx.Frame):
             self.ts.get_current_project()
             msg = f"Error importing documents: "
 
+            #try to end the modification
+            try:
+                self.ts.end_modif("Importing STEP file",True)
+            except Exception as e:
+                logging.error(f"No ending modification, can edit: {e}")
+
             imported_documents, log, bad_document_ids = self.ts.Import_file_w_conv(10, file_path, self.ts.current_project)
             
             if imported_documents:
@@ -330,26 +339,79 @@ class ToolManagerUI(wx.Frame):
                 wx.MessageBox(f"{msg} {e}", "Error", wx.OK | wx.ICON_ERROR)
                 logging.error(msg)
 
-
-    def FindToolDialog (self):
+    def MultilineTextDialog(self, title, message):
         '''dialog to enter a tool ref to find'''
-        logging.info('ask ref')
-        #create a dialog to enter the tool ref
-        dialog = wx.TextEntryDialog(self, "Enter the tool reference", "Find a tool")
-        if dialog.ShowModal() == wx.ID_OK:
-            ref = dialog.GetValue()
-            #find the tool in the database
-            #get localpath
-            path = os.path.dirname(os.path.abspath(__file__))
-            path = os.path.join(path, "tool_parameters.txt")
-            tool = asyncio.run(locateTools.findTools.search_tool([ref], path))
-            #add the tool to the database
-            validateToolDialog(self.panel, tool, True).ShowModal()
+        logging.info('search tool')
+        #create a form to enter the tool ref with a multiline text box
+        dialog = wx.Frame(self, title=title, size=(300, 250), style=wx.DEFAULT_FRAME_STYLE & ~ (wx.RESIZE_BORDER | wx.MAXIMIZE_BOX))
+        panel = wx.Panel(dialog)
+        sizer = wx.BoxSizer(wx.VERTICAL)
+        text = wx.StaticText(panel, label=message)
+        sizer.Add(text, 0, wx.ALL | wx.CENTER, 5)
+        text_box = wx.TextCtrl(panel, style=wx.TE_MULTILINE, size=(250, 100))
+        sizer.Add(text_box, 0, wx.ALL | wx.CENTER, 5)
+        
+        #add a radio button to autosave the tool
+        auto_save = wx.CheckBox(panel, label="Auto save")
+        sizer.Add(auto_save, 0, wx.ALL | wx.CENTER, 5)
+
+        ok_button = wx.Button(panel, wx.ID_OK, "OK")
+        ok_button.Bind(wx.EVT_BUTTON, lambda event: self.on_search_tool(event, text_box, dialog))
+        sizer.Add(ok_button, 0, wx.ALL | wx.CENTER, 5)
+        panel.SetSizer(sizer)
+        dialog.Show()
+
+    def on_search_tool(self, event, text_box, dialog):
+        '''search for a tool in internet'''
+
+        ref = text_box.GetValue()
+        #find the tool in the database
+        #get localpath
+        path = os.path.dirname(os.path.abspath(__file__))
+        path = os.path.join(path, "tool_parameters.txt")
+        #check if is multiline or single line
+        if "\n" in ref:
+            ref = ref.split("\n")
+        else:
+            ref = [ref]
+        
+        for r in ref:
+            tool = asyncio.run(locateTools.findTools.search_tool(r, path,self.toolData))
+           
+            #validateToolDialog(self.panel, tool, True).ShowModal()
+             #check if data is not empty
+            if tool and tool.name and tool.name != "Name not found":
+                    if tool.D1 and tool.D1 != "0":
+                        #add tool to tool to database
+                        saveTool(tool)
+                        self.toolData.full_tools_list.append(tool)
+                        refreshToolList(self.panel, self.toolData)
+            else:
+                wx.MessageBox(f"Tool not found {r}", "Error", wx.OK | wx.ICON_ERROR)
+
         dialog.Destroy()
+       
+
+
+    def FindToolDialog(self):
+        '''dialog to enter a tool ref to find'''
+        logging.info('search tool')
+        #create a dialog to enter the tool ref with a multiline text box
+        self.MultilineTextDialog("Find a tool", "Enter the tool reference")
+
+
             
     def on_find_tool(self, event):
         '''find a tool in the database'''
         logging.info('find a tool')
+        #check if connection is available ping google
+        #if not available, show a message
+        google = "www.google.com"
+        response = os.system("ping -n 1 " + google)
+        if response != 0:
+            wx.MessageBox("No internet connection available", "Error", wx.OK | wx.ICON_ERROR)
+            return
+        
     
         find_tool_dialog = self.FindToolDialog()
 

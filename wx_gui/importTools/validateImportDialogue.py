@@ -192,7 +192,7 @@ class validateToolDialog(wx.Dialog):
             update_tool(self.tool)
         else:
             print("saving ", self.tool.name, self.tool.toolType , " in database")
-            saveTool(self.tool,self.toolData.tool_types_list)
+            saveTool(self.tool)
 
             #testdb(self.tool)
 
@@ -209,7 +209,7 @@ class validateToolDialog(wx.Dialog):
     def on_create(self, event):
         print("create " , self.tool.name, self.tool.toolType)
 
-        saveTool(self.tool,self.toolData.tool_types_list)
+        saveTool(self.tool)
 
         
         if not self.ts or self.ts.connected == False:

@@ -68,7 +68,7 @@ def delete_selected_item(self, tool):
 
 
 
-def saveTool(tool, toolTypes):
+def saveTool(tool):
     print("saveTool :: ",tool.id, tool.name, tool.toolType)
     if tool.id != 0: #filter for new tool #TODO: remove this filter
         update_tool(tool)
@@ -121,7 +121,7 @@ def saveTool(tool, toolTypes):
 
     conn.commit()
 
-    print('Tool added to database.', tool.name , toolTypes[int(tool.toolType)], "changed: " ,  conn.total_changes)
+    print('Tool added to database.', tool.name , tool.toolType, "changed: " ,  conn.total_changes)
 
     #get the last added tool id
     cursor.execute("SELECT id FROM tools ORDER BY id DESC LIMIT 1")

@@ -198,14 +198,18 @@ class ToolList(wx.Panel):
 
         #add a slider to change the size of the tool preview, can have step 1
         if self.toolData.selected_tool is not None:
-            l2 = int(self.toolData.selected_tool.L2)
+            if self.toolData.selected_tool.L2:
+                l2 = int(self.toolData.selected_tool.L2)
+            else :
+                l2 = int(self.toolData.selected_tool.L1)
             l3 = int(self.toolData.selected_tool.L3 - self.toolData.selected_tool.D3)
         else:
             l2 = 0
             l3 = 2
         # l2 cant be greater than l3
-        if l2 > l3:
+        if l2 >= l3:
             l2 = l3-2
+            l3 =  l3+2 ## need to check this
 
         self.tool_slider = wx.Slider(self, -1, l2+2, l2, l3, style=wx.SL_HORIZONTAL|wx.SL_LABELS)
         #need to change slider min and max values

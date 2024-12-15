@@ -199,12 +199,49 @@ class TopSolidAPI:
                             
             open_files = self.get_open_files() ### testing
             #bool IsCam(DocumentId inDocumentId)
+            #enumerate open cam files
+            cam_files = []
             for file in open_files:
                 if self.ts_cam.Documents.IsCam(file):
-                    print("Cam file :: ", file)
-                    self.get_tools(file, True)
+                    #IDocuments.GetMachine Method  
+                    # ElementId GetMachine(DocumentId inDocumentId)
+                    machine = self.ts_cam.Documents.GetMachine(file)
+                    print("machine :: ", self.get_name(machine))
+                    
+                    #IMachineTools.GetPockets Method 
+                    #List<ElementId> GetPockets(ElementId inMachineElementId)
+                    pockets = self.ts_cam.Machines.GetPockets(machine)
+                    print("pockets :: ", len(pockets))
+
+                    #IMachineTools.GetToolHolders Method  
+                    # List<ElementId> GetToolHolders(ElementId inMachineId)
+                    holders = self.ts_cam.Machines.GetToolHolders(machine)
+                    print("holders :: ", len(holders))
+
+                    #IMachineTools.GetMagazines Method  
+                    # List<ElementId> GetMagazines(ElementId inMachineId)
+                    magazines = self.ts_cam.Machines.GetMagazines(machine)
+                    print("magazines :: ", len(magazines))
+
+                    #IMachineTools.GetPartHolders Method  
+                    # List<ElementId> GetPartHolders(ElementId inMachineId)
+                    part_holders = self.ts_cam.Machines.GetPartHolders(machine)
+                    print("part_holders :: ", len(part_holders))
+
+                    #IMachineTools.GetParameters Method  
+                    # List<ParameterId> GetParameters(ElementId inElementId)
+                    params = self.ts_cam.Machines.GetParameters(machine)
+                    print("params :: ", len(params))
+
+                    print("Cam file :: ", file.PdmDocumentId)
+                    cam_files.append(file)
+                    tools = self.get_tools(file, True)
+                    print(f"tools :: {len(tools)}")
                 else:
                     print("Design file :: ", file)
+
+            print(f"cam_files :: {len(cam_files)}") 
+                
 
         except Exception as ex:
             print("Error initializing TopSolid:", ex)
@@ -277,34 +314,63 @@ class TopSolidAPI:
 
 
     def get_tools(self, doc_id, used = False):
-        '''get tools from tools library'''
+        '''get tools from tools cam file'''
+
+
         #toolsList<ElementId> GetTools(DocumentId inDocumentId,bool inUsed)
         tools = self.ts_cam.Documents.GetTools(doc_id, False)
         if tools is not None:
-            print("tools :: ", tools, len(tools))
-            
+                        
             for t in tools:
-                print(self.get_name(t))
+                
                 #ITools.GetPdmId Method 
                 #PdmObjectId GetPdmId(ElementId inToolId)
                 pdm_id = self.ts_cam.Tools.GetPdmId(t)
-                print("pdm_id :: ", pdm_id.Id)
+                ### print("pdm_id :: ", pdm_id.Id)
+                
                 #IDocuments.GetDocument Method 
                 #DocumentId GetDocument(PdmObjectId inPdmDocumentId)
                 doc_id = self.ts.Documents.GetDocument(pdm_id)
-                self.open_file(doc_id)
+
+                #testing open tool fimes
+                ### self.open_file(doc_id)
+                #get name 
+                tool_name = self.get_name(doc_id)
+                print("tool_name :: ", tool_name)
+
                 #List<ElementId> GetParameters(ElementId inElementId)
-                elem_id = self.ts_cam.Tools.GetParameters(t)
-                #for e in elem_id:
-                #    print(e.Name) 
+                params = self.ts_cam.Tools.GetParameters(t)                
+                ###print("params :: ", len(params))
 
+                for p in params: 
+                    try:
+                        #debug
+                        ### print(f"param :: {p.Name} :: {p.ElementId} :: {self.get_type(p.ElementId)}")
 
-                #params = self.ts_cam.Tools.GetParameters(t)
-                #print("params :: ", params, len(params))
-                #for p in params: 
-                #   print(p)
+                        #double GetPropertyRealValue(ElementId inElementId,string inFullName)
+                        #SmartObject GetNamedValue(ElementExId inElementId,string inName)
+
+                        value = self.ts_cam.Parameters.GetNamedValue(p.ElementId, p.Name)
+                        #print("value :: ", value)
+                        if value is not None:
+                            #SmartObject GetValue(ParameterId inParameterId)
+                            val = self.ts_cam.Parameters.GetValue(p)
+                            ''' p.Name examples
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.Name  ::  TopSolid.Kernel.Automating.SmartText
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.ErpPartNumber  ::  TopSolid.Kernel.Automating.SmartText
+                            $TopSolid.Cam.NC.Kernel.DB.Tools.Entities.Tool.DefinitionDocument.ManufacturerPartNumber  ::  TopSolid.Kernel.Automating.SmartText
+                            '''
+                            # extract only the parameter name
+                            param_name = p.Name.split(".")[-1]
+                            # debug
+                            ### print(param_name, " :: ", val.Value)
+
+                    except Exception as ex:
+                        print("error :: ", ex)
+                        continue
+
                 #List<ElementId> GetConstituents(	ElementId inElementId )
-
+        return tools
 
     def initFolders(self):
         try:
@@ -476,22 +542,6 @@ class TopSolidAPI:
         #current_proj_name = self.get_name(current_project)
         #return current_project, current_proj_name
     
-    def __get_open_files(self, file_type = None):
-        '''get open files'''
-        docId = []
-        tmp = self.ts.Documents.GetOpenDocuments()
-        num = len(tmp)
-        print(f"number of open files : {num}")
-        if tmp is not None:
-            if tmp.Count > 1:
-                for i in tmp:
-                    docId.append(i)
-                return docId
-            else:
-                return tmp
-        
-        print(f"file opened : {docId}")
-        return docId
     
     def is_assembly(self, file):
         '''check if file is assembly'''
@@ -586,7 +636,7 @@ class TopSolidAPI:
         except Exception as ex:
             print(str(ex))
         finally:
-            print(f"number of open files : {num}")
+            print(f"Open files : {num}")
             return docId
 
     def make_path(self, path):
@@ -670,20 +720,24 @@ class TopSolidAPI:
         '''get file importer options'''
         
         opt = self.ts.Application.GetImporterOptions(inImporterIx)
-        # debug importer options
-        if debug:
-            print(f"opt :: {opt} :: {len(opt)}")
 
         # Create a copy of the list by iterating over it
         opt_copy = [item for item in opt]
 
         for i, item in enumerate(opt_copy):
-            if item.Key == "SIMPLIFIES_GEOMETRY" or item.Key == "SEWS_SHEETS": # add more options to change if needed
+            if item.Key == "SIMPLIFIES_GEOMETRY" or item.Key == "SEWS_SHEETS" or item.Key == "TRANSLATES_MATERIAL":
                 opt[i] = self.change_option(item, item.Key, "True")
             elif item.Key == "TRANSLATES_ASSEMBLY":
                 opt[i] = self.change_option(item, item.Key, "False")
+            elif item.Key == "ASSEMBLY_DOCUMENT_EXTENSION":
+                opt[i] = self.change_option(item, item.Key, ".TopPrt")
             else:
                 opt[i] = self.change_option(item, item.Key, item.Value)
+
+        # debug options values    
+        #for item in opt:
+        #    print(f"option {item.Key} : {item.Value}")
+
         return opt
                 
 
@@ -835,7 +889,7 @@ class TopSolidAPI:
             if len(found_elements) > 0:
                 self.create_frames_from_step(step_viewer, newdoc[0], found_elements)
             elif len(frames) <= 1:
-                print("INFO :: frames > found_elements")
+                print("INFO :: step file not full supported, {len(frames)} frames found")
                 new_plan = self.ask_plan(newdoc[0])
                 use_frames.CSW = new_plan
                 
@@ -1303,9 +1357,6 @@ class TopSolidAPI:
             print(str(ex))
 
 
-   
-
-
     def searchHolder(self, file):
         '''search holder in open files'''
         holders = []
@@ -1486,7 +1537,7 @@ class TopSolidAPI:
                 #duplicate tool in database and create a new tool in TS
                 tool.id = 0 #set id to 0 to create a new tool
                 tool.TSid = "" #set TSid to empty to create a new tool
-                saveTool(tool, window.toolData.tool_types_list)
+                saveTool(tool)
                 return True
             elif answer == wx.ID_YES:
                 # create new tool in TS, update TSid in database and keep the same id
