@@ -314,7 +314,8 @@ async def browser_search_tool(reference, keys):
                                     xml_file_path = await download_xml_file(reference_code, url)
                                     break
 
-                                
+                                # Add after Fraisa block:
+
                     
                                 elif ("hoffman" in href) or ("holex" in href):
                                     valid_mfr = True
@@ -416,7 +417,17 @@ async def browser_search_tool(reference, keys):
                                         else:
                                             data["toolType"] = "0"
                                     break
-                               
+                                
+                                elif ("jongen" in href):
+                                    valid_mfr = True
+                                    data["mfr"] = "Jongen"
+                                    # Construct the URL for downloading the XML file
+                                    reference_code = ref.strip()
+                                    progress_dialog.Update(50, "Extracting data from Jongen...")
+                                    url = f"https://jongen.salessupportserver.com/wcf-productive/CIMDataService.WebSiteServices.svc/web/ExportData?SessionIDString=bkVlT3FPT1Y1WUhZMWtBNkhlOHBaK0lqMjIvaHltV1BhWi9Mdm1OUW5rVkE5ZENtbVdrSzFGT09URkphdHo3RkJueWNOMHZXSDBoSFhodkNpZ1BZQjVjdDJRY1JIWjNxTE9CTlhFaVpFeGFIOWlZUG5mSE80WmtZdGtiRUc0Z3Vuemp5VGJscXBLNC8xTUtjbDB5dTFKeHZubnA0aGxDOW5Wa0t1UUVBNzlxeVgzVU4wejhSRjlubVNsbGVuTFhDdGFUMklnaWFSRHhWNy9NS3R4MFEyZkE5SmhSRzJLRmk0TERoRm1VaEFhT3JxcDVSZjJwcmRXRGt6S2ZVUGFpekZnajJIdk5OWkpiNUtwWTZkeWtZM2xJVTB1QmZmVXd1c1pSVDM3WVdIT3dZeUl0MDNYTXp5Z0pGVytId2xrb3c%3d&EDP={reference_code}&ExportFormat=DIN4000&ExportOption=XML2021&downloadfilename=&cuid="
+                                    xml_file_path = await download_xml_file(reference_code, url)
+                                    break
+
                                 elif ("kennametal" in href):
                                     valid_mfr = True
                                     data["mfr"] = "Kennametal"
