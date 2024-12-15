@@ -60,6 +60,8 @@ F4;Angle de torsion (Angle de coupe vers le côté (radial))
 F21;NoTT;Nombre d'arêtes de coupe périphériques effectives
 F22;NoTT;Nombre d'arêtes de coupe frontales effectives
 G1;Rayon de coin:mm
+G2;chamfer;Largeur du chanfrein de coin
+G3;Angle du chanfrein de coin
 G5;Angle de profil
 G7;Front radius:mm
 H3:Désignation du matériau de coupe du fabricant
