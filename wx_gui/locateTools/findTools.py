@@ -14,11 +14,11 @@ from importTools.import_xml_wx import select_xml_type
 
 
 
-async def send_post_request():
+async def send_post_request( reference_code):
     url = "https://dixipolytool.ch/shop/fr/family/search"
     payload = {
         "_token": "GVeVJ8uPuYSaMbSEiDl8_Lt1ZT5R8RMrHHtf_XjTHVo",
-        "search_term": "387234"
+        "search_term": reference_code
     }
     headers = {
         "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/131.0.0.0 Safari/537.36",
@@ -58,9 +58,33 @@ async def send_post_request():
                 else:
                     print("Link not found")
 
+async def download_step_file(reference_code, url):
+    # Construct the URL
+    print(f"Attempting to download from URL: {url}")
+
+    # Headers for the request
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/110.0.0.0 Safari/537.36"
+    }
+    async with aiohttp.ClientSession() as session:
+        try:
+            async with session.get(url, headers=headers) as response:
+                if response.status == 200:
+                    # Read content and save the file
+                    content = await response.read()
+                    file_path = f"{reference_code}.step"
+                    with open(file_path, "wb") as file:
+                        file.write(content)
+                    print(f"STEP file saved as {file_path}")
+                else:
+                    print(f"Failed to download STEP file. HTTP Status: {response.status}")
+        except aiohttp.ClientError as e:
+            print(f"Client error occurred: {e}")
+        except Exception as e:
+            print(f"Unexpected error: {e}")
 
 async def download_xml_file(reference_code, url):
-    # Construct the Fraisa URL
+    # Construct the URL
     print(f"Attempting to download from URL: {url}")
 
     # Headers for the request
@@ -106,7 +130,7 @@ async def search_tool(ref, file_path , toolData):
     keys = await read_keys_from_file(file_path)
 
     # app = wx.App(False) 
-    #make a cicle to search each reference
+
     try:
         tool = await browser_search_tool(ref, keys)
         #print(tool.getAttributes())
@@ -116,6 +140,7 @@ async def search_tool(ref, file_path , toolData):
         logging.error(f"Error: {e}")
        
 
+    
 
 async def browser_search_tool(reference, keys):
      async with async_playwright() as p:
@@ -241,11 +266,14 @@ async def browser_search_tool(reference, keys):
 
                                     # DIXI 1345-5D-HH 387229
                                     # Need to post to DIXI website @ https://dixipolytool.ch/shop/fr/family/search to send value of reference as "search_term"
-                                    ref_serial = ref.replace(" ", "%20").replace("-", "%20")
+                                    ref_serial = ref.strip()
+
+                                    #get the right side of ref_serial
+                                    search_ref = ref_serial.split(" ")[-1]
                                     
-                                    
+
                                     # Run the async function
-                                    link = await send_post_request()
+                                    link = await send_post_request(search_ref)
                                     link = str(link)
                                     await page.goto(link, timeout=10000)
                                     await page.wait_for_load_state("load")                
@@ -265,6 +293,15 @@ async def browser_search_tool(reference, keys):
                                         data["image_url"] = image_url
                                     except Exception:
                                         data["image_url"] = "Image not found"
+
+                                    try:
+                                        #try to download the step file
+                                        #https://dixipolytool.ch/shop/STEP/all/387351.step
+                                        step_link = f"https://dixipolytool.ch/shop/STEP/all/{data["name"]}.step"
+                                        await download_step_file(ref, step_link)
+
+                                    except Exception as e:
+                                        print(f"Error downloading STEP file: {e}")
                                 
                                     #need to extract the data from the dl tag 
                                     try:
@@ -273,6 +310,17 @@ async def browser_search_tool(reference, keys):
                                             key = await rows[i].inner_text()
                                             value = await rows[i+1].inner_text()
                                             data[key] = value
+
+                                            #check tool type
+                                            if "rayon" in key:
+                                                data["toolType"] = "1"
+                                            elif "hémisphérique" in key:
+                                                data["toolType"] = "2"
+                                            elif "Perçage" in key:
+                                                data["toolType"] = "7"
+                                                ### data["neckAngle"] = "140"
+
+
                                     except Exception as e:
                                         print(f"Error extracting table data: {e}")
                                     try:
@@ -296,6 +344,7 @@ async def browser_search_tool(reference, keys):
                                                 data["OAL"] = l
                                                 data["ZEFP"] = z
                                                 data["toolMaterial"] = matter
+                                                data["mfrRef"] = ref_serial
                                                 #fix drill type
                                                 data["FHA"] = '140'
                                                 break
@@ -477,7 +526,89 @@ async def browser_search_tool(reference, keys):
                                     await page.goto(seco_link, timeout=10000)
                                     await asyncio.sleep(2)
                                     break
-                                                                
+
+                                elif ("walter" in href):
+                                    valid_mfr = True
+                                    data["mfr"] = "Walter"
+                                    
+                                        
+                                    try:
+                                        # Navigate to product page
+                                        ref_code = ref.strip() 
+                                        url = f"https://www.walter-tools.com/fr-fr/search/product/{ref_code}"
+                                        await page.goto(url)
+                                        await page.wait_for_load_state("domcontentloaded")
+                                        await asyncio.sleep(2)
+
+                                        # Click download button by span text
+                                        download_button = await page.query_selector("span.l-btn-text:has-text('Télécharger')")
+                                        if download_button:
+                                            await download_button.click()
+                                            await asyncio.sleep(2)
+
+                                            # Find and click checkbox by label text
+                                            checkbox = await page.query_selector("label.custom-checkbox-label:has-text('Je donne mon accord')")
+                                            if checkbox:
+                                                await checkbox.click()
+                                                await asyncio.sleep(2)
+
+                                                # Get download link from XML button
+                                                xml_button = await page.query_selector("button:has-text('XML – DIN 4000  (standard)')")
+                                                if xml_button:
+                                                    # Get parent div that contains data-download-uri
+                                                    download_div = await page.query_selector("div.group-item:has(button:has-text('XML – DIN 4000  (standard)'))")
+                                                    if download_div:
+                                                        download_uri = await download_div.get_attribute("data-download-uri")
+                                                        if download_uri:
+                                                            # Extract article number for filename
+                                                            article_element = await page.query_selector("product-details-price .product-detail-data-table .value")
+                                                            article_number = await article_element.inner_text()
+                                                            xml_file_path = await download_xml_file(article_number.strip(), download_uri)
+                                                            data["name"] = ref
+                                                        else:
+                                                            data["code"] = "download URI not found"
+                                                    else:
+                                                        data["code"] = "download div not found"
+                                                else:
+                                                    data["code"] = "XML button not found"
+                                            else:
+                                                data["code"] = "checkbox not found"
+                                        else:
+                                            data["code"] = "download button not found"
+                                    except Exception as e:
+                                        print(f"Error processing Walter tool: {e}")
+                                        data["code"] = "code not found"
+                                    break
+
+
+
+                                    '''try:
+                                    # Get article number (first .value)
+                                    article_element = await page.query_selector("product-details-price .product-detail-data-table .value")
+                                    # Get product code (second .value)
+                                    product_element = await page.query_selector_all("product-details-price .product-detail-data-table .value")
+                                    
+                                    if article_element and len(product_element) > 1:
+                                        article_number = await article_element.inner_text()
+                                        product_code = await product_element[1].inner_text()
+                                        
+                                        # Use article number for EDP, full reference for filename
+                                        edp = article_number.strip()
+                                        filename = f"{article_number.strip()}_{product_code.strip()}_DIN4000_strict.xml"
+                                        progress_dialog.Update(50, "Extracting data from Walter...")
+                                        
+                                        session_id = "OEU4cGZJQm9VV2cybkNFcjNTNzlQdGsyVjIzN3dkd1JpRmZGM1JkUVJTeFhHTG1YdkdRSU1CeVpodnFBaTNNTGEzY1BGUjRqZlFlVUIxeyhIWG93T3dWTWtqdDF0NVMzRkRFTTVzSlNnZ2NqUkpLSFFzcFI5UXpSci9MdXlQZVVtaG94Sm1rb2RzcFdPcWVEdHh5dTNnbGdVZEtBTkxEUm10ekZnYlpyRzlEYTBVRU9NZFZSMk9rRkJ2Skk1WWF0SE11cDlNSEszZkhpbElkMnlDVzdXRzl3R3AzM2ZSdmFnL2RocGJsWkhYZEJlTTM4VFRKOVJ0Vk1USFJnUDFneWZpSFJXazhJdFEwSFpEVll4NFpuOXhUbEY0bUNsUDBRNEFyK0lFOTRFQm89"
+                                        url = f"https://productdata.walter-tools.com/CIMDataService_3S_WR_HTML/CIMDataService.WebSiteServices.svc/web/ExportData?SessionIDString={session_id}&EDP={edp}&ExportFormat=DIN4000&ExportOption=XML2016&downloadfilename={filename}&auth=4pHbRtSmjga9I2m19rgiiFBqilM%3d&cuid="
+                                        
+                                        xml_file_path = await download_xml_file(edp, url)
+                                        data["name"] = ref
+                                    else:
+                                        data["code"] = "reference not found"
+                                except Exception as e:
+                                    print(f"Error extracting Walter reference: {e}")
+                                    data["code"] = "code not found"
+                                break'''
+                                                                                                
                     if valid_mfr:
                         if sandvik_link:
                             progress_dialog.Update(50, "Extracting data from Sandvik...")
@@ -518,7 +649,7 @@ async def browser_search_tool(reference, keys):
                             os.remove(xml_file_path)
 
                         elif seco_link: 
-                            progress_dialog.Update(50, "Extracting data from other sources...")
+                            progress_dialog.Update(50, "Extracting data from Seco...")
                         
                             try:
                                 name = await page.query_selector("span.ps-designation")

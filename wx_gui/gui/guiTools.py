@@ -153,49 +153,43 @@ def add_line(panel, tool):
 
 
 def refreshToolList(panel, toolData):
-    #print("refreshToolList :: tooltype :: ", toolType)
-    
     selected = panel.olvSimple.GetSelectedObject()
     if selected:
         print("selected :: ", selected.name)
         parent = panel.GetParent()
         parent.selected_tool = selected
-
-
-    
+   
     tool_type = toolData.selected_toolType
     tools = toolData.full_tools_list
     
     new_tool_type_text = "all"
     if tool_type != -1:
-        new_tool_type_text = toolData.tool_types_list[tool_type] 
-        #print("refreshToolList :: ", new_tool_type_text)     
+        new_tool_type_text = toolData.tool_types_list[tool_type]
+        
     if tools:
         print(f"INFO :: {len(tools)} tools loaded :: type : {new_tool_type_text}")
-        #panel.olvSimple.DeleteAllItems()
         panel.olvSimple.SetObjects(tools)
-
         panel.olvSimple.Refresh()
-        print("INFO :: refreshToolList :: ", panel.olvSimple.GetItemCount(), " :: ", len(tools))
         
         tt = panel.olvSimple.GetObjects()
+        col_count = panel.olvSimple.GetColumnCount()
+        
         for i, tool in enumerate(tt):
             if tool.TSid:
                 panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(204, 250, 229))
-                panel.olvSimple.SetItem(i, 10, "X")
+                if col_count > 10:  # Only set column 10 if it exists
+                    panel.olvSimple.SetItem(i, 10, "X")
             elif tool.imported:
                 panel.olvSimple.SetItemBackgroundColour(i, wx.Colour(255, 255, 214))
-                panel.olvSimple.SetItem(i, 10, "")
-
+                if col_count > 10:  # Only set column 10 if it exists
+                    panel.olvSimple.SetItem(i, 10, " ")
     else:
         panel.olvSimple.SetObjects(tools)
-
         print(f"INFO :: no tools loaded :: type : {new_tool_type_text}")
     
     panel.Refresh()
     panel.Update()
     panel.Layout()
-    #panel.olvSimple.Refresh()
 
 def tooltypesButtons(self):
     self.iconsBar = wx.BoxSizer(wx.HORIZONTAL)
