@@ -236,7 +236,7 @@ def copy_tool(self, tool, holder, clone): #holder = true or false
                 print("duplicate tool (db and ts): ", tool.TSid)
                 #create duplicate tool in database
                 tool.id = 0 #set id to 0 to create a new tool
-                saveTool(tool, self.toolData.tool_types_list)
+                saveTool(tool)
             elif answer == wx.ID_YES:
                 print("update TSid: ", tool.TSid)
             else:

@@ -27,6 +27,7 @@ undo;undo;annuler;desfazer
 redo;redo;refaire;refazer
 exit;exit;quitter;sair
 create;create;créer;criar
+createTool;create tool;créer outil;criar ferramenta
 createToolWithHolder;into to holder;dans le porte-outil;no suporte
 importXml;import Xml file;importer fichier Xml;importar ficheiro Xml
 importSTEP;import STEP file;importer fichier STEP;importar ficheiro STEP
@@ -37,7 +38,7 @@ importCsv;import from Csv;importer depuis Csv;importar Csv
 exportCsv;export to Csv;exporter vers Csv;exportar Csv
 importXls;import from Xls;importer depuis Xls;importar Xls
 exportXls;export to Xls;exporter vers Xls;exportar Xls
-pasteISO;Paste tool ISO13999;Coller outil ISO13999;Colar ferramenta ISO13999
+pasteISO;paste tool ISO13999;coller outil ISO13999;Colar ferramenta ISO13999
 tools;tools;outils;ferramentas
 tool;tool;outil;ferramenta
 help;help;aide;ajuda
@@ -88,11 +89,13 @@ unitTime;unit time;temps unitaire;tempo unitário
 TSid;TopSolid id;id TopSolid;id TopSolid
 tools_readed_db;Tools readed from database;Outils lus depuis la base de données;Ferramentas lidas da base de dados
 sideMill;Side Mill;Fraise;Fresa
-endMill;End Mill;Fraise;Fresa de topo
+endMill;End Mill;Fraise 2 tailles;Fresa de topo
 radiusMill;Radius Mill;Fraise à rayon;Fresa de raio
 ballNoseMill;Ball Nose Mill;Fraise hemisphérique;Fresa esférica
+ballMill;Ball Nose Mill;Fraise hemisphérique;Fresa esférica
 chamferMill;Chamfer Mill;Fraise à chanfreiner;Fresa de chanfro
 tSlotMill;T Slot Mill;Fraise à T;Fresa em T
+tslotMill;T Slot Mill;Fraise à T;Fresa em T
 dovetailMill;Dovetail Mill;Fraise à queue d'aronde;Fresa de cunha
 spotDrill;Spotting Drill;Foret à pointer;Broca de pontear
 centerDrill;Center Drill;Foret à centrer;Broca de centrar
@@ -130,3 +133,4 @@ comment;comment;commentaire;comentário
 TSid;TopSolid id;id TopSolid;id TopSolid
 imported;imported;importé;importado
 name;name;nom;nome
+findTool;find tool;rechercher outil;procurar ferramenta

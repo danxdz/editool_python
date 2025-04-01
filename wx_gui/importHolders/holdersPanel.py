@@ -1,5 +1,5 @@
 import wx
-#from topsolid_api import copy_holder 
+import topsolid_api   
 
 
 custom_tools_project_name = "Tool Lib"
@@ -14,6 +14,7 @@ class HoldersSetupPanel(wx.Dialog):
 
         #add panel
         self.panel = wx.Panel(self)
+        self.ts = topsolid_api.TopSolidAPI()
 
         #add sizer
         self.main_sizer = wx.BoxSizer(wx.VERTICAL)

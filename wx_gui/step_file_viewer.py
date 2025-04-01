@@ -74,6 +74,8 @@ class StepFileViewer:
         if self.step_data is None:
             print("Step data not loaded. Call loadStepFile() first.")
             return found_elements
+        
+        noName = 0
 
         for line in self.step_data:
             if line.startswith("#"):
@@ -99,12 +101,12 @@ class StepFileViewer:
                         element_content = parts[2:]
 
                         # If element has a name
-                        if element_name:
+                        if element_name or noName < 3:
                             # Use the element number as the name
                             #element_name = element_number
                             print(f"Named Axis2Placement3D found: {element_number} {parts}")
-
-
+                            noName = noName + 1
+                            element_name = element_number
                             # strip the # , ; and spaces from the element content
                             cart = element_content[0].replace("#", "").strip()
                             dir_z = element_content[1].replace("#", "").strip()
@@ -121,7 +123,8 @@ class StepFileViewer:
                             axis_placement = Axis2Placement3D(element_name, coord, dir_z, dir_x)
                             # to create all the Axis2Placement3D from step file
                             #found_elements[f"{element_name.strip()}_{cart}"] = axis_placement
-                            found_elements[{element_name}] = axis_placement
+                            #THIS DONT WORK - found_elements[{element_name}] = axis_placement
+                            found_elements[element_name.strip()] = axis_placement
                     elif element_type.strip() == "PRODUCT":
                         print(f"Product found: {element_number} {parts}")
                         brep_name = parts[1].replace("'", "").strip()

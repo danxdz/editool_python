@@ -35,55 +35,77 @@ class TopSolidGUI(tk.Tk):
     def OnExecute(self):
         script = self.script_area.get("1.0", tk.END).strip()
         lines = script.split('\n')
+        
         for line in lines:
-            method_name = line.split('(')[0]
-            # Remove trailing ')' and split by ','
-            args_str = line.split('(')[1].rstrip(')')
-            args = [arg.strip() for arg in args_str.split(',') if arg.strip()]
-            
-            method_parts = method_name.split('.')
-            try:
-                # Traverse the attributes of topSolid.ts to get the method
-                obj = self.topSolid.ts
-                for part in method_parts:
-                    obj = getattr(obj, part)
+            result = self.execute_line(line)
+            if result is not None:
+                messagebox.showinfo("Success", f"Result: {result}")
 
-                if callable(obj):
-                    # Verifica os argumentos do comando usando inspect
-                    sig = inspect.signature(obj)
-                    # Cria uma lista para armazenar os parâmetros
-                    real_args = []
-                    for param in sig.parameters.values():
-                        # Obtém o valor real para o parâmetro
-                        value = self.get_real_value_for_param(param, self.doc_id)
-                        if value is not None:
-                            real_args.append(value)
+    def execute_line(self, line):
+        try:
+            method_name, args = self.parse_line(line)
+            obj = self.get_method_object(method_name)
+            real_args = self.get_real_arguments(obj, args)
+            return self.invoke_method(obj, real_args)
+        except Exception as e:
+            print(f"Error executing {method_name}: {e}")
+            messagebox.showerror("Error", f"Error executing {method_name}: {e}")
+            return None
 
-                    # Executa o comando
-                    if obj.__name__ == 'Update':
-                        self.topSolid.ts.Application.StartModification("Update", True)
-                        doc = self.topSolid.ts.Documents.GetDocument(self.doc_id)
-                        dirty_doc = self.topSolid.ts.Documents.EnsureIsDirty(doc)
-                        # Altera doc id nos args
-                        real_args[0] = dirty_doc
-                        result = obj(*real_args)
-                        self.topSolid.ts.Application.EndModification(True, True)
+    def parse_line(self, line):
+        method_name = line.split('(')[0]
+        args_str = line.split('(')[1].rstrip(')')
+        args = [arg.strip() for arg in args_str.split(',') if arg.strip()]
+        return method_name, args
+
+    def get_method_object(self, method_name):
+        obj = self.topSolid.ts
+        for part in method_name.split('.'):
+            obj = getattr(obj, part)
+        return obj
+
+    def get_real_arguments(self, obj, args):
+        passed_args = []
+        for arg in args:
+            if '.' in arg:
+                arg_obj = self.get_method_object(arg)
+                if callable(arg_obj):
+                    passed_args.append(arg_obj())
+        return self.resolve_arguments(obj, passed_args)
+
+    def resolve_arguments(self, obj, passed_args):
+        sig = inspect.signature(obj)
+        real_args = []
+        for param in sig.parameters.values():
+            if passed_args:
+                for arg in passed_args:
+                    if param.name == "inObjectIds":
+                        self.doc_id = arg[0]
+                        real_args.append(arg)
                     else:
-                        result = obj(*real_args)
-                    
-                    print(f"Result: {self.topSolid.get_name(self.doc_id)} gets {obj.__name__}")
-                    if result:
-                        messagebox.showinfo("Success", f"Result: {result}")
-                else:
-                    print(f"{method_name} is not callable")
-            except Exception as e:
-                print(f"Error executing {method_name}: {e}")
-                messagebox.showerror("Error", f"Error executing {method_name}: {e}")
+                        real_args.append(self.get_real_value_for_param(param, self.doc_id))
+            else:
+                value = self.get_real_value_for_param(param, self.doc_id)
+                if value is not None:
+                    real_args.append(value)
+        return real_args
+
+    def invoke_method(self, obj, args):
+        if obj.__name__ == 'Update':
+            self.topSolid.ts.Application.StartModification("Update", True)
+            doc = self.topSolid.ts.Documents.GetDocument(self.doc_id)
+            dirty_doc = self.topSolid.ts.Documents.EnsureIsDirty(doc)
+            args[0] = dirty_doc
+            result = obj(*args)
+            self.topSolid.ts.Application.EndModification(True, True)
+        else:
+            result = obj(*args)
+        print(f"Result: {self.topSolid.get_name(self.doc_id)} gets {obj.__name__}")
+        return result
 
     def CreateMenuBar(self):
         menubar = Menu(self)
 
-        # File menu
         file_menu = Menu(menubar, tearoff=0)
         file_menu.add_command(label="Save Script", command=self.OnSaveScript)
         file_menu.add_command(label="Load Script", command=self.OnLoadScript)
@@ -99,10 +121,7 @@ class TopSolidGUI(tk.Tk):
                 for attribute in dir(api_object):
                     if attribute.lower().startswith(letter) and not attribute.startswith('_'):
                         letter_menu.add_command(label=attribute, command=lambda attr=f"{menu_name}.{attribute}": self.OnAPIMethodSelected(attr))
-                        # Check if the attribute is not a method
                         if not callable(getattr(api_object, attribute)):
-                            # Then add a submenu
-                            print(f"{menu_name}.{attribute}")
                             sub_submenu = Menu(letter_menu, tearoff=0)
                             for sub_attribute in dir(getattr(api_object, attribute)):
                                 if not sub_attribute.startswith('_'):
@@ -163,15 +182,13 @@ class TopSolidGUI(tk.Tk):
             res = os.makedirs(path, exist_ok=True)
             print("MAKE_PATH :: dir created :: ", path, res)
         except Exception as ex:
-            # Handle
             print("error :: ", ex)
             pass
+
     def get_real_value_for_param(self, param, docId=None):
-        # Este método deve ser ajustado para retornar valores reais para os parâmetros
-        if param.name == 'inObjectId' or  param.name == 'inProjectId' or param.name == 'inProjectFolderId':
-            # return object id
+        if param.name in ['inObjectId', 'inProjectId', 'inProjectFolderId']:
             return docId        
-        elif param.name == 'ioDocumentId' or param.name == 'inDocumentId':
+        elif param.name in ['ioDocumentId', 'inDocumentId']:
             if docId is None:
                 current_project = self.topSolid.ts.Pdm.GetCurrentProject()
                 proj_const = self.topSolid.ts.Pdm.GetConstituents(current_project)
@@ -188,29 +205,30 @@ class TopSolidGUI(tk.Tk):
 
                             self.make_path(export_path_docs)
 
-                            exporter_type = self.topSolid.ts.Application.GetExporterFileType(10, "outFile", "outExt")  # 10 for pdf
+                            exporter_type = self.topSolid.ts.Application.GetExporterFileType(10, "outFile", "outExt")
                             complete_path = os.path.join(export_path_docs, f"{doc_name}{exporter_type[1][0]}")
 
-                            export = self.topSolid.ts.Documents.Export(10, doc_id, complete_path)  # 10 for pdf
+                            export = self.topSolid.ts.Documents.Export(10, doc_id, complete_path)
                             objId = self.topSolid.ts.Documents.GetDocument(doc_id)
 
-            else :
+            else:
                 objId = self.topSolid.ts.Documents.GetDocument(docId)
             return objId 
         elif param.name == "inRecurses":
-            return True  # Ou False, conforme necessário
-        elif param.name == "inObjectIds" or param.name == "inObjectIds":            
-            export_list = List[type(docId)]()  # Create a .NET compatible List of PdmObjectId
-            export_list.Add(docId)  # Add your PdmObjectId to the .NET List            
+            return True
+        elif param.name == "inObjectIds":
+            if docId is None:
+                return None          
+            export_list = List[type(docId)]()
+            export_list.Add(docId)
             return export_list
         elif param.name == "inExportsForDelivery":
             return False
         elif param.name == "inExportsIncrementalPackage":
             return False
         elif param.name == "inFileFullPath":
-            #get app root path
             root_path = os.path.dirname(os.path.abspath(__file__))
-            return os.path.join(root_path, self.topSolid.get_name(docId) + ".TopPkg")
+            return os.path.join(root_path, self.topSolid.get_name(docId), ".TopPkg")
         elif param.name == "inAsksUser":
             return False
         elif param.name == "inSaves":
@@ -222,7 +240,7 @@ class TopSolidGUI(tk.Tk):
         elif param.name == "inOptions":
             return None
         else:
-            return None  # Adicione lógica para outros tipos de parâmetros conforme necessário
+            return None
 
 if __name__ == '__main__':
     app = TopSolidGUI()

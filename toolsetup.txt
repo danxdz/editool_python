@@ -1,4 +1,4 @@
-FR2T D[D] [NoTT]z Lc[L] Lu[CTS_AL]
+FR2T Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]
 FRTO Ø[D] r[r] [NoTT]z Lc[L] Lu[CTS_AL]
 FRHE Ø[D] [NoTT]z Lc[L] Lu[CTS_AL]
 FRCH Ø[D] A[A] [NoTT]z Lc[L] Lu[CTS_AL]

@@ -1,26 +1,2 @@
-2024-03-28 00:02:53 INFO Starting ediTool
-2024-03-28 00:04:47 INFO TopSolid 718 connected successfully!
-2024-03-28 00:04:47 WARNING config file not exist
-2024-03-28 00:04:47 INFO ts current language :: fr-FR
-2024-03-28 00:04:47 INFO saved language :: fr
-2024-03-28 00:06:05 INFO Start modifications
-2024-03-28 00:06:05 INFO All modifications started
-2024-03-28 00:06:06 INFO End modifications
-2024-03-28 00:06:06 INFO All modifications ended
-2024-03-28 00:06:07 INFO Created tool with id: 19_774b486d-d457-413b-9475-c91a4d6139fe&2_3782_20_1
-2024-03-28 00:06:07 INFO Tool updated in database. P8107220 tools changed: 1
-2024-03-28 00:06:13 INFO Dropped file: C:\Users\user\Downloads\tools step\OM31681.STEP
-2024-03-28 00:06:15 INFO Start modifications
-2024-03-28 00:06:15 INFO All modifications started
-2024-03-28 00:06:31 INFO End modifications
-2024-03-28 00:06:31 INFO All modifications ended
-2024-03-28 00:06:44 INFO Dropped file: C:\Users\user\Downloads\tools step\x35396.64543.21411.9714_2024-01-31-045527_SHF712040G3R050.0Z2_Basic.stp
-2024-03-28 00:06:45 INFO Start modifications
-2024-03-28 00:06:45 INFO All modifications started
-2024-03-28 00:06:46 INFO End modifications
-2024-03-28 00:06:46 INFO All modifications ended
-2024-03-28 00:08:09 INFO Dropped file: C:\Users\user\Downloads\tools step\x35396.64543.31110.17767_2022-12-02-035835_JS754030F1R020.0Z4-HXT_Basic.stp
-2024-03-28 00:08:10 INFO Start modifications
-2024-03-28 00:08:10 INFO All modifications started
-2024-03-28 00:08:10 INFO End modifications
-2024-03-28 00:08:10 INFO All modifications ended
+2025-04-01 22:05:35 INFO Starting ediTool
+2025-04-01 22:05:35 ERROR TopSolid window not found

@@ -188,8 +188,8 @@ def OnPaint(self, dc, tool):
         dc.DrawText(str(tool.L3), int(m_l3-(d3_w/2)+text_spacer_w), axis_line + int(scaled_values['D3']/2))
         
         # Draw axis line
-        dc.SetPen(wx.Pen(wx.Colour("red"), 3, wx.DOT_DASH))
-        dc.DrawLine(0, axis_line, tool_max_width, axis_line)
+        dc.SetPen(wx.Pen(wx.Colour("red"), 2, wx.PENSTYLE_LONG_DASH) )
+        dc.DrawLine(0, axis_line, tool_max_width-5, axis_line)
                     
         '''# Draw tool lines
         dc.SetPen(wx.Pen('#0f0f0f'))

@@ -37,38 +37,38 @@ class TopSolidGUI(wx.Frame):
         #add menu Pdm
         pdm_meth = self.topSolid.ts.Pdm
         doc_meth = self.topSolid.ts.Documents
+        app_meth = self.topSolid.ts.Application
         #add a menu to pdm
         pdm_menu = wx.Menu()
         doc_menu = wx.Menu()
+        app_menu = wx.Menu()
 
+        opc = [pdm_meth, doc_meth, app_meth]
+
+        for ext in opc:
+            for letter in "abcdefghijklmnopqrstuvwxyz":
+                if any(attribute.lower().startswith(letter) for attribute in dir(ext)):
+                    submenu = wx.Menu()
+                    for attribute in dir(ext):
+                        if attribute.lower().startswith(letter):
+                            menu_item = submenu.Append(wx.ID_ANY, attribute)
+                            self.menu_items[menu_item.GetId()] = [attribute, ext]
+                            submenu.Bind(wx.EVT_MENU, self.handleMenu, menu_item)
+                    if ext == pdm_meth:
+                        pdm_menu.AppendSubMenu(submenu, letter.upper())
+                    elif ext == doc_meth:
+                        doc_menu.AppendSubMenu(submenu, letter.upper())
+                    elif ext == app_meth:
+                        app_menu.AppendSubMenu(submenu, letter.upper())
         
-        #call function to get all methods from pdm and doc groupe by first letter
-        for letter in "abcdefghijklmnopqrstuvwxyz":
-            if any(attribute.lower().startswith(letter) for attribute in dir(pdm_meth)):
-                submenu = wx.Menu()
-                for attribute in dir(pdm_meth):
-                    if attribute.lower().startswith(letter):
-                        menu_item = submenu.Append(wx.ID_ANY, attribute)
-                        self.menu_items[menu_item.GetId()] = attribute
-                        submenu.Bind(wx.EVT_MENU, self.on_menu, menu_item)
-                pdm_menu.AppendSubMenu(submenu, letter.upper())
-
-            if any(attribute.lower().startswith(letter) for attribute in dir(doc_meth)):
-                submenu = wx.Menu()
-                for attribute in dir(doc_meth):
-                    if attribute.lower().startswith(letter):
-                        menu_item = submenu.Append(wx.ID_ANY, attribute)
-                        self.menu_items[menu_item.GetId()] = attribute
-                        submenu.Bind(wx.EVT_MENU, self.on_menu, menu_item)
-                doc_menu.AppendSubMenu(submenu, letter.upper())
-
         menu_bar.Append(pdm_menu, "Pdm")
         menu_bar.Append(doc_menu, "Documents")
+        menu_bar.Append(app_menu, "Application")
 
         #add menu bar to frame
         self.SetMenuBar(menu_bar)
 
-        self.pdm = None
+        self.topExt = None
         self.doc_id = []
 
         #add text to status bar
@@ -105,6 +105,8 @@ class TopSolidGUI(wx.Frame):
         
         if not data:
             data = "No Data"
+        else:
+            self.doc_id.append(data)
             
         print(f"Selected item: {self.tree.GetItemText(item)} - {data}")
 
@@ -200,11 +202,11 @@ class TopSolidGUI(wx.Frame):
                 print(f'Right clicked item: {self.tree.GetItemText(item)} - {self.topSolid.get_name(doc)} - {self.topSolid.get_name(proj)} - {proj.Id} - {doc.PdmDocumentId}')
 
         self.tree.SelectItem(item)
-        self.PopupMenu(self.ts_tree_menu(selected_nodes))
+        self.PopupMenu(self.ts_tree_menu_click(selected_nodes))
     
    
     def get_real_value_for_param(self, param, docId=None):
-        # Este método deve ser ajustado para retornar valores reais para os parâmetros
+        """Get the real value for the parameter based on its name and the selected item in the tree."""
         if param.name == 'inObjectId' or  param.name == 'inProjectId' or param.name == 'inProjectFolderId':
             # return object id
             return docId        
@@ -212,7 +214,7 @@ class TopSolidGUI(wx.Frame):
             objId = self.topSolid.ts.Documents.GetDocument(docId)
             return objId 
         elif param.name == "inRecurses":
-            return True  # Ou False, conforme necessário
+            return True  # or False
         elif param.name == "inObjectIds" or param.name == "inObjectIds":            
             export_list = List[type(docId)]()  # Create a .NET compatible List of PdmObjectId
             export_list.Add(docId)  # Add your PdmObjectId to the .NET List            
@@ -224,7 +226,10 @@ class TopSolidGUI(wx.Frame):
         elif param.name == "inFileFullPath":
             #get app root path
             root_path = os.path.dirname(os.path.abspath(__file__))
+            print(root_path)
             return os.path.join(root_path, self.topSolid.get_name(docId) + ".TopPkg")
+        elif param.name == "inFullName":
+            return os.path.join(self.topSolid.get_name(docId) + ".step")
         elif param.name == "inAsksUser":
             return False
         elif param.name == "inSaves":
@@ -233,19 +238,26 @@ class TopSolidGUI(wx.Frame):
             return True
         elif param.name == "inExporterIx":
             return 10
+        elif param.name == "inUndoSequenceName":
+            return "Update"
+        elif param.name == "inIsUndoSequenceGhost":
+            return False
         else:
-            return None  # Adicione lógica para outros tipos de parâmetros conforme necessário
+            return None 
+        
 
-    def on_menu(self, event ):
+    def handleMenu(self, event ):
         menu_id = event.GetId()
         attribute = self.menu_items.get(menu_id)
-        if attribute and self.pdm:
+        
+        self.topExt = attribute[1]     
+
+        if attribute[0] and self.topExt:
             print(f"Selected attribute: {attribute}")
-            command = getattr(self.pdm, attribute, None)
+            command = getattr(self.topExt, attribute[0], None)
             if command:
                 try:
-                    for pdm_id in self.doc_id:
-                     
+                    for pdm_id in self.doc_id:                     
                         # Verifica os argumentos do comando usando inspect
                         sig = inspect.signature(command)
                         # create a list to store the parameters
@@ -267,18 +279,21 @@ class TopSolidGUI(wx.Frame):
 
                         else:
                             result = command(*args)
-                        print(f"Result: {self.topSolid.get_name(pdm_id)} gets {command.__name__}")
+                        print(f"Target: {self.topSolid.get_name(pdm_id)} gets {command.__name__}")
                         if result:
-                            wx.MessageBox(f"Result: {result}", "Success", wx.OK | wx.ICON_INFORMATION)
+                            print(f"{self.topSolid.get_name(result)} gets {command.__name__} done")
+                        else:
+                            print(f"{command.__name__} failed")
+
 
                 except Exception as e:
                     print(f"Error executing {attribute}: {e}")
                     wx.MessageBox(f"Error executing {attribute}: {e}", "Error", wx.OK | wx.ICON_ERROR)
             else:
-                print(f"Attribute {attribute} not found in pdm")
+                print(f"Attribute {attribute} not found in {self.topExt}")
                 wx.MessageBox(f"Attribute {attribute} not found in pdm", "Error", wx.OK | wx.ICON_ERROR)
 
-    def ts_tree_menu(self, pdm_id_list):
+    def ts_tree_menu_click(self, pdm_id_list):
         menu = wx.Menu()
         item_type_name = []
 
@@ -311,25 +326,25 @@ class TopSolidGUI(wx.Frame):
             'TopSolid.Cad.Drafting.DB.Documents.DraftingDocument'
         ]
 
-        # Verificar o tipo e associar ao objeto correto
+        # check if item type is in group
         if item_type_name in pdm_group:
-            self.pdm = self.topSolid.ts.Pdm
+            self.topExt = self.topSolid.ts.Pdm
         elif item_type_name in documents_group:
-            self.pdm = self.topSolid.ts.Documents
+            self.topExt = self.topSolid.ts.Documents
         else:
-            self.pdm = self.topSolid.ts
+            self.topExt = self.topSolid.ts
         
 
 
-        if self.pdm:
+        if self.topExt:
             for letter in "abcdefghijklmnopqrstuvwxyz":
-                if any(attribute.lower().startswith(letter) for attribute in dir(self.pdm)):
+                if any(attribute.lower().startswith(letter) for attribute in dir(self.topExt)):
                     submenu = wx.Menu()
-                    for attribute in dir(self.pdm):
+                    for attribute in dir(self.topExt):
                         if attribute.lower().startswith(letter):
                             menu_item = submenu.Append(wx.ID_ANY, attribute)
-                            self.menu_items[menu_item.GetId()] = attribute  # Armazena a associação entre o ID e o atributo
-                            submenu.Bind(wx.EVT_MENU, self.on_menu, menu_item)
+                            self.menu_items[menu_item.GetId()] = [attribute, self.topExt]
+                            submenu.Bind(wx.EVT_MENU, self.handleMenu, menu_item)
                     menu.AppendSubMenu(submenu, letter.upper())  # Add the submenu to the menu
 
         return menu
@@ -685,7 +700,7 @@ class TopSolidGUI(wx.Frame):
                 f.close()
 
             elif selected_function  == "Get culture language":
-                print(self.topSolid.get_language())
+                print(self.topSolid.get_ts_language())
 
             elif selected_function  == "Read functions from open file":
                 doc = self.topSolid.get_open_files()
@@ -779,7 +794,31 @@ class TopSolidGUI(wx.Frame):
 
                 export_list = List[type(i)]()  # Create a .NET compatible List of PdmObjectId
                 export_list.Add(i)  # Add your PdmObjectId to the .NET List
-                self.topSolid.ts.Pdm.ExportPackage(export_list, False, False, "C:\\users\\user\\desktop\\" + proj_name + ".TopPkg")
+                #check if save path exists in config file "config.txt"
+                root_path = None
+                if os.path.exists("config.txt"):
+                    with open("config.txt", "r") as f:
+                    # Read all lines in the file to get a list of lines
+                        lines = f.readlines()
+                        for line in lines:
+                            # Split the line by the = character to get the key and value
+                            key, value = line.split(";")
+                            if key == "save_path":
+                                root_path = value
+                                print(root_path)
+                        if not root_path:
+                            #wxpython ask for folder to save
+                            dlg = wx.DirDialog(self, "Choose a folder to save TopPkg", style=wx.DD_DEFAULT_STYLE)
+                            if dlg.ShowModal() == wx.ID_OK:
+                                root_path = dlg.GetPath()
+                                print(root_path)
+                                # add save path to config file withou overwrite
+                                with open("config.txt", "a") as f:
+                                    f.write("save_path;" + root_path )
+                            dlg.Destroy()
+
+                self.topSolid.ts.Pdm.ExportPackage(export_list, False, False, root_path + "\\" + proj_name + ".TopPkg")
+                #self.topSolid.ts.Pdm.ExportPackage(export_list, False, False, "C:\\users\\user\\desktop\\" + proj_name + ".TopPkg")
             except Exception as e:
                 print(e)
                 
