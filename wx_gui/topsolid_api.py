@@ -237,6 +237,71 @@ class TopSolidAPI:
                     cam_files.append(file)
                     tools = self.get_tools(file, True)
                     print(f"tools :: {len(tools)}")
+
+                    #get program from cam file
+                    #IPrograms.GetPrograms Method
+                    #List<ElementId> GetPrograms(ElementId inDocumentId)
+                    programs = self.ts_cam.Programs.GetPrograms(file)
+                    print("programs :: ", len(programs))
+
+                    #get program name
+                    #string GetName(ElementId inProgramId)
+                    program_name = self.ts_cam.Programs.GetName(programs[0])
+                    print("program_name :: ", program_name)
+
+                    #get operations from cam file
+                    #IPrograms.GetComment Method 
+                    #SmartText GetComment(ElementId inProgramId)
+                    from TopSolid.Kernel.Automating import SmartText
+
+                    from TopSolid.Cam.NC.Kernel.Automating import ElementExId
+
+                    smartTextType = self.ts_cam.Programs.GetComment(programs[0])
+                    print("smartTextType :: ", smartTextType.Value)
+                    #get operations from cam file
+                    #List<ElementId> GetOperations(ElementId inProgramId)
+                    operations = self.ts_cam.Operations.GetOperations(file)
+                    print("operations :: ", len(operations))
+                    for op in operations:
+                        #IOperations.GetDescription Method  
+                        #string #GetDescription(ElementExId inElementId)
+                        #Public Sub New ( 
+                        #    inElementId As ElementId
+                        #)
+                        ap = ElementExId(op)
+                        desc = self.ts_cam.Operations.GetDescription(ap)
+                        op_tool = self.ts_cam.Operations.GetTool(ap)
+                        tool_name = self.get_name(op_tool.Id)  
+                        print(f"OP :: {desc} :: {op_tool.DocumentId.PdmDocumentId } :: {tool_name}")
+                       
+                        parameters = self.ts_cam.Parameters.GetParameters(ap)
+                        print("parameters :: ", len(parameters))
+                        pa=0
+                        for p in parameters:
+                            pa = pa + 1
+                            try:
+                                name = self.ts_cam.Parameters.GetName(p)
+                                ptype = self.ts_cam.Parameters.GetType(p)
+                                #<ParameterType.Tool: 6>
+                                if name == "Tool":
+                                    isTool = self.ts_cam.Tools.IsTool(p)
+                                    print(f"param :: {pa} :: {name} :: {isTool} :: type :: {ptype}")
+                                    tool_params = self.ts_cam.Tools.GetParameters(p)
+                                    print("tool_params :: ", len(tool_params))
+                                    for tp in tool_params:
+                                        try:
+                                            name = self.ts_cam.Parameters.GetName(tp)                                            
+                                            print(f"param :: {pa} :: {name} ")
+                                        except Exception as ex:
+                                            print(f"error :: {pa} :: {name} :: type :: {ptype} :: ", ex)                                            
+                                            continue
+
+                                value = self.ts_cam.Parameters.GetValue(p)
+                                print(f"param :: {pa} :: {name} :: {value.Value} :: type :: {ptype}")
+                            except Exception as ex:
+                                print(f"error :: {pa} :: {name} :: type :: {ptype} :: ", ex)
+                                
+                                continue
                 else:
                     print("Design file :: ", file)
 
@@ -362,8 +427,8 @@ class TopSolidAPI:
                             '''
                             # extract only the parameter name
                             param_name = p.Name.split(".")[-1]
-                            # debug
-                            ### print(param_name, " :: ", val.Value)
+                            # debug tools parameters
+                            ##print(param_name, " :: ", val.Value)
 
                     except Exception as ex:
                         print("error :: ", ex)
@@ -735,8 +800,8 @@ class TopSolidAPI:
                 opt[i] = self.change_option(item, item.Key, item.Value)
 
         # debug options values    
-        #for item in opt:
-        #    print(f"option {item.Key} : {item.Value}")
+        for item in opt:
+            print(f"option {item.Key} : {item.Value}")
 
         return opt
                 
@@ -902,7 +967,7 @@ class TopSolidAPI:
             print("shapes :: ", shapes, len(shapes))
             if len(shapes) > 1:
                 for shape in shapes:
-                    shape_name = self.get_name(shape)
+                    shape_name = self.get_name(shape) + "_shape"
                     shape_type = self.get_type(shape)
                     print(shape_name, shape_type, self.ts.Shapes.GetShapeType(shape))
                     
@@ -1042,7 +1107,7 @@ class TopSolidAPI:
                 revolved = self.ts.Sketches2D.CreateRevolvedSilhouette(shape, newAxis, True)
                 #set the name of the revolved sketch
                 #put shape_name into minus case
-                minus_shape_name = shape_name.lower()
+                minus_shape_name = shape_name.lower() + "_revolved"
                 #check if the name is numeric, so it cant be in minus case
                 if minus_shape_name.isnumeric():
                     minus_shape_name = f"shape_{minus_shape_name}"
@@ -1573,11 +1638,11 @@ class TopSolidAPI:
 
                 if not output_lib:
                     #if not found, use current project to create tools
-                    #alert user to import editool project to use all features
-                    print("editool project not found")
-                    alert = wx.MessageBox('editool project not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
+                    #alert user to import/create editool library to use all features
+                    print("editool library not found")
+                    alert = wx.MessageBox('editool library not found, use current project to create tools', 'Warning', wx.OK | wx.ICON_QUESTION)
                     
-                    #TODO :: show a dialog to create editool project
+                    #TODO :: show a dialog to create editool library
                     output_lib = self.ts.Pdm.GetCurrentProject()
 
                 output_lib = output_lib[0]

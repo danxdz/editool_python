@@ -1,2 +1,108 @@
-2024-12-15 23:30:37 INFO Starting ediTool
-2024-12-15 23:30:37 ERROR TopSolid window not found
+2025-03-22 19:01:29 INFO Starting ediTool
+2025-03-22 19:01:29 INFO TopSolid 718 connected successfully!
+2025-03-22 19:02:53 INFO import from xml file
+2025-03-22 19:02:55 INFO Parsing XML DIN4000 data
+2025-03-22 19:02:55 INFO Import xml 15520501 - 0 finished
+2025-03-22 19:02:55 INFO TopSolid 718 connected successfully!
+2025-03-22 19:03:16 INFO Dropped file: C:\works\git_clone\editool_python\wx_gui\dist\tool examples\step\CAD_208097_6.stp
+2025-03-22 19:03:16 INFO TopSolid 718 connected successfully!
+2025-03-22 19:03:17 ERROR No modification to end.
+
+Server stack trace: 
+   à System.ServiceModel.Channels.ServiceChannel.HandleReply(ProxyOperationRuntime operation, ProxyRpc& rpc)
+   à System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   à System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   à System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   à System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   à System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   à TopSolid.Kernel.Automating.IApplication.EndModification(Boolean inIsOk, Boolean inUpdates)
+2025-03-22 19:03:17 INFO All modifications ended
+2025-03-22 19:03:19 INFO Start modifications
+2025-03-22 19:03:19 INFO All modifications started
+2025-03-22 19:04:01 INFO End modifications
+2025-03-22 19:04:01 INFO All modifications ended
+2025-03-22 19:04:52 INFO Dropped file: C:\works\git_clone\editool_python\wx_gui\dist\tool examples\step\Walter_5012661_LWT.stp
+2025-03-22 19:04:52 INFO TopSolid 718 connected successfully!
+2025-03-22 19:04:53 ERROR No modification to end.
+
+Server stack trace: 
+   à System.ServiceModel.Channels.ServiceChannel.HandleReply(ProxyOperationRuntime operation, ProxyRpc& rpc)
+   à System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   à System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   à System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   à System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   à System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   à TopSolid.Kernel.Automating.IApplication.EndModification(Boolean inIsOk, Boolean inUpdates)
+2025-03-22 19:04:53 INFO All modifications ended
+2025-03-22 19:04:55 INFO Start modifications
+2025-03-22 19:04:55 INFO All modifications started
+2025-03-22 19:04:56 INFO End modifications
+2025-03-22 19:04:56 INFO All modifications ended
+2025-03-22 19:05:34 INFO Dropped file: C:\Users\user\Downloads\12019258.stp
+2025-03-22 19:06:00 INFO Dropped file: C:\Users\user\Downloads\12019258.stp
+2025-03-22 19:06:01 INFO TopSolid 718 connected successfully!
+2025-03-22 19:06:01 ERROR No modification to end.
+
+Server stack trace: 
+   à System.ServiceModel.Channels.ServiceChannel.HandleReply(ProxyOperationRuntime operation, ProxyRpc& rpc)
+   à System.ServiceModel.Channels.ServiceChannel.Call(String action, Boolean oneway, ProxyOperationRuntime operation, Object[] ins, Object[] outs, TimeSpan timeout)
+   à System.ServiceModel.Channels.ServiceChannelProxy.InvokeService(IMethodCallMessage methodCall, ProxyOperationRuntime operation)
+   à System.ServiceModel.Channels.ServiceChannelProxy.Invoke(IMessage message)
+
+Exception rethrown at [0]: 
+   à System.Runtime.Remoting.Proxies.RealProxy.HandleReturnMessage(IMessage reqMsg, IMessage retMsg)
+   à System.Runtime.Remoting.Proxies.RealProxy.PrivateInvoke(MessageData& msgData, Int32 type)
+   à TopSolid.Kernel.Automating.IApplication.EndModification(Boolean inIsOk, Boolean inUpdates)
+2025-03-22 19:06:01 INFO All modifications ended
+2025-03-22 19:06:03 INFO Start modifications
+2025-03-22 19:06:03 INFO All modifications started
+2025-03-22 19:06:05 INFO End modifications
+2025-03-22 19:06:05 INFO All modifications ended
+2025-03-22 19:08:56 INFO insert into holder for :: P8407503
+2025-03-22 19:09:03 INFO Start modifications
+2025-03-22 19:09:03 INFO All modifications started
+2025-03-22 19:09:04 INFO End modifications
+2025-03-22 19:09:04 INFO All modifications ended
+2025-03-22 19:09:05 INFO Created tool with id: 19_55d15a25-4d13-47bd-90eb-a30e27f45d33&2_7_10_1
+2025-03-22 19:09:05 INFO Tool updated in database. 15520501 tools changed: 1
+2025-03-22 19:09:15 INFO insert into holder for :: 15520501
+2025-03-22 19:09:17 INFO Start modifications
+2025-03-22 19:09:17 INFO All modifications started
+2025-03-22 19:09:17 INFO End modifications
+2025-03-22 19:09:17 INFO All modifications ended
+2025-03-22 19:09:17 INFO Start modifications
+2025-03-22 19:09:17 INFO All modifications started
+2025-03-22 19:09:17 INFO End modifications
+2025-03-22 19:09:17 INFO All modifications ended
+2025-03-22 19:09:17 INFO Start modifications
+2025-03-22 19:09:17 INFO All modifications started
+2025-03-22 19:09:17 INFO End modifications
+2025-03-22 19:09:17 INFO All modifications ended
+2025-03-22 19:09:19 INFO Start modifications
+2025-03-22 19:09:19 INFO All modifications started
+2025-03-22 19:09:20 INFO End modifications
+2025-03-22 19:09:20 INFO All modifications ended
+2025-03-22 19:09:20 INFO Start modifications
+2025-03-22 19:09:20 INFO All modifications started
+2025-03-22 19:09:20 INFO End modifications
+2025-03-22 19:09:20 INFO All modifications ended
+2025-03-22 19:09:20 INFO Start modifications
+2025-03-22 19:09:20 INFO All modifications started
+2025-03-22 19:09:20 INFO End modifications
+2025-03-22 19:09:20 INFO All modifications ended
+2025-03-22 19:09:22 INFO Start modifications
+2025-03-22 19:09:22 INFO All modifications started
+2025-03-22 19:09:22 INFO End modifications
+2025-03-22 19:09:22 INFO All modifications ended
+2025-03-22 19:09:22 INFO Start modifications
+2025-03-22 19:09:22 INFO All modifications started
+2025-03-22 19:09:23 INFO End modifications
+2025-03-22 19:09:23 INFO All modifications ended
+2025-03-22 19:09:23 INFO Start modifications
+2025-03-22 19:09:23 INFO All modifications started
+2025-03-22 19:09:23 INFO End modifications
+2025-03-22 19:09:23 INFO All modifications ended
