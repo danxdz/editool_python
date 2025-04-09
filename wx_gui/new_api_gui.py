@@ -390,7 +390,6 @@ class TopSolidGUI(wx.Frame):
         explorer_sizer.Add(check_sizer, 0, wx.ALL | wx.CENTER, 10)
         
         
-        
         #add some treeview to show the projects and files and expandable au maximum
         self.tree = wx.TreeCtrl(self.panel, style=wx.TR_HAS_BUTTONS | wx.TR_HIDE_ROOT | wx.TR_LINES_AT_ROOT | wx.TR_SINGLE)
         #make right click selected item and multiple selection

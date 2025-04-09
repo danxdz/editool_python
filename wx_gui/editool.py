@@ -43,9 +43,13 @@ if __name__ == "__main__":
     app.MainLoop()
 
 
-#make sure to close the log file and thread when the application is closed
-logging.info('Closing ediTool')
+
+#close the log file
+logging.info('Log file closed')
 logging.shutdown()
+#close the thread
 threading.Event().set()
 threading.Event().clear()
-threading.Event().wait()    
+threading.Event().wait()
+#close the application
+app.Destroy()
