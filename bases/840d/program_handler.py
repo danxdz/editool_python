@@ -2,91 +2,88 @@ import os
 import re
 
 BASE_PATH = "nc_programs"
+
 class ProgramHandler:
     def __init__(self):
         self.channel_1 = []
         self.channel_2 = []
-        self.current_step_1 = 0  # Track the current step for Channel 1
-        self.current_step_2 = 0  # Track the current step for Channel 2
+        self.current_step_1 = 0
+        self.current_step_2 = 0
+        self.loaded_program1 = ""
+        self.loaded_program2 = ""
         self.channel_1_file = ""
         self.channel_2_file = ""
-        self.ch1_run = True  # Flag to indicate if Channel 1 is running
-        self.ch2_run = True  # Flag to indicate if Channel 2 is running
+        self.ch1_run = True
+        self.ch2_run = True
         self.directory = os.path.dirname(__file__)
-        self.ch1_stack = []  # stack of (file, step, content)
+        self.ch1_stack = []
         self.ch2_stack = []
-        self.variables = {}  # Stores RGxxx and $vars
-        self.condition_stack = []  # For handling IF conditions
-
-
-
-
+        self.variables = {}
+        self.condition_stack = []
 
     def load_program(self, job_file):
-        """Load the .job file and extract the files for Channel 1 and Channel 2."""
         try:
             self.directory = os.path.dirname(job_file)
-
             with open(job_file, 'r') as file:
                 program_data = file.read().splitlines()
-
                 for line in program_data:
                     if "SELECT" in line:
                         parts = line.split()
                         if len(parts) > 1 and parts[1].endswith(".MPF"):
                             if "CH=1" in line:
+                                if self.loaded_program1 == "":
+                                    self.loaded_program1 = parts[1]
                                 self.channel_1_file = parts[1]
                             elif "CH=2" in line:
+                                if self.loaded_program2 == "":
+                                    self.loaded_program2 = parts[1]
                                 self.channel_2_file = parts[1]
-
-            # Load content from the MPF files for both channels
             self.load_channel_content(self.directory)
-
         except FileNotFoundError:
             print(f"Error: File {job_file} not found.")
         except Exception as e:
             print(f"An error occurred: {e}")
 
     def load_channel_content(self, directory):
-        """Load the contents of Channel 1 and Channel 2 files."""
         try:
-            # Load Channel 1 content if available
             if self.channel_1_file:
-                channel_1_path = os.path.join(directory, self.channel_1_file)
-                if os.path.exists(channel_1_path):
-                    with open(channel_1_path, 'r') as file:
+                path1 = os.path.join(directory, self.channel_1_file)
+                if os.path.exists(path1):
+                    with open(path1, 'r') as file:
                         self.channel_1 = self._parse_lines(file.read().splitlines())
                 else:
                     self.channel_1 = [f"Error: {self.channel_1_file} not found."]
             else:
                 self.channel_1 = ["Error: Channel 1 file not specified."]
 
-            # Load Channel 2 content if available
             if self.channel_2_file:
-                channel_2_path = os.path.join(directory, self.channel_2_file)
-                if os.path.exists(channel_2_path):
-                    with open(channel_2_path, 'r') as file:
+                path2 = os.path.join(directory, self.channel_2_file)
+                if os.path.exists(path2):
+                    with open(path2, 'r') as file:
                         self.channel_2 = self._parse_lines(file.read().splitlines())
                 else:
                     self.channel_2 = [f"Error: {self.channel_2_file} not found."]
             else:
                 self.channel_2 = ["Error: Channel 2 file not specified."]
-                
         except Exception as e:
             print(f"An error occurred while loading files: {e}")
 
-
+    # Função para extrair o conteúdo do WAITM
+    def extrair_conteudo_waitm(self, linha):
+        match = re.search(r'WAITM\(([^)]+)\)', linha)
+        return match.group(1) if match else None
 
     def _parse_lines(self, lines):
+        """Parse lines of the program, handling variables and conditions."""
         parsed_lines = []
         self.condition_stack = []  # Reset condition block
-
+        
         for line in lines:
             clean_line = line.strip()
-            if not clean_line or clean_line.startswith(";;;;"):  # Skip empty lines and comments
-                continue  # Skip full comments or empty lines
+            if not clean_line or clean_line.startswith(";"):  # Skip empty lines and comments
+                parsed_lines.append(clean_line)
+                continue
 
-            # Handle IF condition
             if clean_line.startswith("IF "):
                 if "GOTOF" in clean_line:
                     # Siemens-style conditional jump
@@ -95,37 +92,30 @@ class ProgramHandler:
                     target_label = label.strip()
 
                     try:
-                        # Replace RG/$ vars in condition
-                        condition_eval = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), condition_expr)
+                        condition_expr = condition_expr.replace("<>", "!=").replace(" OR ", " or ").replace(" AND ", " and ").replace(" NOT ", " not ")
+                        condition_eval = re.sub(r"(\$?[A-Z]+\d+|\b[A-Z_]+\d+\b)", lambda m: str(self.variables.get(m.group(1), 0)), condition_expr)
                         result = eval(condition_eval)
                         if not result:
                             print(f"Jumping to label {target_label} (condition {condition_expr} was False)")
-                            # You may want to store a jump signal, or skip lines until label
                             self._jump_to_label = target_label  # implement this behavior
                     except Exception as e:
                         print(f"Failed to eval conditional jump: {clean_line} ({e})")
                     continue
 
-            # Handle ENDIF (optional for future nested conditions)
             if clean_line.startswith("ENDIF"):
                 if self.condition_stack:
                     self.condition_stack.pop()
                 continue
 
-            # Check if we're inside a false IF block
             if False in self.condition_stack:
                 continue  # skip lines inside an unmet IF
 
-            # Remove inline comments
             code_part = clean_line.split(";")[0].strip()
 
-            # Handle assignments
             match = re.match(r"^(?P<var>\$?[A-Z]+\d+)\s*=\s*(?P<expr>.+)$", code_part)
             if match:
                 var = match.group("var")
                 expr = match.group("expr")
-
-                # Replace variables in the expression
                 expr_resolved = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), expr)
 
                 try:
@@ -140,43 +130,6 @@ class ProgramHandler:
 
         return parsed_lines
 
-    def _evaluate_condition(self, condition_expr):
-        try:
-            # Replace `<>` with `!=` to make it valid Python syntax
-            condition_expr = condition_expr.replace("<>", "!=")
-
-
-            # Replace variables in the condition (both $vars and RGxx vars)
-            condition_expr = re.sub(
-                r"(\$?[A-Z]+\d+)", 
-                lambda m: str(self.variables.get(m.group(1), 0)), 
-                condition_expr
-            )
-
-            # Now evaluate the condition with the corrected syntax
-            # Using locals() or globals() to ensure the variables are accessible
-            return bool(eval(condition_expr, {}, self.variables))
-        except Exception as e:
-            print(f"Condition eval failed: {condition_expr} ({e})")
-            return False
-
-
-
-
-    def _extract_subprogram_call(self, line):
-        """Finds Lxxxx subprogram call in a line like 'N60 L1001 ;Comment'."""
-        match = re.search(r'\bL(\d{4})\b', line)
-        if match:
-            return f"L{match.group(1)}"
-        
-        # Check for subprogram calls in the form of Lxxx : machine code #line = N55 L708  ;Description
-        # This is a more specific case where Lxxx is followed by a colon and some other text
-        match = re.search(r'\bL(\d{4})\s*:', line) # d
-        if match:
-            return f"L{match.group(1)}"
-        
-        return None
-    
     def run_program(self):
         """Runs both channels until completion."""
         print("Starting program execution...")
@@ -184,12 +137,18 @@ class ProgramHandler:
             self.step_execution()
         print("Program execution completed.")
 
-
-
+    def reset_simulation(self):
+        """Reset the simulation state."""
+        self.current_step_1 = 0
+        self.current_step_2 = 0
+        self.channel_1_file = self.loaded_program1
+        self.channel_2_file = self.loaded_program2
+        self.variables = {}
+        self.subprograms = {}
+        self.jump_targets = {}
 
     def step_execution(self):
         """Simulate stepping through the program for both channels, independently."""
-        # Process steps for both channels
         self.process_channel_step(1)
         self.process_channel_step(2)
 
@@ -229,18 +188,24 @@ class ProgramHandler:
                 print(f"Channel {channel_number} is now executing {subprogram}.SPF")
             return
         
-        # Handle machine program calls (Lxxx) L708 , L700
-        # Check if the line start not with PROC
-        if "PROC" not in line:
-            if "def" not in line:
-                if "L" in line:                
-                    l_call = re.search(r'\bL(\d{3})\b', line)
-                    if l_call:
-                        l_number = l_call.group(1)
-                        print(f"Channel {channel_number} calling machine program L{l_number}.")
-                        if self.open_machine_program(l_number, channel=channel_number):
-                            print(f"Channel {channel_number} is now executing L{l_number}.SPF")
-                        return
+        # Handle machine program calls (Lxxx)
+        if "PROC" not in line and "def" not in line and "L" in line:
+            l_call = re.search(r'\bL(\d{3})\b', line)
+            if l_call:
+                l_number = l_call.group(1)
+                print(f"Channel {channel_number} calling machine program L{l_number}.")
+                if self.open_machine_program(l_number, channel=channel_number):
+                    print(f"Channel {channel_number} is now executing L{l_number}.SPF")
+                return
+            
+        # Handle M0 and M1 commands
+        if "M0" in line or "M1" in line:
+            if channel_number == 1:
+                self.ch1_run = False
+            else:
+                self.ch2_run = False
+            print(f"Channel {channel_number} paused at step {current_step + 1}.")
+            return
 
         # Handle return from subprogram (M17)
         if "M17" in line:
@@ -269,20 +234,21 @@ class ProgramHandler:
 
         # If both channels are waiting, check for synchronization
         if self.ch1_run == False and self.ch2_run == False:
-            if self.channel_1[self.current_step_1] == self.channel_2[self.current_step_2]:
+            conteudo_ch1 = self.extrair_conteudo_waitm(self.channel_1[self.current_step_1])
+            conteudo_ch2 = self.extrair_conteudo_waitm(self.channel_2[self.current_step_2])
+            
+            if conteudo_ch1 == conteudo_ch2:
                 self.ch1_run = self.ch2_run = True
                 print(f"Both channels are synchronized at step {self.current_step_1 + 1}.")
                 self.current_step_1 += 1
                 self.current_step_2 += 1
-            return
 
-        # Allow the running channel to proceed
-        if channel_number == 1 and self.ch1_run:
-            self.current_step_1 += 1
-        elif channel_number == 2 and self.ch2_run:
-            self.current_step_2 += 1
-
-                
+        else:
+            # Allow the running channel to proceed
+            if channel_number == 1 and self.ch1_run and self.current_step_1 < len(self.channel_1):
+                self.current_step_1 += 1
+            if channel_number == 2 and self.ch2_run and self.current_step_2 < len(self.channel_2):
+                self.current_step_2 += 1
 
     def _parse_goto(self, line):
         """Helper function to extract the target line from a GOTO command."""
@@ -295,16 +261,17 @@ class ProgramHandler:
                     pass
         return None
 
-    def get_current_lines(self):
-        """Get the current line from both channels."""
-        line_channel_1 = self.channel_1[self.current_step_1] if self.current_step_1 < len(self.channel_1) else "End of Channel 1"
-        line_channel_2 = self.channel_2[self.current_step_2] if self.current_step_2 < len(self.channel_2) else "End of Channel 2"
-        return line_channel_1, line_channel_2
-
-    def reset_simulation(self):
-        """Reset the simulation state."""
-        self.current_step_1 = 0
-        self.current_step_2 = 0
+    def _extract_subprogram_call(self, line):
+        """Finds Lxxxx subprogram call in a line like 'N60 L1001 ;Comment'."""
+        if line.startswith(";"):
+            return None
+        match = re.search(r'\bL(\d{4})\b', line)
+        if match:
+            return f"L{match.group(1)}"
+        match = re.search(r'\bL(\d{4})\s*:', line)
+        if match:
+            return f"L{match.group(1)}"
+        return None
 
     def open_subprogram(self, subprogram_name, channel):
         """Push current state, load a subprogram, and replace channel content."""
@@ -330,14 +297,13 @@ class ProgramHandler:
         except Exception as e:
             print(f"Error loading subprogram {subprogram_name}: {e}")
         return False
-    
 
     def open_machine_program(self, subprogram_name, channel):
-        """Push current state, load a subprogram, and replace channel content."""
+        """Load a machine subprogram, and replace channel content."""
         try:
             filename = f"N_L{subprogram_name}_SPF.txt"
-            subprogram_path = os.path.join(self.directory, filename)
-
+            subprogram_path = os.path.join(self.directory, "machine", filename)
+            
             with open(subprogram_path, 'r') as file:
                 subprogram_content = self._parse_lines(file.read().splitlines())
 
@@ -352,7 +318,7 @@ class ProgramHandler:
 
                 return True
         except FileNotFoundError:
-            print(f"Subprogram {subprogram_name}.SPF not found.")
+            print(f"Machine program {subprogram_name}.SPF not found.")
         except Exception as e:
-            print(f"Error loading subprogram {subprogram_name}: {e}")
+            print(f"Error loading machine program {subprogram_name}: {e}")
         return False

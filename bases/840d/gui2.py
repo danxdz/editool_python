@@ -231,26 +231,47 @@ class NC_Debugger_GUI:
     def update_status(self, message):
         self.status_label.config(text=f"Status: {message}")
 
-    def reset_simulation(self, channel_number=None):
-        """Reset the simulation state."""
+    def reset_simulation(self):
+        """Resets the simulation and reloads the main programs in both channels."""
         self.program_handler.reset_simulation()
-        self.update_status("Simulation reset.")
 
-        # Clear the text areas and reset the current line highlighting
-        if channel_number == 1:
-            self.channel_1_text.tag_remove("highlight", "1.0", tk.END)
-            self.channel_1_text.config(state=tk.NORMAL)
-            self.channel_1_text.delete(1.0, tk.END)
-            self.channel_1_text.config(state=tk.DISABLED)
-        elif channel_number == 2:
-            self.channel_2_text.tag_remove("highlight", "1.0", tk.END)
-            self.channel_2_text.config(state=tk.NORMAL)
-            self.channel_2_text.delete(1.0, tk.END)
-            self.channel_2_text.config(state=tk.DISABLED)
+        # Set text areas to the main programs
+        self.channel_1_text.delete("1.0", tk.END)
+        self.channel_1_text.insert(tk.END, self.program_handler.loaded_program1)
+
+        self.channel_2_text.delete("1.0", tk.END)
+        self.channel_2_text.insert(tk.END, self.program_handler.loaded_program2)
+
+        # Reprocess and highlight new content
+        self.refresh_textboxes()
+        self.scroll_and_highlight()
 
 
-        # Reset the status label
-        self.status_label.config(text="Status: Simulation reset.")
+
+        # Reset stack displays
+        self.stack_label_1.config(text="Stack: []")
+        self.stack_label_2.config(text="Stack: []")
+
+        # Reset variable list
+        self.update_variable_listbox()
+
+        # Remove highlights
+        self.channel_1_text.tag_remove("highlight", "1.0", tk.END)
+        self.channel_2_text.tag_remove("highlight", "1.0", tk.END)
+
+        # Reactivate buttons
+        self.step_button.config(state=tk.NORMAL)
+        self.play_button.config(state=tk.NORMAL)
+        self.reset_button.config(state=tk.NORMAL)
+        self.load_button.config(state=tk.NORMAL)  # ✅ allow loading a new program
+
+        self.update_status("Simulation reset to main programs.")
+
+        #stop the current thread if running
+        if self.running:
+            self.running = False
+            if self.thread.is_alive():
+                self.thread.join()
     
     def update_status(self, message):
         """Update the status label with the provided message."""
