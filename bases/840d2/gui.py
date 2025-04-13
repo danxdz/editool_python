@@ -2,20 +2,11 @@ import tkinter as tk
 from tkinter import scrolledtext, messagebox, font
 from tkinter import filedialog  # For file selection dialog
 from program_handler import ProgramHandler
-from channel_state import ChannelState
-
-import time
-
-import threading
 
 class NC_Debugger_GUI:
-    def __init__(self, master, program_handler: ProgramHandler, channel_state: ChannelState = None):
-        """Initialize the GUI components and layout."""
+    def __init__(self, master, program_handler: ProgramHandler):
         self.master = master
-        self.running = False
-        self.thread = None
         self.program_handler = program_handler
-        self.channel_state = channel_state if channel_state else ChannelState(1)  # Default to channel 1
         self.mono_font = font.Font(family="Courier New", size=10)
         self.status_font = font.Font(family="Segoe UI", size=9)
         self.setup_gui()
@@ -71,53 +62,36 @@ class NC_Debugger_GUI:
         self.var_listbox.pack(fill=tk.BOTH, expand=True)
 
         mpane.add(var_frame, stretch="always")
+
+
+
+
         # Status display
         self.status_label = tk.Label(self.master, text="Status: Ready.", bd=1, relief=tk.SUNKEN, anchor=tk.W, font=self.status_font)
         self.status_label.pack(side=tk.BOTTOM, fill=tk.X, padx=5, pady=2)
 
-    def update_variable_listbox(self):
-        """Update the variable listbox with current variable values."""
-        self.var_listbox.delete(0, tk.END)
-        for var, val in sorted(self.program_handler.variables.items()):
-            self.var_listbox.insert(tk.END, f"{var} = {val}")
-
-
     def run_program(self):
-        if not self.running:
-            # Start running
-            self.running = True
-            self.play_button.config(text="⏸️ Pause")
-            self.thread = threading.Thread(target=self._run_program_loop)
-            self.thread.daemon = True
-            self.thread.start()
-            
-        else:
-            # Pause execution
-            self.running = False
-            self.play_button.config(text="▶️ Play")
+        """Runs both channels until completion."""
+        print("Starting program execution...")
 
-
-    def _run_program_loop(self):
-        self.update_status("Running...")
-        while self.running and (
+        while (
             self.program_handler.current_step_1 < len(self.program_handler.channel_1)
             or self.program_handler.current_step_2 < len(self.program_handler.channel_2)
         ):
-            
-            self.program_handler.step_execution()
+            self.step_execution()
+            self.refresh_textboxes()  # Refresh the text areas after each step
+            self.scroll_and_highlight()  # Scroll to the current line and highlight it
+            self.stack_label_1.config(text=f"Stack: {[line[0][0] for line in self.program_handler.ch1_stack]}")
+            self.stack_label_2.config(text=f"Stack: {[line[0][0] for line in self.program_handler.ch2_stack]}")
+            self.var_listbox.delete(0, tk.END)
+            for var, val in sorted(self.program_handler.variables.items()):
+                self.var_listbox.insert(tk.END, f"{var} = {val}")
+            # Add a small delay to simulate real-time execution
+            self.master.update_idletasks()  # Update the GUI to reflect changes
+            self.master.after(5)  # Adjust the delay as needed (in milliseconds)
 
-            self.master.after(0, self.scroll_and_highlight)
-            self.master.after(0, lambda: self.stack_label_1.config(
-                text=f"Stack: {[line[0][0] for line in self.program_handler.ch1_stack]}"))
-            self.master.after(0, lambda: self.stack_label_2.config(
-                text=f"Stack: {[line[0][0] for line in self.program_handler.ch2_stack]}"))
-            self.master.after(0, self.update_variable_listbox)
-
-            time.sleep(0.01)  # Adjust the sleep time as needed
-
-        self.master.after(0, self.update_status, "Program execution completed.")
-        self.master.after(0, lambda: self.play_button.config(text="▶️ Play"))
-        self.running = False
+        print("Program execution completed.")
+        self.update_status("Program execution completed.")
 
 
 
@@ -170,8 +144,9 @@ class NC_Debugger_GUI:
         self.scroll_and_highlight()
         self.stack_label_1.config(text=f"Stack: {[line[0][0] for line in self.program_handler.ch1_stack]}")
         self.stack_label_2.config(text=f"Stack: {[line[0][0] for line in self.program_handler.ch2_stack]}")
-        self.update_variable_listbox()
-
+        self.var_listbox.delete(0, tk.END)
+        for var, val in sorted(self.program_handler.variables.items()):
+            self.var_listbox.insert(tk.END, f"{var} = {val}")
 
 
 
@@ -213,8 +188,8 @@ class NC_Debugger_GUI:
 
     def highlight_current_line(self, line_channel_1, line_channel_2):
         """Highlight the current line in both channels and keep them in sync."""
-        current_line_1 = self.program_handler.current_step_1  # Channel 1 line number
-        current_line_2 = self.program_handler.current_step_2  # Channel 2 line number
+        current_line_1 = self.program_handler.current_step_1 + 1  # Channel 1 line number
+        current_line_2 = self.program_handler.current_step_2 + 1  # Channel 2 line number
 
         # Ensure the text widgets show the current line properly
         self.channel_1_text.yview_pickplace(f"{current_line_1}.0")
@@ -233,52 +208,27 @@ class NC_Debugger_GUI:
     def update_status(self, message):
         self.status_label.config(text=f"Status: {message}")
 
-    def reset_simulation(self):
-        """Resets the simulation and reloads the main programs in both channels."""
+    def reset_simulation(self, channel_number=None):
+        """Reset the simulation state."""
         self.program_handler.reset_simulation()
+        self.update_status("Simulation reset.")
 
-        # Set text areas to the main programs
-        self.channel_1_text.delete("1.0", tk.END)
-        self.channel_1_text.insert(tk.END, self.program_handler.loaded_program1)
+        # Clear the text areas and reset the current line highlighting
+        if channel_number == 1:
+            self.channel_1_text.tag_remove("highlight", "1.0", tk.END)
+            self.channel_1_text.config(state=tk.NORMAL)
+            self.channel_1_text.delete(1.0, tk.END)
+            self.channel_1_text.config(state=tk.DISABLED)
+        elif channel_number == 2:
+            self.channel_2_text.tag_remove("highlight", "1.0", tk.END)
+            self.channel_2_text.config(state=tk.NORMAL)
+            self.channel_2_text.delete(1.0, tk.END)
+            self.channel_2_text.config(state=tk.DISABLED)
 
-        self.channel_2_text.delete("1.0", tk.END)
-        self.channel_2_text.insert(tk.END, self.program_handler.loaded_program2)
 
-        # Reprocess and highlight new content
-        self.refresh_textboxes()
-        self.scroll_and_highlight()
-
-
-
-        # Reset stack displays
-        self.stack_label_1.config(text="Stack: []")
-        self.stack_label_2.config(text="Stack: []")
-
-        # Reset variable list
-        self.update_variable_listbox()
-
-        # Remove highlights
-        self.channel_1_text.tag_remove("highlight", "1.0", tk.END)
-        self.channel_2_text.tag_remove("highlight", "1.0", tk.END)
-
-        # Reactivate buttons
-        self.step_button.config(state=tk.NORMAL)
-        self.play_button.config(state=tk.NORMAL)
-        self.reset_button.config(state=tk.NORMAL)
-        self.load_button.config(state=tk.NORMAL)  # ✅ allow loading a new program
-
-        self.update_status("Simulation reset to main programs.")
-
-        #stop the current thread if running
-        if self.running:
-            self.running = False
-            if self.thread.is_alive():
-                self.thread.join()
+        # Reset the status label
+        self.status_label.config(text="Status: Simulation reset.")
     
     def update_status(self, message):
         """Update the status label with the provided message."""
         self.status_label.config(text=f"Status: {message}")
-    def update_variable_listbox(self):
-        self.var_listbox.delete(0, tk.END)
-        for var, val in sorted(self.program_handler.variables.items()):
-            self.var_listbox.insert(tk.END, f"{var} = {val}")

@@ -90,7 +90,6 @@ class NC_Debugger_GUI:
             self.thread = threading.Thread(target=self._run_program_loop)
             self.thread.daemon = True
             self.thread.start()
-            
         else:
             # Pause execution
             self.running = False
@@ -103,7 +102,6 @@ class NC_Debugger_GUI:
             self.program_handler.current_step_1 < len(self.program_handler.channel_1)
             or self.program_handler.current_step_2 < len(self.program_handler.channel_2)
         ):
-            
             self.program_handler.step_execution()
 
             self.master.after(0, self.scroll_and_highlight)
@@ -213,8 +211,8 @@ class NC_Debugger_GUI:
 
     def highlight_current_line(self, line_channel_1, line_channel_2):
         """Highlight the current line in both channels and keep them in sync."""
-        current_line_1 = self.program_handler.current_step_1  # Channel 1 line number
-        current_line_2 = self.program_handler.current_step_2  # Channel 2 line number
+        current_line_1 = self.program_handler.current_step_1 + 1  # Channel 1 line number
+        current_line_2 = self.program_handler.current_step_2 + 1  # Channel 2 line number
 
         # Ensure the text widgets show the current line properly
         self.channel_1_text.yview_pickplace(f"{current_line_1}.0")

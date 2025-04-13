@@ -20,6 +20,7 @@ class ProgramHandler:
         self.ch2_stack = []
         self.variables = {}
         self.condition_stack = []
+        self.variables["P_SIM"] = True
 
     def load_program(self, job_file):
         try:
@@ -76,57 +77,18 @@ class ProgramHandler:
     def _parse_lines(self, lines):
         """Parse lines of the program, handling variables and conditions."""
         parsed_lines = []
+        
         self.condition_stack = []  # Reset condition block
         
         for line in lines:
             clean_line = line.strip()
+
             if not clean_line or clean_line.startswith(";"):  # Skip empty lines and comments
+                continue
+            else:
+                # Handle condition blocks
                 parsed_lines.append(clean_line)
-                continue
-
-            if clean_line.startswith("IF "):
-                if "GOTOF" in clean_line:
-                    # Siemens-style conditional jump
-                    condition_part, label = clean_line[3:].split("GOTOF")
-                    condition_expr = condition_part.strip().replace("<>", "!=")
-                    target_label = label.strip()
-
-                    try:
-                        condition_expr = condition_expr.replace("<>", "!=").replace(" OR ", " or ").replace(" AND ", " and ").replace(" NOT ", " not ")
-                        condition_eval = re.sub(r"(\$?[A-Z]+\d+|\b[A-Z_]+\d+\b)", lambda m: str(self.variables.get(m.group(1), 0)), condition_expr)
-                        result = eval(condition_eval)
-                        if not result:
-                            print(f"Jumping to label {target_label} (condition {condition_expr} was False)")
-                            self._jump_to_label = target_label  # implement this behavior
-                    except Exception as e:
-                        print(f"Failed to eval conditional jump: {clean_line} ({e})")
-                    continue
-
-            if clean_line.startswith("ENDIF"):
-                if self.condition_stack:
-                    self.condition_stack.pop()
-                continue
-
-            if False in self.condition_stack:
-                continue  # skip lines inside an unmet IF
-
-            code_part = clean_line.split(";")[0].strip()
-
-            match = re.match(r"^(?P<var>\$?[A-Z]+\d+)\s*=\s*(?P<expr>.+)$", code_part)
-            if match:
-                var = match.group("var")
-                expr = match.group("expr")
-                expr_resolved = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), expr)
-
-                try:
-                    value = eval(expr_resolved)
-                    self.variables[var] = round(value, 5)
-                    print(f"Set {var} = {expr_resolved} => {value}")
-                except Exception as e:
-                    print(f"Failed to evaluate: {var} = {expr_resolved} ({e})")
-                    self.variables[var] = None
-
-            parsed_lines.append(clean_line)
+                 
 
         return parsed_lines
 
@@ -146,24 +108,61 @@ class ProgramHandler:
         self.variables = {}
         self.subprograms = {}
         self.jump_targets = {}
+        #add $P_SIM to variables
+        self.variables["$P_SIM"] = True
+
+    def jump_to_label(self, label, channel_number):
+        channel = self.channel_1 if channel_number == 1 else self.channel_2
+        for idx, line in enumerate(channel):
+            if label in line:
+                if channel_number == 1:
+                    self.current_step_1 = idx
+                else:
+                    self.current_step_2 = idx
+                return True
+        return False
 
     def step_execution(self):
         """Simulate stepping through the program for both channels, independently."""
         self.process_channel_step(1)
         self.process_channel_step(2)
+    
+    # Replace all variables in the condition with their values
+    def var_replacer(self, match, known_vars):
+        var_name = match.group(1)  # This will include $ if it's there
+        value = known_vars.get(var_name, 0)
+        return str(value)
+
 
     def process_channel_step(self, channel_number):
         """Process a single step for the given channel (1 or 2)."""
-        if channel_number == 1:
+        if channel_number == 1 and self.current_step_1 < len(self.channel_1):
             line = self.channel_1[self.current_step_1]
             current_step = self.current_step_1
             stack = self.ch1_stack
-            wait_flag = self.ch1_run
-        else:
+        elif channel_number == 2 and self.current_step_2 < len(self.channel_2):
             line = self.channel_2[self.current_step_2]
             current_step = self.current_step_2
             stack = self.ch2_stack
-            wait_flag = self.ch2_run
+        else:
+            return
+
+        # Check if the line is empty or a comment or /
+        if not line or line.startswith(";") or line.startswith("/"):
+            # Skip empty lines and comments
+            if channel_number == 1:
+                self.current_step_1 += 1
+            else:
+                self.current_step_2 += 1
+            return
+
+        # check if theres a ; at middle of the line and remove all after
+        if ";" in line:
+            line = line.split(";")[0].strip()
+            # debug 
+            print(f"Channel {channel_number} executing step {current_step + 1}: {line}")
+
+
 
         # Handle GOTO commands
         if "GOTO" in line:
@@ -189,23 +188,256 @@ class ProgramHandler:
             return
         
         # Handle machine program calls (Lxxx)
-        if "PROC" not in line and "def" not in line and "L" in line:
-            l_call = re.search(r'\bL(\d{3})\b', line)
+        #if "PROC" not in line and "def" not in line and "L" in line:
+            #l_call = re.search(r'\bL(\d{3})\b', line)
+        '''
             if l_call:
                 l_number = l_call.group(1)
                 print(f"Channel {channel_number} calling machine program L{l_number}.")
                 if self.open_machine_program(l_number, channel=channel_number):
                     print(f"Channel {channel_number} is now executing L{l_number}.SPF")
                 return
+        '''
             
+        # find parameter RG727 in line test
+    
+        rg727 = re.search(r'RG727', line)
+        if rg727:
+            # Extract the value of RG727 from the line
+            rg727_value = re.search(r'\bRG727\s*=\s*(\d+)', line)
+            if rg727_value:
+                rg727_value = rg727_value.group(1)
+                #add to variables
+                self.variables['RG727'] = rg727_value
+                print(f"Channel {channel_number} RG727 = {rg727_value}")
+
+        # Handle variable assignments
+        '''
+        ex:
+        ;BROCHE 3 = FERMETURE PAR PRESSION (invalid syntax (<string>, line 1)) --> comment
+        ;RG901 = 1  ; (RE)DEMARRAGE A L'OPERATION x - CANAL 1 (unterminated string literal (detected at line 1) (<string>, line 1))
+        RG901 = 1  ; (RE)DEMARRAGE A L'OPERATION x - CANAL 1 (unterminated string literal (detected at line 1) (<string>, line 1))
+        RG707=1         ; BRIS OUTIL 0=INACTIF 1=ACTIF
+        RG720=0       ; ZERO PIECE BROCHE 4 + CORRIGER Z=0
+        RG721=262.05+63.8 ; LONGUEUR MOYEN DE SERRAGE BROCHE 3/ORIGINE MACHINE
+        RG722=0         ; SANS EFFET
+        RG724=0        ; PROFONDEUR DE SERRAGE SUR BROCHE 3
+        ; RG711=262.3+44.82  ;LONGUEUR MANDRIN + MORS S4
+        RG711=309.3;
+        RG712=3.5       ; LARGEUR TRONCONNAGE
+        RG713=1369.9    ; POSITION DE TRAVAIL Z3
+        RG714=RG711     ; ORIGINE G54
+        RG715=RG713-RG721 ; ORIGINE G55   
+        DEF REAL CURROP_2
+        EXTERN DUMMY (INT)
+        '''
+        # Handle DEF REAL var
+        match_def = re.match(r'DEF\s+REAL\s+([A-Z_][A-Z0-9_]*)', line)
+        if match_def:
+            var_name = match_def.group(1)
+            self.variables[var_name] = 0
+            #get the value of the variable
+            value = re.search(r'([A-Z_][A-Z0-9_]*)', line)
+            if value:
+                value = value.group(1)
+                self.variables[var_name] = self.variables.get(value, 0)
+                print(f"Declared variable {var_name} with value {self.variables[var_name]}")
+            else:
+                print(f"Declared variable {var_name} with default 0")
+        
+            
+        # Handle EXTERN VAR (TYPE)
+        match_extern = re.match(r'EXTERN\s+([A-Z_][A-Z0-9_]*)\s*\(\s*[A-Z]+\s*\)', line)
+        if match_extern:
+            var_name = match_extern.group(1)
+            self.variables[var_name] = 0
+            #get the value of the variable
+            value = re.search(r'([A-Z_][A-Z0-9_]*)', line)
+            if value:
+                value = value.group(1)
+                self.variables[var_name] = self.variables.get(value, 0)
+                print(f"Declared EXTERN variable {var_name} with value {self.variables[var_name]}")
+            else:
+                print(f"Declared EXTERN variable {var_name} with default 0")
+
+        # Handle $-based parameter assignments
+        dollar_param = re.match(r'^\s*(\$\w+\[.*?\])\s*=\s*([^\s;]+)', line)
+        if dollar_param:
+            param_name = dollar_param.group(1).strip()
+            value_expr = dollar_param.group(2).strip()
+
+            #remove $
+            if param_name.startswith("$"):
+                param_name = param_name[1:]
+
+            
+            # Try to resolve variable in value (like RG714)
+            resolved_expr = re.sub(
+                r"\b(\$?[A-Z]+\d+)\b",
+                lambda m: str(self.variables.get(m.group(1), 0)),
+                value_expr
+            )
+            try:
+                value = eval(resolved_expr)
+            except Exception as e:
+                print(f"Failed to evaluate $ param: {param_name} = {resolved_expr} ({e})")
+                value = None
+
+            self.variables[param_name] = value
+            print(f"Set parameter {param_name} = {value}")
+
+        # Handle RGxxx assignments
+        self.process_rg_assignments(line)
+
+        # Handle conditional jumps
+        if re.search(r'\bIF\b', line):
+            condition_part = line.split("IF", 1)[1].strip()
+
+            # Normalize operators for Python eval
+            condition_part = (
+                condition_part
+                .replace("<>", "!=")
+                .replace(" OR ", " or ")
+                .replace(" AND ", " and ")
+            )
+
+            # Check for GOTOF
+            if "GOTOF" in condition_part:
+                condition_expr, target_label = condition_part.split("GOTOF", 1)
+                condition_expr = condition_expr.strip()
+                target_label = target_label.strip()
+
+                try:
+                    # Combine known variables
+                    known_vars = {
+                        "CHAN_NO": channel_number,
+                        **self.variables
+                    }
+
+
+                    condition_expr = re.sub(r"\bNOT\b", "not", condition_expr, flags=re.IGNORECASE)
+                    condition_expr = re.sub(r"\bAND\b", "and", condition_expr, flags=re.IGNORECASE)
+                    condition_expr = re.sub(r"\bOR\b", "or", condition_expr, flags=re.IGNORECASE)
+
+
+                    # Regex matches variables like CURROP_2, RG902, $RG707
+                    condition_eval = re.sub(
+                        r"(\$?[A-Z_][A-Z0-9_]*)",  # No \b to ensure $ is matched
+                        lambda m: self.var_replacer(m, known_vars),
+                        condition_expr
+                    )
+
+                    print(f"Evaluating condition: {condition_expr} → {condition_eval}")
+                    result = eval(condition_eval)
+                    print(f"Evaluated: {condition_eval} → {result}")
+
+                    if result:
+                        print(f"Condition is TRUE → Executing GOTOF to label {target_label}")
+                        program_lines = self.channel_1 if channel_number == 1 else self.channel_2
+                        label_line = next(
+                            (i for i, l in enumerate(program_lines) if l.strip().startswith(f"{target_label}:")),
+                            None
+                        )
+
+                        if label_line is not None:
+                            if channel_number == 1:
+                                self.current_step_1 = label_line - 1
+                            else:
+                                self.current_step_2 = label_line - 1
+                            print(f"Channel {channel_number} jumped to line {label_line + 1} ({target_label})")
+                        else:
+                            print(f"Label {target_label} not found in channel {channel_number}")
+                    else:
+                        print("Condition is FALSE → Continuing to next step")
+
+                except Exception as e:
+                    print(f"Failed to evaluate GOTOF condition: {line} ({e})")
+
+            else:
+                # Handle IF without GOTOF (block control)
+                condition_expr = condition_part.strip()
+
+                #strip $
+                if condition_expr.startswith("$"):
+                    condition_expr = condition_expr[1:]
+
+                # Normalize shorthand like "IF VAR" → "IF VAR != 0"
+                if re.match(r'^\$?[A-Z_][A-Z0-9_]*$', condition_expr):
+                    condition_expr += ' == True'
+
+                try:
+                    known_vars = {
+                        "CHAN_NO": channel_number,
+                        **self.variables
+                    }
+
+                    condition_eval = re.sub(
+                        r"\b(\$?[A-Z_][A-Z0-9_]*)\b",
+                        lambda match: self.var_replacer(match, known_vars),
+                        condition_expr
+                    )
+
+                    result = eval(condition_eval)
+                    print(f"Evaluating IF block condition: {condition_expr} → {condition_eval} → {result}")
+
+                    if not result:
+                        step_attr = "current_step_1" if channel_number == 1 else "current_step_2"
+                        steps = self.channel_1 if channel_number == 1 else self.channel_2
+
+                        curr = getattr(self, step_attr)
+                        while curr < len(steps):
+                            if "ENDIF" in steps[curr]:
+                                break
+                            curr += 1
+                        setattr(self, step_attr, curr)
+                    else:
+                        # If condition is true, just continue to the next step
+                        print(f"Condition is TRUE → Continuing to next step")
+                        pass
+                        '''if channel_number == 1:
+                            self.current_step_1 += 1
+                        else:
+                            self.current_step_2 += 1'''
+
+                except Exception as e:
+                    print(f"Failed to evaluate IF block: {line} ({e})")
+                    # Even if condition is invalid, treat it as false and skip to ENDIF
+                    step_attr = "current_step_1" if channel_number == 1 else "current_step_2"
+                    steps = self.channel_1 if channel_number == 1 else self.channel_2
+
+                    curr = getattr(self, step_attr)
+                    while curr < len(steps):
+                        if "ENDIF" in steps[curr]:
+                            break
+                        curr += 1
+                    setattr(self, step_attr, curr)
+
+
+                
         # Handle M0 and M1 commands
-        if "M0" in line or "M1" in line:
+        if re.search(r'\bM[01]\b', line):
             if channel_number == 1:
+                #self.ch1_run = False
+                pass
+            else:
+                #self.ch2_run = False
+                pass
+            print(f"Channel {channel_number} paused at step {current_step + 1}.")
+
+
+
+        #Handle M30 ( end of program ) ex: NN9999: M30
+
+        if re.search(r'M30\b', line):
+            if channel_number == 1:
+                self.current_step_1 = len(self.channel_1)
                 self.ch1_run = False
             else:
+                self.current_step_2 = len(self.channel_2)
                 self.ch2_run = False
-            print(f"Channel {channel_number} paused at step {current_step + 1}.")
+            print(f"Channel {channel_number} ended program execution at step {current_step + 1}.")
             return
+
 
         # Handle return from subprogram (M17)
         if "M17" in line:
@@ -249,6 +481,26 @@ class ProgramHandler:
                 self.current_step_1 += 1
             if channel_number == 2 and self.ch2_run and self.current_step_2 < len(self.channel_2):
                 self.current_step_2 += 1
+
+
+    def process_rg_assignments(self, line):
+        """Process RGxxx assignments in the line."""
+        # Handle RGxxx assignments
+        match = re.search(r'RG(\d{3})\s*=\s*([^;]+)', line)
+        if match:
+            var_name = f"RG{match.group(1)}"
+            expr = match.group(2).strip()
+            expr_resolved = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), expr)
+
+            try:
+                value = eval(expr_resolved)
+                self.variables[var_name] = round(value, 5)
+                print(f"Set {var_name} = {expr_resolved} => {value}")
+                return value
+            except Exception as e:
+                print(f"Failed to evaluate: {var_name} = {expr_resolved} ({e})")
+                self.variables[var_name] = None
+            
 
     def _parse_goto(self, line):
         """Helper function to extract the target line from a GOTO command."""
