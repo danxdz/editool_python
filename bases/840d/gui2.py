@@ -99,12 +99,13 @@ class NC_Debugger_GUI:
 
     def _run_program_loop(self):
         self.update_status("Running...")
+
         while self.running and (
             self.program_handler.current_step_1 < len(self.program_handler.channel_1)
             or self.program_handler.current_step_2 < len(self.program_handler.channel_2)
         ):
-            
-            self.program_handler.step_execution()
+            self.program_handler.state = "RUN"    
+            self.program_handler.run_program()
 
             self.master.after(0, self.scroll_and_highlight)
             self.master.after(0, lambda: self.stack_label_1.config(
