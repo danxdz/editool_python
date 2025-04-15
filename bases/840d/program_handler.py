@@ -303,17 +303,18 @@ class ProgramHandler:
                 var_name = match_def_assign.group(1)
                 expr = match_def_assign.group(2).strip()
                 expr_resolved = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), expr)
-
-                try:
-                    value = eval(expr_resolved)
-                    self.variables[var_name] = round(value, 5)
-                    print(f"Set {var_name} = {expr_resolved} => {value}")
-      
-                except Exception as e:
-                    print(f"Failed to evaluate: {var_name} = {expr_resolved} ({e})")
-                    self.variables[var_name] = None
-                    return
-            
+                if var_name == "T":
+                    print(f"Tool call {expr_resolved} => T{expr_resolved}")
+                else: 
+                    try:
+                        value = eval(expr_resolved)
+                        self.variables[var_name] = round(value, 5)
+                        print(f"Set {var_name} = {expr_resolved} => {value}")
+        
+                    except Exception as e:
+                        print(f"Failed to evaluate: {var_name} = {expr_resolved} ({e})")
+                        self.variables[var_name] = None
+                        return            
 
         # Handle conditional jumps
         if re.search(r'\bIF\b', line):
@@ -441,7 +442,7 @@ class ProgramHandler:
 
                 
         # Handle M0 and M1 commands
-        if re.search(r'\bM[01]\b', line):
+        '''if re.search(r'\bM[01]\b', line):
             if self.state == "RUN":
                 self.state = "M0"
                 self.ch1_run = False                
@@ -450,7 +451,7 @@ class ProgramHandler:
                 return
             elif self.state == "M0":
                 self.state = "RUN"
-                print(f"Channel {channel_number} resumed at step {current_step + 1}.")
+                print(f"Channel {channel_number} resumed at step {current_step + 1}.")'''
                 
 
 
