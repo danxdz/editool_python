@@ -162,7 +162,7 @@ class ProgramHandler:
         if ";" in line:
             line = line.split(";")[0].strip()
             # debug 
-            print(f"Channel {channel_number} executing step {current_step + 1}: {line}")
+            #print(f"Channel {channel_number} executing step {current_step + 1}: {line}")
 
 
 
@@ -303,18 +303,21 @@ class ProgramHandler:
                 var_name = match_def_assign.group(1)
                 expr = match_def_assign.group(2).strip()
                 expr_resolved = re.sub(r"(\$?[A-Z]+\d+)", lambda m: str(self.variables.get(m.group(1), 0)), expr)
-                if var_name == "T":
-                    print(f"Tool call {expr_resolved} => T{expr_resolved}")
-                else: 
-                    try:
-                        value = eval(expr_resolved)
-                        self.variables[var_name] = round(value, 5)
-                        print(f"Set {var_name} = {expr_resolved} => {value}")
-        
-                    except Exception as e:
-                        print(f"Failed to evaluate: {var_name} = {expr_resolved} ({e})")
-                        self.variables[var_name] = None
-                        return            
+                if var_name.startswith("S") and  " " in expr:
+                    pass
+                else:  
+                    if var_name == "T":
+                        print(f"Tool call {expr_resolved} => T{expr_resolved}")
+                    else: 
+                        try:
+                            value = eval(expr_resolved)
+                            self.variables[var_name] = round(value, 5)
+                            print(f"Set {var_name} = {expr_resolved} => {value}")
+            
+                        except Exception as e:
+                            print(f"Failed to evaluate: {var_name} = {expr_resolved} ({e})")
+                            self.variables[var_name] = None
+                            return            
 
         # Handle conditional jumps
         if re.search(r'\bIF\b', line):
@@ -494,16 +497,16 @@ class ProgramHandler:
                 self.ch2_run = False
                 
 
-        # If both channels are waiting, check for synchronization
-        if self.ch1_run == False and self.ch2_run == False:
-            conteudo_ch1 = self.extrair_conteudo_waitm(self.channel_1[self.current_step_1])
-            conteudo_ch2 = self.extrair_conteudo_waitm(self.channel_2[self.current_step_2])
-            
-            if conteudo_ch1 == conteudo_ch2:
-                self.ch1_run = self.ch2_run = True
-                print(f"Both channels are synchronized at step {self.current_step_1 + 1}.")
-                self.current_step_1 += 1
-                self.current_step_2 += 1
+            # If both channels are waiting, check for synchronization
+            if self.ch1_run == False and self.ch2_run == False:
+                conteudo_ch1 = self.extrair_conteudo_waitm(self.channel_1[self.current_step_1])
+                conteudo_ch2 = self.extrair_conteudo_waitm(self.channel_2[self.current_step_2])
+                
+                if conteudo_ch1 == conteudo_ch2:
+                    self.ch1_run = self.ch2_run = True
+                    print(f"Both channels are synchronized at step {self.current_step_1 + 1}.")
+                    self.current_step_1 += 1
+                    self.current_step_2 += 1
 
         else:
             # Allow the running channel to proceed

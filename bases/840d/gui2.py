@@ -105,7 +105,7 @@ class NC_Debugger_GUI:
             or self.program_handler.current_step_2 < len(self.program_handler.channel_2)
         ):
             self.program_handler.state = "RUN"    
-            self.program_handler.run_program()
+            self.program_handler.step_execution()
 
             self.master.after(0, self.scroll_and_highlight)
             self.master.after(0, lambda: self.stack_label_1.config(
@@ -114,7 +114,7 @@ class NC_Debugger_GUI:
                 text=f"Stack: {[line[0][0] for line in self.program_handler.ch2_stack]}"))
             self.master.after(0, self.update_variable_listbox)
 
-            time.sleep(0.01)  # Adjust the sleep time as needed
+            time.sleep(0.05)  # Adjust the sleep time as needed
 
         self.master.after(0, self.update_status, "Program execution completed.")
         self.master.after(0, lambda: self.play_button.config(text="▶️ Play"))
